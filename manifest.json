@@ -1,0 +1,131 @@
+{
+    "name": "Menairó Pilots",
+    "short_name": "Menairó Pilots",
+    "scope": "/",
+    "start_url": "/",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay"],
+    "description": "Menairó Pilots - Flight logs made simple",
+    "lang": "en",
+    "dir": "auto",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "assets/logos/48_white_background.png",
+            "sizes": "48x48",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/72_white_background.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/96_white_background.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/128_white_background.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/192_white_background.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/384_white_background.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/512_white_background.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "assets/logos/any.png",
+            "sizes": "500x500",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+    {
+      "src": "assets/screenshots/screen_1.png",
+      "sizes": "1080x2400",  
+      "type": "image/png",
+      "form_factor": "narrow",  
+      "label": "Home screen of the app (mobile)"  
+    },
+    {
+      "src": "assets/screenshots/screen_2.png",
+      "sizes": "1080x2400",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Pilot details (mobile)"
+    },
+    {
+      "src": "assets/screenshots/screen_3.png",
+      "sizes": "1080x2400",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Statistics view (mobile)"
+    },
+    {
+      "src": "assets/screenshots/screen_4.png",
+      "sizes": "1080x2400",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Statistics view (mobile)"
+    },
+    {
+      "src": "assets/screenshots/screen_6.png",
+      "sizes": "1080x2400",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Wind forecast (mobile)"
+    },
+    {
+      "src": "assets/screenshots/screen_dekstop_1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Home screen of the app (desktop)"
+    },
+    {
+      "src": "assets/screenshots/screen_dekstop_2.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Statistics view (desktop)"
+    },
+    {
+      "src": "assets/screenshots/screen_dekstop_3.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pilot details (desktop)"
+    },
+    {
+      "src": "assets/screenshots/screen_dekstop_4.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Wind forecast (desktop)"
+    }
+  ],
+    "categories": ["sports", "utilities"],
+    "prefer_related_applications": false
+}
