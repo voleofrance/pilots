@@ -2757,6 +2757,7 @@ cursor: pointer;
 .stress-view {
     padding: 5px;
     align-items: center;
+    gap: 10px;
 }
 /* Modal content container */
 .modal-content {
@@ -5410,10 +5411,11 @@ input[type="date"] {
 
 .stress-meter {
     width: max-content;
-    padding: 10px 10px;
+    padding: 10px 0px;
     background-color: white;
     border-radius: 8px;
     min-height: 45px;
+    min-width: 200px;
 }
 
 .stress-slider {
@@ -5449,6 +5451,7 @@ input[type="date"] {
     border-radius: 4px;
     background: #e0e0e0;
     overflow: hidden;
+    min-width: 55px;
 }
 
 .stress-fill {
