@@ -3871,7 +3871,7 @@ input:checked ~ .view-label:last-of-type {
     text-transform: uppercase;
     font-weight: 600;
     color: #6f6f6f;
-
+    margin-left: 3px;
 }
 .flight-card-type  {
     font-size: 16px;
@@ -3897,6 +3897,7 @@ input:checked ~ .view-label:last-of-type {
     align-items: center;
     gap: 2px;
     border: 1px dashed #dddddd;
+    text-transform: capitalize;
 }
 .flight-card-club-type {
     display: flex;
@@ -3925,6 +3926,8 @@ input:checked ~ .view-label:last-of-type {
     width: max-content;
     margin-right: 5px;
     border-radius: 4px;
+    align-items: center;
+    line-height: 1.1;
     
 }
 .flight-card-landing {
@@ -3934,8 +3937,8 @@ input:checked ~ .view-label:last-of-type {
     width: max-content;
     display: flex;
     border-radius: 4px;
-    
-    
+    align-items: center;
+    line-height: 1.1;
 }
 .times-card {
     color: rgb(110, 110, 110) !important;
@@ -3957,6 +3960,12 @@ input:checked ~ .view-label:last-of-type {
 }
 .spacer-img2 {
     width: 11px;
+    height: auto;
+    opacity: 0.6;
+    margin-right: 1px;
+}
+.spacer-img3 {
+    width: 12px;
     height: auto;
     opacity: 0.6;
     margin-right: 1px;
@@ -4104,7 +4113,7 @@ input:checked ~ .view-label:last-of-type {
     font-weight: 500;
     color: #717171;
     padding-left: 0;
-    margin: 0px 4px;
+    margin: 0px 6px;
     align-items: center;
 }
 .header-full {
@@ -5416,6 +5425,10 @@ input[type="date"] {
     border-radius: 8px;
     min-height: 45px;
     min-width: 200px;
+}
+.stress-meter {
+    width: 100%;
+    min-width: 300px;
 }
 
 .stress-slider {

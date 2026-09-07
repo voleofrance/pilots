@@ -4222,7 +4222,13 @@ async function editFlight(index) {
         if (stressSlider) {
             // Set the slider value to the flight's stress level or 0
             stressSlider.value = flight.stressLevel || '0';
-            const stressValue = stressSlider.parentElement.querySelector('.stress-value');
+            const group = stressSlider.closest('.stress-level-group');
+const stressValue = group?.querySelector('.stress-value');
+
+if (stressValue) {
+    stressValue.textContent = `${stressSlider.value}%`;
+}
+
             if (stressValue) {
                 // Ensure the display matches the actual flight data
                 stressValue.textContent = flight.stressLevel ? `${flight.stressLevel}%` : '0%';
@@ -4379,7 +4385,13 @@ async function addNewFlight() {
             const stressSlider = document.getElementById('stressLevel');
             if (stressSlider) {
                 stressSlider.value = 0;
-                const stressValue = stressSlider.parentElement.querySelector('.stress-value');
+                const group = stressSlider.closest('.stress-level-group');
+const stressValue = group?.querySelector('.stress-value');
+
+if (stressValue) {
+    stressValue.textContent = `${stressSlider.value}%`;
+}
+
                 if (stressValue) {
                     stressValue.textContent = '0%';
                 }
@@ -4500,7 +4512,13 @@ async function openAddFlightModal() {
         if (stressSlider) {
             // Reset both the slider and the displayed value
             stressSlider.value = '0';
-            const stressValue = stressSlider.parentElement.querySelector('.stress-value');
+            const group = stressSlider.closest('.stress-level-group');
+const stressValue = group?.querySelector('.stress-value');
+
+if (stressValue) {
+    stressValue.textContent = `${stressSlider.value}%`;
+}
+
             if (stressValue) {
                 stressValue.textContent = '0%';  // Ensure the display shows 0%
             }
@@ -6410,12 +6428,12 @@ async function displayGridView(flights) {
                         <div class="flight-card-site">${flight.site || 'No site'}</div>
                         <div class="flight-card-takeoff-landing">
                         <div class="flight-card-takeoff-landing-1">
-                        <div class="flight-card-takeoff">${flight.takeoff || 'No site'} <span class='times-card'> ${flight.timeOfDay ? `<div>${formatTimeOfDay(flight.timeOfDay)}</div>` : ''} </span></div>
+                        <div class="flight-card-takeoff"><img src="assets/up.png" class="spacer-img3" alt="UV Index">${flight.takeoff || 'No site'} <span class='times-card'> ${flight.timeOfDay ? `<div>${formatTimeOfDay(flight.timeOfDay)}</div>` : ''} </span></div>
                        </div>
-                        <div class="flight-card-takeoff-landing-img"><img src="assets/ra.png" class="spacer-img" alt="UV Index"></div>
+                        <div class="flight-card-takeoff-landing-img"><img src="assets/line.png" class="spacer-img" alt="UV Index"></div>
 
                        <div class="flight-card-takeoff-landing-1">
-                        <div class="flight-card-landing">${flight.landing || 'No site'} <span class='times-card'> ${calculateLandingTime(flight.timeOfDay, flight.time)} </span></div>
+                        <div class="flight-card-landing"><img src="assets/down.png" class="spacer-img3" alt="UV Index">${flight.landing || 'No site'} <span class='times-card'> ${calculateLandingTime(flight.timeOfDay, flight.time)} </span></div>
                         </div>
                         
                         </div>
