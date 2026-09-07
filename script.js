@@ -1047,37 +1047,37 @@ function closefaqmodal() {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    const openBtn = document.getElementById('badge-open-button');
-    const modal = document.getElementById('badge-modal');
-    const modalClose = document.querySelector('.modal-close-badge');
-    const toggle = document.getElementById('badge-open-button');
+// document.addEventListener('DOMContentLoaded', () => {
+//     const openBtn = document.getElementById('badge-open-button');
+//     const modal = document.getElementById('badge-modal');
+//     const modalClose = document.querySelector('.modal-close-badge');
+//     const toggle = document.getElementById('badge-open-button');
   
-    async function openModal() {
-        const flights = await dbOperations.getAllFromStore(STORES.flights);
-        const badges = await badgesSummary(flights || []); // Modify badgesSummary to return badge list
-        await preloadBadgeImages(badges);
+//     async function openModal() {
+//         const flights = await dbOperations.getAllFromStore(STORES.flights);
+//         const badges = await badgesSummary(flights || []); // Modify badgesSummary to return badge list
+//         await preloadBadgeImages(badges);
         
-        modal.classList.add('show');
-        document.body.classList.add('modal-open');
-      }
+//         modal.classList.add('show');
+//         document.body.classList.add('modal-open');
+//       }
       
   
-    function closeModal() {
-      modal.classList.remove('show');
-      document.body.classList.remove('modal-open');
-      if (toggle) toggle.checked = false;
-    }
+//     function closeModal() {
+//       modal.classList.remove('show');
+//       document.body.classList.remove('modal-open');
+//       if (toggle) toggle.checked = false;
+//     }
   
-    openBtn.addEventListener('click', openModal);
-    modalClose.addEventListener('click', closeModal);
+//     openBtn.addEventListener('click', openModal);
+//     modalClose.addEventListener('click', closeModal);
   
-    window.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        closeModal();
-      }
-    });
-  });
+//     window.addEventListener('click', (event) => {
+//       if (event.target === modal) {
+//         closeModal();
+//       }
+//     });
+//   });
   
   
   
@@ -2353,7 +2353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initDB();
         await loadProfile();
         await loadGear();
-        await refreshFlightSummaries();
+        // await refreshFlightSummaries();
         initializeViews();
         await loadFlights();
         // handleCookieBanner();
@@ -10266,7 +10266,7 @@ async function handleStatsBoxActivation() {
         
         // Initialize with all flights
         await updateStatsWithFilter(flights || [], 'all');
-        badgesSummary(flights || []);
+        // badgesSummary(flights || []);
         // Set up filter buttons
         setupStatsFilterButtons(flights || []);
         
@@ -10533,6 +10533,20 @@ function createAltitudeChart(points, speeds) {
     
     // Then apply smoothing
     const smoothedElevations = applyMovingAverage(fixedExtremeElevations, 15);
+
+
+    
+    const gainElevations = applyMovingAverage(
+        fixedExtremeElevations,
+        3
+    );
+    
+    const elevationGainTotal = calculateElevationGain(
+        gainElevations,
+        0
+    );
+    
+    
     
     // Find more accurate min/max elevation using smoothed data
     // Round to nearest 10m for min elevation like Leonardo might be doing
@@ -10606,6 +10620,7 @@ function createAltitudeChart(points, speeds) {
     const filteredSpeeds = trimmedSpeeds.filter(speed => speed < 50);
     const maxSpeed = Math.max(...filteredSpeeds);
     
+
     // Calculate average speed more like Leonardo does (distance/time)
     const avgSpeed = (cumulativeDistance / flightDurationMin) * 60;
     
@@ -10897,8 +10912,26 @@ function createAltitudeChart(points, speeds) {
     canvas.addEventListener('touchend', handleLeaveEvent);
     canvas.addEventListener('touchcancel', handleLeaveEvent);
     
-    return chart;
+    return {
+        chart: chart,
+        elevationGain: elevationGainTotal
+    };
 }
+function calculateElevationGain(elevations, minGainStep = 0) {
+    let gain = 0;
+
+    for (let i = 1; i < elevations.length; i++) {
+        const diff = elevations[i] - elevations[i - 1];
+
+        if (diff > minGainStep) {
+            gain += diff;
+        }
+    }
+
+    return Math.round(gain);
+}
+
+
 
 
 
@@ -11525,6 +11558,7 @@ async function showFlightDetails(index) {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
 
+        
         // MOVED HERE: Reset chart state after modal is initialized
         const chartTabsContainer = modal.querySelector('.chart-tabs');
         const chartContainers = modal.querySelector('.chart-containers');
@@ -11576,6 +11610,11 @@ async function showFlightDetails(index) {
                 }
             };
         }
+        const flightData = typeof flight.coordinates === 'string' ? 
+    JSON.parse(flight.coordinates) : flight.coordinates;
+
+
+
         // Update header information
         updateTextContent('.flight-date', flight.date);
         updateTextContent('.header-site-name', `${flight.site}`);
@@ -11936,7 +11975,8 @@ if (flight.coordinates) {
                             
                             // Check if the variation is significant (more than 5 meters)
                             const hasSignificantVariation = (maxEle - minEle) > 5;
-                            
+                            const takeoffElevation = flightData.points[0].ele;
+                       
                             // Return true only if we have valid elevations with significant variation
                             return hasSignificantVariation;
                         })();                        
@@ -11971,7 +12011,17 @@ if (flight.coordinates) {
                             
                             // Handle altitude chart
                             if (hasValidElevation) {
-                                createAltitudeChart(flightData.points, flightData.speeds);
+                                // createAltitudeChart(flightData.points, flightData.speeds);
+                                const altitudeChartResult = createAltitudeChart(
+                                    flightData.points,
+                                    flightData.speeds
+                                );
+                                
+                                updateTextContent(
+                                    '.elevation-gain',
+                                    `${altitudeChartResult.elevationGain} m`
+                                );
+                                
                             } else {
                                 // Hide the altitude tab if no valid elevation data
                                 document.querySelectorAll('.chart-tab').forEach(tab => {
@@ -12238,135 +12288,135 @@ function closeModal() {
 
 
 
-async function badgesSummary(data) {
-    const totalFlights = data.length;
-    const uniqueSitesList = await getUniqueSites();
-    const uniqueSites = uniqueSitesList.length;
+// async function badgesSummary(data) {
+//     const totalFlights = data.length;
+//     const uniqueSitesList = await getUniqueSites();
+//     const uniqueSites = uniqueSitesList.length;
 
 
 
-    const uniqueCountries = new Set(data.map(flight => flight.country || '')).size;
+//     const uniqueCountries = new Set(data.map(flight => flight.country || '')).size;
   
-    const longestFlightMinutes = data.reduce((max, flight) => {
-      const time = parseFloat(flight.time || 0);
-      return time > max ? time : max;
-    }, 0);
+//     const longestFlightMinutes = data.reduce((max, flight) => {
+//       const time = parseFloat(flight.time || 0);
+//       return time > max ? time : max;
+//     }, 0);
   
-    const flightsByDate = data.reduce((acc, flight) => {
-      const date = flight.date || 'unknown';
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {});
-    const maxFlightsInADay = Math.max(...Object.values(flightsByDate), 0);
-    const totalTime = data.reduce((sum, flight) => sum + parseFloat(flight.time || 0), 0);
-    const maxAltitude = data.reduce((max, flight) => {
-        const altitude = parseFloat(flight.max_altitude || 0);
-        return altitude > max ? altitude : max;
-      }, 0);
+//     const flightsByDate = data.reduce((acc, flight) => {
+//       const date = flight.date || 'unknown';
+//       acc[date] = (acc[date] || 0) + 1;
+//       return acc;
+//     }, {});
+//     const maxFlightsInADay = Math.max(...Object.values(flightsByDate), 0);
+//     const totalTime = data.reduce((sum, flight) => sum + parseFloat(flight.time || 0), 0);
+//     const maxAltitude = data.reduce((max, flight) => {
+//         const altitude = parseFloat(flight.max_altitude || 0);
+//         return altitude > max ? altitude : max;
+//       }, 0);
       
-    const longestDistanceKm = data.reduce((max, flight) => {
-        const distance = parseFloat(flight.flight_distance || 0);
-        return distance > max ? distance : max;
-    }, 0);
+//     const longestDistanceKm = data.reduce((max, flight) => {
+//         const distance = parseFloat(flight.flight_distance || 0);
+//         return distance > max ? distance : max;
+//     }, 0);
   
-    const badges = [
+//     const badges = [
       
-      { name: 'Hatchling Hummer', image: 'assets/achivements/1.png', condition: totalFlights >= 1, description: 'First Flight', description_long: 'First Flight' },
-      { name: 'Sparrow Soarer', image: 'assets/achivements/2.png', condition: totalFlights >= 10, description: '10 Flights', description_long: 'Reach 10 flights' },
-      { name: 'Falcon Flyer', image: 'assets/achivements/3.png', condition: totalFlights >= 30, description: '30 Flights', description_long: 'Reach 30 flights' },
-      { name: 'Eagle Ascender', image: 'assets/achivements/4.png', condition: totalFlights >= 100, description: '100 Flights', description_long: 'Reach 100 flights' },
-      { name: 'Eagle Ascender', image: 'assets/achivements/5.png', condition: totalFlights >= 500, description: '500 Flights', description_long: 'First Flight' },
-      { name: 'Owl Endurer', image: 'assets/achivements/9.png', condition: longestFlightMinutes >= 60, description: '1+ Hour Flight', description_long: 'First Flight' },
-      { name: 'Vulture Voyager', image: 'assets/achivements/10.png', condition: longestFlightMinutes >= 120, description: '2+ Hour Flight', description_long: 'First Flight' },
-      { name: 'Vulture Voyager', image: 'assets/achivements/11.png', condition: longestFlightMinutes >= 240, description: '4+ Hour Flight', description_long: 'First Flight' },
-      { name: '10 Hours total ', image: 'assets/achivements/21.png', condition: totalTime >= 600, description: '10H in the air', description_long: 'First Flight' },
-      { name: '10 Hours total ', image: 'assets/achivements/22.png', condition: totalTime >= 6000, description: '100H in the air', description_long: 'First Flight' },
-      { name: '10 Hours total ', image: 'assets/achivements/23.png', condition: totalTime >= 60000, description: '1000H in the air', description_long: 'First Flight' },
-      { name: 'Swallow Sprinter', image: 'assets/achivements/12.png', condition: maxFlightsInADay >= 2, description: '2+ Flights in a Day', description_long: 'First Flight' },
-      { name: 'Starling Stormer', image: 'assets/achivements/13.png', condition: maxFlightsInADay >= 4, description: '4+ Flights in a Day', description_long: 'First Flight' },
-      { name: 'Starling Stormer', image: 'assets/achivements/14.png', condition: maxFlightsInADay >= 6, description: '6+ Flights in a Day', description_long: 'First Flight' },
-      { name: 'Gull Glider', image: 'assets/achivements/15.png', condition: longestDistanceKm >= 5, description: '5+ km Flight', description_long: 'Complete a flight of 5 kilometers or more' },
-      { name: 'Petrel Pathfinder', image: 'assets/achivements/16.png', condition: longestDistanceKm >= 50, description: '50+ km Flight', description_long: 'Complete a flight of 50 kilometers or more' },
-      { name: 'Wanderer Wing', image: 'assets/achivements/17.png', condition: longestDistanceKm >= 100, description: '100+ km Flight', description_long: 'Complete a flight of 100 kilometers or more' },
-      { name: 'Site Explorer', image: 'assets/achivements/18.png', condition: uniqueSites >= 5, description: '5 Sites', description_long: 'First Flight' },
-      { name: 'Site Explorer', image: 'assets/achivements/19.png', condition: uniqueSites >= 15, description: '15 Sites', description_long: 'First Flight' },
-      { name: 'Site Explorer', image: 'assets/achivements/20.png', condition: uniqueSites >= 30, description: '30 Sites', description_long: 'First Flight' },
-      { name: 'Globetrotter', image: 'assets/achivements/6.png', condition: uniqueCountries >= 3, description: '3 Countries', description_long: 'First Flight' },
-      { name: 'Globetrotter', image: 'assets/achivements/7.png', condition: uniqueCountries >= 5, description: '5 Countries', description_long: 'First Flight' },
-      { name: 'Globetrotter', image: 'assets/achivements/8.png', condition: uniqueCountries >= 8, description: '8 Countries', description_long: 'First Flight' },
-      {
-        name: 'Cloud Glider',
-        image: 'assets/achivements/24.png',
-        condition: maxAltitude >= 1500,
-        description: 'Reached 1500m AMSL',
-        description_long: 'You have reached the cloud base!'
-      },
-      {
-        name: 'Stratosurfer',
-        image: 'assets/achivements/25.png',
-        condition: maxAltitude >= 3000,
-        description: 'Reached 3000m AMSL',
-        description_long: 'Soar high into the sky!'
-      },
-      {
-        name: 'Sky Pioneer',
-        image: 'assets/achivements/26.png',
-        condition: maxAltitude >= 5000,
-        description: 'Reached 5000m AMSL',
-        description_long: 'You have broken through the ceiling!'
-      }
+//       { name: 'Hatchling Hummer', image: 'assets/achivements/1.png', condition: totalFlights >= 1, description: 'First Flight', description_long: 'First Flight' },
+//       { name: 'Sparrow Soarer', image: 'assets/achivements/2.png', condition: totalFlights >= 10, description: '10 Flights', description_long: 'Reach 10 flights' },
+//       { name: 'Falcon Flyer', image: 'assets/achivements/3.png', condition: totalFlights >= 30, description: '30 Flights', description_long: 'Reach 30 flights' },
+//       { name: 'Eagle Ascender', image: 'assets/achivements/4.png', condition: totalFlights >= 100, description: '100 Flights', description_long: 'Reach 100 flights' },
+//       { name: 'Eagle Ascender', image: 'assets/achivements/5.png', condition: totalFlights >= 500, description: '500 Flights', description_long: 'First Flight' },
+//       { name: 'Owl Endurer', image: 'assets/achivements/9.png', condition: longestFlightMinutes >= 60, description: '1+ Hour Flight', description_long: 'First Flight' },
+//       { name: 'Vulture Voyager', image: 'assets/achivements/10.png', condition: longestFlightMinutes >= 120, description: '2+ Hour Flight', description_long: 'First Flight' },
+//       { name: 'Vulture Voyager', image: 'assets/achivements/11.png', condition: longestFlightMinutes >= 240, description: '4+ Hour Flight', description_long: 'First Flight' },
+//       { name: '10 Hours total ', image: 'assets/achivements/21.png', condition: totalTime >= 600, description: '10H in the air', description_long: 'First Flight' },
+//       { name: '10 Hours total ', image: 'assets/achivements/22.png', condition: totalTime >= 6000, description: '100H in the air', description_long: 'First Flight' },
+//       { name: '10 Hours total ', image: 'assets/achivements/23.png', condition: totalTime >= 60000, description: '1000H in the air', description_long: 'First Flight' },
+//       { name: 'Swallow Sprinter', image: 'assets/achivements/12.png', condition: maxFlightsInADay >= 2, description: '2+ Flights in a Day', description_long: 'First Flight' },
+//       { name: 'Starling Stormer', image: 'assets/achivements/13.png', condition: maxFlightsInADay >= 4, description: '4+ Flights in a Day', description_long: 'First Flight' },
+//       { name: 'Starling Stormer', image: 'assets/achivements/14.png', condition: maxFlightsInADay >= 6, description: '6+ Flights in a Day', description_long: 'First Flight' },
+//       { name: 'Gull Glider', image: 'assets/achivements/15.png', condition: longestDistanceKm >= 5, description: '5+ km Flight', description_long: 'Complete a flight of 5 kilometers or more' },
+//       { name: 'Petrel Pathfinder', image: 'assets/achivements/16.png', condition: longestDistanceKm >= 50, description: '50+ km Flight', description_long: 'Complete a flight of 50 kilometers or more' },
+//       { name: 'Wanderer Wing', image: 'assets/achivements/17.png', condition: longestDistanceKm >= 100, description: '100+ km Flight', description_long: 'Complete a flight of 100 kilometers or more' },
+//       { name: 'Site Explorer', image: 'assets/achivements/18.png', condition: uniqueSites >= 5, description: '5 Sites', description_long: 'First Flight' },
+//       { name: 'Site Explorer', image: 'assets/achivements/19.png', condition: uniqueSites >= 15, description: '15 Sites', description_long: 'First Flight' },
+//       { name: 'Site Explorer', image: 'assets/achivements/20.png', condition: uniqueSites >= 30, description: '30 Sites', description_long: 'First Flight' },
+//       { name: 'Globetrotter', image: 'assets/achivements/6.png', condition: uniqueCountries >= 3, description: '3 Countries', description_long: 'First Flight' },
+//       { name: 'Globetrotter', image: 'assets/achivements/7.png', condition: uniqueCountries >= 5, description: '5 Countries', description_long: 'First Flight' },
+//       { name: 'Globetrotter', image: 'assets/achivements/8.png', condition: uniqueCountries >= 8, description: '8 Countries', description_long: 'First Flight' },
+//       {
+//         name: 'Cloud Glider',
+//         image: 'assets/achivements/24.png',
+//         condition: maxAltitude >= 1500,
+//         description: 'Reached 1500m AMSL',
+//         description_long: 'You have reached the cloud base!'
+//       },
+//       {
+//         name: 'Stratosurfer',
+//         image: 'assets/achivements/25.png',
+//         condition: maxAltitude >= 3000,
+//         description: 'Reached 3000m AMSL',
+//         description_long: 'Soar high into the sky!'
+//       },
+//       {
+//         name: 'Sky Pioneer',
+//         image: 'assets/achivements/26.png',
+//         condition: maxAltitude >= 5000,
+//         description: 'Reached 5000m AMSL',
+//         description_long: 'You have broken through the ceiling!'
+//       }
       
 
-    ];
+//     ];
   
-    // const container = document.getElementById('badge-summary-modal');
-    // container.innerHTML = '';
+//     // const container = document.getElementById('badge-summary-modal');
+//     // container.innerHTML = '';
 
-    const container = document.getElementById('badge-summary-modal');
-    container.innerHTML = badges
-// Then render badges
-const badgesHTML = badges
-  .map(badge => `
-    <div class="badge">
-      <img src="${badge.image}" alt="${badge.description}" class="badge-image ${badge.condition ? 'unlocked' : 'locked'}" />
-      <p>${badge.description}</p>
-    </div>
-  `)
-  .join('');
+//     const container = document.getElementById('badge-summary-modal');
+//     container.innerHTML = badges
+// // Then render badges
+// const badgesHTML = badges
+//   .map(badge => `
+//     <div class="badge">
+//       <img src="${badge.image}" alt="${badge.description}" class="badge-image ${badge.condition ? 'unlocked' : 'locked'}" />
+//       <p>${badge.description}</p>
+//     </div>
+//   `)
+//   .join('');
 
-container.innerHTML = badgesHTML;
+// container.innerHTML = badgesHTML;
 
 
 
-        container.innerHTML = badges
-          .map(badge => `
-            <div class="badge">
-              <img src="${badge.image}" alt="${badge.description}" class="badge-image ${badge.condition ? 'unlocked' : 'locked'}" />
-              <p>${badge.description}</p>
+//         container.innerHTML = badges
+//           .map(badge => `
+//             <div class="badge">
+//               <img src="${badge.image}" alt="${badge.description}" class="badge-image ${badge.condition ? 'unlocked' : 'locked'}" />
+//               <p>${badge.description}</p>
               
-            </div>
-          `)
-          .join('');
-          return badges;
-  }
+//             </div>
+//           `)
+//           .join('');
+//           return badges;
+//   }
 
   
 
 
 
 
-  async function preloadBadgeImages(badges) {
-    const promises = badges.map(badge => {
-      return new Promise(resolve => {
-        const img = new Image();
-        img.src = badge.image;
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    });
+//   async function preloadBadgeImages(badges) {
+//     const promises = badges.map(badge => {
+//       return new Promise(resolve => {
+//         const img = new Image();
+//         img.src = badge.image;
+//         img.onload = resolve;
+//         img.onerror = resolve;
+//       });
+//     });
   
-    await Promise.all(promises);
-  }
+//     await Promise.all(promises);
+//   }
   
 
 
@@ -12380,7 +12430,7 @@ container.innerHTML = badgesHTML;
       const flights = await dbOperations.getAllFromStore(STORES.flights);
   
       // Call all functions that rely on flight data
-      badgesSummary(flights || []);
+    //   badgesSummary(flights || []);
       // Add more if needed
   
     } catch (error) {
