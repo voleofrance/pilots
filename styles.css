@@ -5471,7 +5471,18 @@ input[type="date"] {
     text-align: center;
     margin-top: 5px;
 }
-
+.stress-value.add {
+    text-align: right;
+    font-size: 0.9em;
+    color: #373636;
+    text-align: center;
+    margin-top: 0px;
+}
+.stress-level-group-title {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}
 /* For the flight details view */
 .stress-level-display {
     width: 100%;

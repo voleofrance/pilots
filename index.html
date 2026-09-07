@@ -1260,20 +1260,21 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                 </button>
             </div>
                 <div class="form-group">
-                    <label for="flightDate">Date</label>
+                    <label for="flightDate">Date :</label>
                     <input type="date" id="flightDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="flightTimeOfDay">Time</label>
-<input type="text" id="flightTimeOfDay">
+                    <label for="flightTimeOfDay">Takeoff Time :</label>
+                    <input type="time" id="flightTimeOfDay">
                 </div>
+                
                 <div class="form-group">
-                    <label for="flightSite">Site</label>
+                    <label for="flightSite">Site :</label>
                     <input type="text" id="flightSite" autocomplete="off" required>
                     <datalist id="sitesList"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="flightTakeoff">Takeoff</label>
+                    <label for="flightTakeoff">Takeoff name :</label>
                     <input type="text" id="flightTakeoff" autocomplete="off">
                     <datalist id="takeoffsList"></datalist>
 
@@ -1283,21 +1284,21 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                 </div>
 
                 <div class="form-group">
-                    <label for="flightLanding">Landing</label>
+                    <label for="flightLanding">Landing name :</label>
                     <input type="text" id="flightLanding" autocomplete="off">
                     <datalist id="landingsList"></datalist>
                 </div>
                 <div class="form-group">
-                    <label for="flightTakeoffAlt">Takeoff Altitude (m)</label>
+                    <label for="flightTakeoffAlt">Takeoff Altitude (m) :</label>
                     <input type="number" id="flightTakeoffAlt">
                 </div>
 
                 <div class="form-group">
-                    <label for="flightLandingAlt">Landing Altitude (m)</label>
+                    <label for="flightLandingAlt">Landing Altitude (m) :</label>
                     <input type="number" id="flightLandingAlt">
                 </div>
                 <div class="form-group">
-                    <label for="flightDistance">Flight Distance</label>
+                    <label for="flightDistance">Flight Distance :</label>
                     <input type="text" id="flightDistance">
                 </div>
                 <!-- <div class="form-group">
@@ -1309,7 +1310,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     </select>
                 </div> -->
                 <div class="form-group">
-                    <label for="flightType">Flight Type</label>
+                    <label for="flightType">Flight Type:</label>
                     <select id="flightType" required>
                         <option value="">Select flight type</option>
                         <option value="paragliding">Paragliding</option>
@@ -1318,46 +1319,46 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="flightGlider">Glider</label>
+                    <label for="flightGlider">Glider :</label>
                     <select id="flightGlider">
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="flightHarness">Harness</label>
+                    <label for="flightHarness">Harness :</label>
                     <select id="flightHarness">
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="flightreserve">Reserve</label>
+                    <label for="flightreserve">Reserve :</label>
                     <select id="flightreserve">
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="flightCountry">Country</label>
+                    <label for="flightCountry">Country :</label>
                     <select id="flightCountry" required>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="flightGrade">Alt Difference (takeoff-landing)</label>
+                    <label for="flightGrade">Alt Difference (takeoff-landing) :</label>
                     <input type="number" id="flightGrade">
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="flightAltGain">Altitude Gain (min-max alt)</label>
                     <input type="number" id="flightAltGain">
-                </div>
+                </div> -->
                 <div class="form-group">
-                    <label for="flightTime">Duration (minutes)</label>
+                    <label for="flightTime">Duration (minutes) :</label>
                     <input type="number" id="flightTime" required>
                 </div>
                 <div class="form-group">
-                    <label for="flightComments">Notes</label>
+                    <label for="flightComments">Notes :</label>
                     <textarea id="flightComments" class="area1" rows="3"></textarea>
                 </div>
                 
 
                 <div class="rating-group-box">
                 <div class="rating-group">
-                    <label>Flight Rating</label>
+                    <label>Flight Rating :</label>
                     <div class="star-rating">
                         <input type="radio" id="star5" name="flightRating" value="5">
                         <label for="star5" title="Excellent">★</label>
@@ -1372,8 +1373,8 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     </div>
                 </div>
 
-                <div class="stress-level-group">
-                    <label>Stress Level</label>
+                <!-- <div class="stress-level-group">
+                    <label>Stress Level</label><div class="stress-value"></div>
                     <div class="stress-meter">
                         <input type="range" 
                             id="stressLevel" 
@@ -1383,40 +1384,60 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                             value="0" 
                             class="stress-slider">
  
-                        <div class="stress-value"></div>
+                        
+                    </div>
+                </div> -->
+
+                <div class="stress-level-group">
+                    <div class="stress-level-group-title">
+                    <label>Stress Level :</label>
+                    <div class="stress-value add">0%</div>
+                </div>
+                    <div class="stress-meter">
+                        <input 
+                            type="range" 
+                            id="stressLevel" 
+                            name="stressLevel" 
+                            min="0" 
+                            max="100" 
+                            value="0" 
+                            class="stress-slider">
                     </div>
                 </div>
+                
+
+
             </div>
 
                 <div class="form-group">
-                    <label for="flightSchool">School</label>
+                    <label for="flightSchool">School (optional) :</label>
                     <input type="text" id="flightSchool">
                 </div>
                 <div class="form-group">
-                    <label for="flightClub">Club</label>
+                    <label for="flightClub">Club (optional) :</label>
                     <input type="text" id="flightClub">
                 </div>
                 <div class="form-group">
-                    <label for="flightMaxAlt">Maximum Altitude (m)</label>
+                    <label for="flightMaxAlt">Maximum Altitude (m) :</label>
                     <input type="number" id="flightMaxAlt">
                 </div>
                 <div class="form-group">
-                    <label for="flightMaxSpeed">Maximum Speed (km/h)</label>
+                    <label for="flightMaxSpeed">Maximum Speed (km/h) :</label>
                     <input type="number" id="flightMaxSpeed">
                 </div>
                 <div class="form-group">
-                    <label for="flightAvgSpeed">Average Speed (km/h)</label>
+                    <label for="flightAvgSpeed">Average Speed (km/h) :</label>
                     <input type="number" id="flightAvgSpeed" step="0.1">
                 </div>
                 <div class="form-group">
-                    <label for="flightMaxClimb">Max Climb Rate (m/s)</label>
+                    <label for="flightMaxClimb">Max Climb Rate (m/s) :</label>
                     <input type="number" id="flightMaxClimb" step="0.1">
                 </div>
                 <div class="form-group">
-                    <label for="flightMaxSink">Max Sink Rate (m/s)</label>
+                    <label for="flightMaxSink">Max Sink Rate (m/s) :</label>
                     <input type="number" id="flightMaxSink" step="0.1">
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="flightAvgHR">Average Heart Rate (bpm)</label>
                     <input type="number" id="flightAvgHR">
                 </div>
@@ -1427,7 +1448,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                 <div class="form-group">
                     <label for="flightAvgTemp">Average Temperature (°C)</label>
                     <input type="number" id="flightAvgTemp" step="0.1">
-                </div>
+                </div> -->
 
                 <div class="processing">
                     <button type="submit" class="primary-button">Add Flight</button>

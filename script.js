@@ -2544,13 +2544,24 @@ function getStressHTMLcard(level) {
     `;
 }
 
+// document.getElementById('stressLevel').addEventListener('input', function() {
+//     const value = this.value || '0';  // Use 0 if the value is empty
+//     const stressValue = this.parentElement.querySelector('.stress-value');
+//     if (stressValue) {
+//         stressValue.textContent = `${value}%`;
+//     }
+// });
+
 document.getElementById('stressLevel').addEventListener('input', function() {
-    const value = this.value || '0';  // Use 0 if the value is empty
-    const stressValue = this.parentElement.querySelector('.stress-value');
+    const value = this.value || '0';
+    const group = this.closest('.stress-level-group');
+    const stressValue = group?.querySelector('.stress-value');
+
     if (stressValue) {
         stressValue.textContent = `${value}%`;
     }
 });
+
 
 
 async function handleAddFlight(event) {
@@ -4500,6 +4511,28 @@ async function openAddFlightModal() {
         const siteInput = document.getElementById('flightSite');
         const takeoffInput = document.getElementById('flightTakeoff');
         const landingInput = document.getElementById('flightLanding');
+        const uniqueValues = (values) => {
+            const seen = new Set();
+        
+            return values
+                .filter(value => value && value.trim())
+                .map(value => value.trim())
+                .filter(value => {
+                    const normalized = value.toLowerCase();
+        
+                    if (seen.has(normalized)) {
+                        return false;
+                    }
+        
+                    seen.add(normalized);
+                    return true;
+                });
+        };
+        
+        const schools = uniqueValues(flights.map(f => f.school));
+        const clubs = uniqueValues(flights.map(f => f.club));
+        
+
 
         if (siteInput) siteInput.removeAttribute('list');
         if (takeoffInput) takeoffInput.removeAttribute('list');
@@ -4509,6 +4542,9 @@ async function openAddFlightModal() {
         setupAutocomplete('flightSite', () => sites);
         setupAutocomplete('flightTakeoff', () => takeoffs);
         setupAutocomplete('flightLanding', () => landings);
+        setupAutocomplete('flightSchool', () => schools);
+        setupAutocomplete('flightClub', () => clubs);
+
         
         // Get gear data
         const gearData = await dbOperations.getData(STORES.gear) || { gliders: [], harnesses: [], reserve: [] };
@@ -4694,6 +4730,13 @@ async function populateFlightDataLists() {
     try {
         // Get all flights from IndexedDB
         const flights = await dbOperations.getAllData(STORES.flights);
+        const schools = [...new Set(
+            flights.map(f => f.school).filter(Boolean)
+        )];
+        
+        const clubs = [...new Set(
+            flights.map(f => f.club).filter(Boolean)
+        )];
         
         // Create sets of unique values (filter out null/undefined/empty values)
         const sites = new Set(flights.map(f => f.site).filter(Boolean));
