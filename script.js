@@ -9260,6 +9260,242 @@ function showSuggestions(input, suggestions) {
 
 
 
+// function setupAutocomplete(inputId, getOptions) {
+//     const input = document.getElementById(inputId);
+//     if (!input) return;
+
+//     // ---------------------------------------------------------
+//     // Prevent duplicate initialization
+//     // ---------------------------------------------------------
+//     if (input._autocompleteCleanup) {
+//         input._autocompleteCleanup();
+//     }
+
+//     // Create dropdown container
+//     const dropdownId = `${inputId}-dropdown`;
+//     let dropdown = document.getElementById(dropdownId);
+
+//     if (!dropdown) {
+//         dropdown = document.createElement('div');
+//         dropdown.id = dropdownId;
+//         dropdown.className = 'autocomplete-dropdown';
+
+//         input.parentNode.insertBefore(dropdown, input.nextSibling);
+//     }
+
+//     // ---------------------------------------------------------
+//     // Dropdown style
+//     // ---------------------------------------------------------
+//     dropdown.style.display = 'none';
+//     dropdown.style.position = 'absolute';
+//     dropdown.style.zIndex = '1000';
+//     dropdown.style.maxHeight = '200px';
+//     dropdown.style.overflowY = 'auto';
+//     dropdown.style.backgroundColor = 'white';
+//     dropdown.style.border = '1px solid #ddd';
+//     dropdown.style.borderRadius = '4px';
+//     dropdown.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+//     dropdown.style.width = `${input.offsetWidth}px`;
+
+//     let currentFocus = -1;
+
+//     // ---------------------------------------------------------
+//     // INPUT
+//     // ---------------------------------------------------------
+//     function handleInput() {
+//         const val = this.value.trim().toLowerCase();
+
+//         // Always clear previous results
+//         dropdown.innerHTML = '';
+//         dropdown.style.display = 'none';
+//         currentFocus = -1;
+
+//         if (!val) return;
+
+//         // -----------------------------------------------------
+//         // Get options and remove duplicates
+//         // Case-insensitive + trim
+//         // -----------------------------------------------------
+//         const options = [...new Map(
+//             getOptions()
+//                 .filter(opt => opt != null)
+//                 .map(opt => String(opt).trim())
+//                 .filter(opt => opt.length > 0)
+//                 .map(opt => [opt.toLowerCase(), opt])
+//         ).values()];
+
+//         // Filter
+//         const matches = options.filter(opt =>
+//             opt.toLowerCase().includes(val)
+//         );
+
+//         if (!matches.length) return;
+
+//         dropdown.style.display = 'block';
+
+//         // -----------------------------------------------------
+//         // Create suggestions
+//         // -----------------------------------------------------
+//         matches.forEach((match, index) => {
+//             const div = document.createElement('div');
+
+//             div.className = 'autocomplete-item';
+
+//             div.style.padding = '8px 12px';
+//             div.style.cursor = 'pointer';
+//             div.style.borderBottom = '1px solid #eee';
+
+//             // Highlight matching text
+//             const matchIndex = match.toLowerCase().indexOf(val);
+
+//             div.innerHTML =
+//                 match.substring(0, matchIndex) +
+//                 `<strong>${match.substring(
+//                     matchIndex,
+//                     matchIndex + val.length
+//                 )}</strong>` +
+//                 match.substring(matchIndex + val.length);
+
+//             // Click suggestion
+//             div.addEventListener('click', function() {
+//                 input.value = match;
+//                 dropdown.style.display = 'none';
+//                 dropdown.innerHTML = '';
+//                 currentFocus = -1;
+
+//                 // Optional: trigger change/input event
+//                 input.dispatchEvent(new Event('change', {
+//                     bubbles: true
+//                 }));
+//             });
+
+//             // Mouse hover
+//             div.addEventListener('mouseover', function() {
+//                 removeActive();
+
+//                 currentFocus = index;
+
+//                 addActive();
+//             });
+
+//             dropdown.appendChild(div);
+//         });
+//     }
+
+//     // ---------------------------------------------------------
+//     // KEYBOARD NAVIGATION
+//     // ---------------------------------------------------------
+//     function handleKeydown(e) {
+//         const items = dropdown.getElementsByClassName(
+//             'autocomplete-item'
+//         );
+
+//         if (!items.length) return;
+
+//         if (e.key === 'ArrowDown') {
+//             currentFocus++;
+
+//             if (currentFocus >= items.length) {
+//                 currentFocus = 0;
+//             }
+
+//             addActive();
+//             e.preventDefault();
+
+//         } else if (e.key === 'ArrowUp') {
+//             currentFocus--;
+
+//             if (currentFocus < 0) {
+//                 currentFocus = items.length - 1;
+//             }
+
+//             addActive();
+//             e.preventDefault();
+
+//         } else if (e.key === 'Enter') {
+//             if (currentFocus > -1 && items[currentFocus]) {
+//                 e.preventDefault();
+//                 items[currentFocus].click();
+//             }
+//         } else if (e.key === 'Escape') {
+//             dropdown.style.display = 'none';
+//             currentFocus = -1;
+//         }
+//     }
+
+//     // ---------------------------------------------------------
+//     // CLICK OUTSIDE
+//     // ---------------------------------------------------------
+//     function handleDocumentClick(e) {
+//         if (
+//             e.target !== input &&
+//             !dropdown.contains(e.target)
+//         ) {
+//             dropdown.style.display = 'none';
+//             currentFocus = -1;
+//         }
+//     }
+
+//     // ---------------------------------------------------------
+//     // ACTIVE ITEM
+//     // ---------------------------------------------------------
+//     function addActive() {
+//         const items = dropdown.getElementsByClassName(
+//             'autocomplete-item'
+//         );
+
+//         if (!items.length) return;
+
+//         removeActive();
+
+//         if (currentFocus >= items.length) {
+//             currentFocus = 0;
+//         }
+
+//         if (currentFocus < 0) {
+//             currentFocus = items.length - 1;
+//         }
+
+//         items[currentFocus].style.backgroundColor = '#f0f0f0';
+//     }
+
+//     function removeActive() {
+//         const items = dropdown.getElementsByClassName(
+//             'autocomplete-item'
+//         );
+
+//         Array.from(items).forEach(item => {
+//             item.style.backgroundColor = 'white';
+//         });
+//     }
+
+//     // ---------------------------------------------------------
+//     // Attach listeners
+//     // ---------------------------------------------------------
+//     input.addEventListener('input', handleInput);
+//     input.addEventListener('keydown', handleKeydown);
+//     document.addEventListener('click', handleDocumentClick);
+
+//     // ---------------------------------------------------------
+//     // Cleanup function
+//     // Used if setupAutocomplete() is called again
+//     // ---------------------------------------------------------
+//     input._autocompleteCleanup = function() {
+//         input.removeEventListener('input', handleInput);
+//         input.removeEventListener('keydown', handleKeydown);
+//         document.removeEventListener('click', handleDocumentClick);
+
+//         dropdown.innerHTML = '';
+//         dropdown.style.display = 'none';
+
+//         delete input._autocompleteCleanup;
+//     };
+// }
+
+
+
+
+
 function setupAutocomplete(inputId, getOptions) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -9271,8 +9507,21 @@ function setupAutocomplete(inputId, getOptions) {
         input._autocompleteCleanup();
     }
 
-    // Create dropdown container
+    // ---------------------------------------------------------
+    // Wrapper
+    // ---------------------------------------------------------
+    const wrapper = input.closest('.autocomplete-wrapper');
+
+    if (!wrapper) {
+        console.warn(`No .autocomplete-wrapper found for #${inputId}`);
+        return;
+    }
+
+    // ---------------------------------------------------------
+    // Dropdown
+    // ---------------------------------------------------------
     const dropdownId = `${inputId}-dropdown`;
+
     let dropdown = document.getElementById(dropdownId);
 
     if (!dropdown) {
@@ -9280,97 +9529,264 @@ function setupAutocomplete(inputId, getOptions) {
         dropdown.id = dropdownId;
         dropdown.className = 'autocomplete-dropdown';
 
-        input.parentNode.insertBefore(dropdown, input.nextSibling);
+        wrapper.appendChild(dropdown);
     }
 
-    // ---------------------------------------------------------
-    // Dropdown style
-    // ---------------------------------------------------------
-    // dropdown.style.display = 'none';
-    // dropdown.style.position = 'absolute';
-    // dropdown.style.zIndex = '1000';
-    // dropdown.style.maxHeight = '200px';
-    // dropdown.style.overflowY = 'auto';
-    // dropdown.style.backgroundColor = 'white';
-    // dropdown.style.border = '1px solid #ddd';
-    // dropdown.style.borderRadius = '4px';
-    // dropdown.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-    // dropdown.style.width = `${input.offsetWidth}px`;
+    dropdown.innerHTML = '';
+    dropdown.style.display = 'none';
 
     let currentFocus = -1;
 
-    // ---------------------------------------------------------
-    // INPUT
-    // ---------------------------------------------------------
-    function handleInput() {
-        const val = this.value.trim().toLowerCase();
 
-        // Always clear previous results
+    // =========================================================
+    // NORMALIZE TEXT
+    // =========================================================
+    // "école"     -> "ecole"
+    // "École"     -> "ecole"
+    // "SAINT"     -> "saint"
+    // =========================================================
+
+    function normalizeText(text) {
+        return String(text)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+
+    // =========================================================
+    // GET OPTIONS
+    // =========================================================
+
+    function getCleanOptions() {
+        return [
+            ...new Map(
+                getOptions()
+                    .filter(opt => opt != null)
+                    .map(opt => String(opt).trim())
+                    .filter(opt => opt.length > 0)
+                    .map(opt => [
+                        normalizeText(opt),
+                        opt
+                    ])
+            ).values()
+        ];
+    }
+
+
+    // =========================================================
+    // INPUT
+    // =========================================================
+
+    function handleInput() {
+
+        const rawValue = input.value.trim();
+        const searchValue = normalizeText(rawValue);
+
         dropdown.innerHTML = '';
         dropdown.style.display = 'none';
+
         currentFocus = -1;
 
-        if (!val) return;
+        if (!searchValue) {
+            return;
+        }
+
+        const options = getCleanOptions();
+
 
         // -----------------------------------------------------
-        // Get options and remove duplicates
-        // Case-insensitive + trim
-        // -----------------------------------------------------
-        const options = [...new Map(
-            getOptions()
-                .filter(opt => opt != null)
-                .map(opt => String(opt).trim())
-                .filter(opt => opt.length > 0)
-                .map(opt => [opt.toLowerCase(), opt])
-        ).values()];
-
         // Filter
-        const matches = options.filter(opt =>
-            opt.toLowerCase().includes(val)
-        );
+        // -----------------------------------------------------
 
-        if (!matches.length) return;
+        const matches = options
+            .filter(option => {
+                return normalizeText(option)
+                    .includes(searchValue);
+            })
+
+
+            // -------------------------------------------------
+            // Prioritize "starts with"
+            // -------------------------------------------------
+
+            .sort((a, b) => {
+
+                const aNormalized = normalizeText(a);
+                const bNormalized = normalizeText(b);
+
+                const aStarts =
+                    aNormalized.startsWith(searchValue);
+
+                const bStarts =
+                    bNormalized.startsWith(searchValue);
+
+                if (aStarts !== bStarts) {
+                    return Number(bStarts) - Number(aStarts);
+                }
+
+                return a.localeCompare(
+                    b,
+                    undefined,
+                    {
+                        sensitivity: 'base'
+                    }
+                );
+            })
+
+
+            // -------------------------------------------------
+            // Maximum results
+            // -------------------------------------------------
+
+            .slice(0, 10);
+
+
+        if (!matches.length) {
+            return;
+        }
+
 
         dropdown.style.display = 'block';
 
-        // -----------------------------------------------------
-        // Create suggestions
-        // -----------------------------------------------------
+
+        // =====================================================
+        // CREATE ITEMS
+        // =====================================================
+
         matches.forEach((match, index) => {
+
             const div = document.createElement('div');
 
             div.className = 'autocomplete-item';
 
-            div.style.padding = '8px 12px';
-            div.style.cursor = 'pointer';
-            div.style.borderBottom = '1px solid #eee';
+            div.setAttribute('role', 'option');
 
-            // Highlight matching text
-            const matchIndex = match.toLowerCase().indexOf(val);
 
-            div.innerHTML =
-                match.substring(0, matchIndex) +
-                `<strong>${match.substring(
-                    matchIndex,
-                    matchIndex + val.length
-                )}</strong>` +
-                match.substring(matchIndex + val.length);
+            // -------------------------------------------------
+            // Find match ignoring accents
+            // -------------------------------------------------
 
-            // Click suggestion
-            div.addEventListener('click', function() {
-                input.value = match;
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-                currentFocus = -1;
+            const normalizedMatch = normalizeText(match);
 
-                // Optional: trigger change/input event
-                input.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
+            const matchIndex =
+                normalizedMatch.indexOf(searchValue);
+
+
+            // -------------------------------------------------
+            // Highlight
+            // -------------------------------------------------
+
+            if (matchIndex !== -1) {
+
+                /*
+                 * Because accented characters can change the
+                 * length after normalization, we find the
+                 * corresponding original characters.
+                 *
+                 * For most names this gives the expected result.
+                 */
+
+                let originalStart = 0;
+                let normalizedLength = 0;
+
+                for (let i = 0; i < match.length; i++) {
+
+                    const charNormalized =
+                        normalizeText(match[i]);
+
+                    if (
+                        normalizedLength <= matchIndex
+                    ) {
+                        originalStart = i;
+                    }
+
+                    normalizedLength +=
+                        charNormalized.length;
+
+                    if (
+                        normalizedLength >=
+                        matchIndex + searchValue.length
+                    ) {
+                        break;
+                    }
+                }
+
+
+                let originalEnd = originalStart;
+
+                let currentLength = 0;
+
+                for (
+                    let i = originalStart;
+                    i < match.length;
+                    i++
+                ) {
+
+                    currentLength +=
+                        normalizeText(match[i]).length;
+
+                    originalEnd = i + 1;
+
+                    if (
+                        currentLength >=
+                        searchValue.length
+                    ) {
+                        break;
+                    }
+                }
+
+
+                div.appendChild(
+                    document.createTextNode(
+                        match.substring(
+                            0,
+                            originalStart
+                        )
+                    )
+                );
+
+
+                const strong =
+                    document.createElement('strong');
+
+                strong.textContent =
+                    match.substring(
+                        originalStart,
+                        originalEnd
+                    );
+
+                div.appendChild(strong);
+
+
+                div.appendChild(
+                    document.createTextNode(
+                        match.substring(originalEnd)
+                    )
+                );
+
+            } else {
+
+                div.textContent = match;
+            }
+
+
+            // -------------------------------------------------
+            // Click
+            // -------------------------------------------------
+
+            div.addEventListener('click', function () {
+                selectSuggestion(match);
             });
 
-            // Mouse hover
-            div.addEventListener('mouseover', function() {
+
+            // -------------------------------------------------
+            // Mouse
+            // -------------------------------------------------
+
+            div.addEventListener('mouseenter', function () {
+
                 removeActive();
 
                 currentFocus = index;
@@ -9378,119 +9794,250 @@ function setupAutocomplete(inputId, getOptions) {
                 addActive();
             });
 
+
             dropdown.appendChild(div);
         });
     }
 
-    // ---------------------------------------------------------
-    // KEYBOARD NAVIGATION
-    // ---------------------------------------------------------
-    function handleKeydown(e) {
-        const items = dropdown.getElementsByClassName(
-            'autocomplete-item'
+
+    // =========================================================
+    // SELECT
+    // =========================================================
+
+    function selectSuggestion(value) {
+
+        input.value = value;
+
+        closeDropdown();
+
+        input.dispatchEvent(
+            new Event('input', {
+                bubbles: true
+            })
         );
 
-        if (!items.length) return;
+        input.dispatchEvent(
+            new Event('change', {
+                bubbles: true
+            })
+        );
+    }
+
+
+    // =========================================================
+    // KEYBOARD
+    // =========================================================
+
+    function handleKeydown(e) {
+
+        const items =
+            dropdown.querySelectorAll(
+                '.autocomplete-item'
+            );
+
+        if (!items.length) {
+            return;
+        }
+
+
+        // -----------------------------------------------------
+        // Arrow Down
+        // -----------------------------------------------------
 
         if (e.key === 'ArrowDown') {
+
+            e.preventDefault();
+
             currentFocus++;
 
-            if (currentFocus >= items.length) {
+            if (
+                currentFocus >=
+                items.length
+            ) {
                 currentFocus = 0;
             }
 
             addActive();
+        }
+
+
+        // -----------------------------------------------------
+        // Arrow Up
+        // -----------------------------------------------------
+
+        else if (e.key === 'ArrowUp') {
+
             e.preventDefault();
 
-        } else if (e.key === 'ArrowUp') {
             currentFocus--;
 
             if (currentFocus < 0) {
-                currentFocus = items.length - 1;
+                currentFocus =
+                    items.length - 1;
             }
 
             addActive();
-            e.preventDefault();
+        }
 
-        } else if (e.key === 'Enter') {
-            if (currentFocus > -1 && items[currentFocus]) {
+
+        // -----------------------------------------------------
+        // Enter
+        // -----------------------------------------------------
+
+        else if (e.key === 'Enter') {
+
+            if (
+                currentFocus >= 0 &&
+                currentFocus < items.length
+            ) {
+
                 e.preventDefault();
-                items[currentFocus].click();
+
+                selectSuggestion(
+                    items[currentFocus].textContent
+                );
             }
-        } else if (e.key === 'Escape') {
-            dropdown.style.display = 'none';
-            currentFocus = -1;
+        }
+
+
+        // -----------------------------------------------------
+        // Escape
+        // -----------------------------------------------------
+
+        else if (e.key === 'Escape') {
+
+            closeDropdown();
         }
     }
 
-    // ---------------------------------------------------------
-    // CLICK OUTSIDE
-    // ---------------------------------------------------------
-    function handleDocumentClick(e) {
-        if (
-            e.target !== input &&
-            !dropdown.contains(e.target)
-        ) {
-            dropdown.style.display = 'none';
-            currentFocus = -1;
-        }
-    }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // ACTIVE ITEM
-    // ---------------------------------------------------------
-    function addActive() {
-        const items = dropdown.getElementsByClassName(
-            'autocomplete-item'
-        );
+    // =========================================================
 
-        if (!items.length) return;
+    function addActive() {
+
+        const items =
+            dropdown.querySelectorAll(
+                '.autocomplete-item'
+            );
+
+        if (!items.length) {
+            return;
+        }
 
         removeActive();
+
 
         if (currentFocus >= items.length) {
             currentFocus = 0;
         }
 
         if (currentFocus < 0) {
-            currentFocus = items.length - 1;
+            currentFocus =
+                items.length - 1;
         }
 
-        items[currentFocus].style.backgroundColor = '#f0f0f0';
-    }
 
-    function removeActive() {
-        const items = dropdown.getElementsByClassName(
-            'autocomplete-item'
-        );
+        const activeItem =
+            items[currentFocus];
 
-        Array.from(items).forEach(item => {
-            item.style.backgroundColor = 'white';
+        activeItem.classList.add('active');
+
+        activeItem.scrollIntoView({
+            block: 'nearest'
         });
     }
 
-    // ---------------------------------------------------------
-    // Attach listeners
-    // ---------------------------------------------------------
-    input.addEventListener('input', handleInput);
-    input.addEventListener('keydown', handleKeydown);
-    document.addEventListener('click', handleDocumentClick);
 
-    // ---------------------------------------------------------
-    // Cleanup function
-    // Used if setupAutocomplete() is called again
-    // ---------------------------------------------------------
-    input._autocompleteCleanup = function() {
-        input.removeEventListener('input', handleInput);
-        input.removeEventListener('keydown', handleKeydown);
-        document.removeEventListener('click', handleDocumentClick);
+    function removeActive() {
+
+        const items =
+            dropdown.querySelectorAll(
+                '.autocomplete-item'
+            );
+
+        items.forEach(item => {
+            item.classList.remove('active');
+        });
+    }
+
+
+    // =========================================================
+    // CLOSE
+    // =========================================================
+
+    function closeDropdown() {
+
+        dropdown.style.display = 'none';
 
         dropdown.innerHTML = '';
+
+        currentFocus = -1;
+    }
+
+
+    // =========================================================
+    // CLICK OUTSIDE
+    // =========================================================
+
+    function handleDocumentClick(e) {
+
+        if (!wrapper.contains(e.target)) {
+            closeDropdown();
+        }
+    }
+
+
+    // =========================================================
+    // LISTENERS
+    // =========================================================
+
+    input.addEventListener(
+        'input',
+        handleInput
+    );
+
+    input.addEventListener(
+        'keydown',
+        handleKeydown
+    );
+
+    document.addEventListener(
+        'click',
+        handleDocumentClick
+    );
+
+
+    // =========================================================
+    // CLEANUP
+    // =========================================================
+
+    input._autocompleteCleanup = function () {
+
+        input.removeEventListener(
+            'input',
+            handleInput
+        );
+
+        input.removeEventListener(
+            'keydown',
+            handleKeydown
+        );
+
+        document.removeEventListener(
+            'click',
+            handleDocumentClick
+        );
+
+        dropdown.innerHTML = '';
+
         dropdown.style.display = 'none';
 
         delete input._autocompleteCleanup;
     };
 }
+
 
 
 

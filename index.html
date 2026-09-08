@@ -1268,7 +1268,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <input type="time" id="flightTimeOfDay">
                 </div>
                 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="flightSite">Site :</label>
                     <input type="text" id="flightSite" autocomplete="off" required>
                     <datalist id="sitesList"></datalist>
@@ -1278,7 +1278,6 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <input type="text" id="flightTakeoff" autocomplete="off">
                     <datalist id="takeoffsList"></datalist>
 
-                    <!-- Hidden inputs for coordinates -->
                     <input type="hidden" id="flightTakeoffLat">
                     <input type="hidden" id="flightTakeoffLon">
                 </div>
@@ -1287,7 +1286,66 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <label for="flightLanding">Landing name :</label>
                     <input type="text" id="flightLanding" autocomplete="off">
                     <datalist id="landingsList"></datalist>
+                </div> -->
+
+
+
+                <div class="form-group">
+                    <label for="flightSite">
+                        Site :
+                    </label>
+                
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="flightSite"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
                 </div>
+                
+                
+                <div class="form-group">
+                    <label for="flightTakeoff">
+                        Takeoff name :
+                    </label>
+                
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="flightTakeoff"
+                            autocomplete="off"
+                        >
+                
+                        <input
+                            type="hidden"
+                            id="flightTakeoffLat"
+                        >
+                
+                        <input
+                            type="hidden"
+                            id="flightTakeoffLon"
+                        >
+                    </div>
+                </div>
+                
+                
+                <div class="form-group">
+                    <label for="flightLanding">
+                        Landing name :
+                    </label>
+                
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="flightLanding"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+
                 <div class="form-group">
                     <label for="flightTakeoffAlt">Takeoff Altitude (m) :</label>
                     <input type="number" id="flightTakeoffAlt">
@@ -1420,7 +1478,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
             </div>
 
                
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="flightSchool">School (optional) :</label>
                     <input type="text" id="flightSchool" autocomplete="off">
                     <datalist id="schoolList"></datalist>
@@ -1430,6 +1488,35 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <label for="flightClub">Club (optional) :</label>
                     <input type="text" id="flightClub" autocomplete="off">
                     <datalist id="clubList"></datalist>
+                </div> -->
+
+                <div class="form-group">
+                    <label for="flightSchool">
+                        School (optional) :
+                    </label>
+                
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="flightSchool"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+                
+                
+                <div class="form-group">
+                    <label for="flightClub">
+                        Club (optional) :
+                    </label>
+                
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="flightClub"
+                            autocomplete="off"
+                        >
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="flightMaxAlt">Maximum Altitude (m) :</label>
