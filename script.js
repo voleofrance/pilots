@@ -2250,10 +2250,6 @@ function parseFlightDate(dateStr) {
 }
 
 
-//WEATHER
-const weatherCache = new Map();
-const WEATHER_CACHE_DURATION = 60 * 60 * 1000;
-
 function handleBackgroundImageChange(event) {
     const file = event.target.files[0];
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -4140,6 +4136,8 @@ async function editFlight(index) {
         const sites = [...new Set(flights.map(f => f.site).filter(Boolean))];
         const takeoffs = [...new Set(flights.map(f => f.takeoff).filter(Boolean))];
         const landings = [...new Set(flights.map(f => f.landing).filter(Boolean))];
+        const school = [...new Set(flights.map(f => f.school).filter(Boolean))];
+        const club = [...new Set(flights.map(f => f.club).filter(Boolean))];
 
         // Remove any existing datalists
         ['sitesList', 'takeoffsList', 'landingsList'].forEach(id => {
@@ -4151,15 +4149,21 @@ async function editFlight(index) {
         const siteInput = document.getElementById('flightSite');
         const takeoffInput = document.getElementById('flightTakeoff');
         const landingInput = document.getElementById('flightLanding');
+        const schoolInput = document.getElementById('flightSchool');
+        const clubInput = document.getElementById('flightClub');
 
         if (siteInput) siteInput.removeAttribute('list');
         if (takeoffInput) takeoffInput.removeAttribute('list');
         if (landingInput) landingInput.removeAttribute('list');
+        if (schoolInput) schoolInput.removeAttribute('list');
+        if (clubInput) clubInput.removeAttribute('list');
         
         // Setup custom autocomplete for location fields
         setupAutocomplete('flightSite', () => sites);
         setupAutocomplete('flightTakeoff', () => takeoffs);
         setupAutocomplete('flightLanding', () => landings);
+        setupAutocomplete('flightSchool', () => school);
+        setupAutocomplete('flightClub', () => club);
 
         await populateFlightDataLists();
         const gearData = await dbOperations.getData(STORES.gear) || { gliders: [], harnesses: [], reserve: [] };
@@ -4509,6 +4513,7 @@ async function openAddFlightModal() {
         const sites = [...new Set(flights.map(f => f.site).filter(Boolean))];
         const takeoffs = [...new Set(flights.map(f => f.takeoff).filter(Boolean))];
         const landings = [...new Set(flights.map(f => f.landing).filter(Boolean))];
+        
         const flightTypeSelect = document.getElementById('flightType');
         if (flightTypeSelect) {
             flightTypeSelect.value = ''; // Reset the value
@@ -4543,6 +4548,8 @@ if (stressValue) {
         const siteInput = document.getElementById('flightSite');
         const takeoffInput = document.getElementById('flightTakeoff');
         const landingInput = document.getElementById('flightLanding');
+        const schoolInput = document.getElementById('flightSchool');
+        const clubInput = document.getElementById('flightClub');
         const uniqueValues = (values) => {
             const seen = new Set();
         
@@ -4561,21 +4568,23 @@ if (stressValue) {
                 });
         };
         
-        const schools = uniqueValues(flights.map(f => f.school));
-        const clubs = uniqueValues(flights.map(f => f.club));
+        const school = uniqueValues(flights.map(f => f.school));
+        const club = uniqueValues(flights.map(f => f.club));
         
 
 
         if (siteInput) siteInput.removeAttribute('list');
         if (takeoffInput) takeoffInput.removeAttribute('list');
         if (landingInput) landingInput.removeAttribute('list');
+        if (schoolInput) schoolInput.removeAttribute('list');
+        if (clubInput) clubInput.removeAttribute('list');
         
         // Setup custom autocomplete for location fields
         setupAutocomplete('flightSite', () => sites);
         setupAutocomplete('flightTakeoff', () => takeoffs);
         setupAutocomplete('flightLanding', () => landings);
-        setupAutocomplete('flightSchool', () => schools);
-        setupAutocomplete('flightClub', () => clubs);
+        setupAutocomplete('flightSchool', () => school);
+        setupAutocomplete('flightClub', () => club);
 
         
         // Get gear data
@@ -4623,7 +4632,7 @@ if (stressValue) {
             `;
         }
         
-        initializeFlightForm();
+        // initializeFlightForm();
         
     } catch (error) {
         console.error('Error setting up modal:', error);
@@ -4779,6 +4788,8 @@ async function populateFlightDataLists() {
         updateDatalist('sitesList', Array.from(sites).sort());
         updateDatalist('takeoffsList', Array.from(takeoffs).sort());
         updateDatalist('landingsList', Array.from(landings).sort());
+        updateDatalist('schoolList', Array.from(landings).sort());
+        updateDatalist('clubList', Array.from(clubs).sort());
     } catch (error) {
         console.error('Error populating datalists:', error);
     }
@@ -4799,51 +4810,6 @@ function updateDatalist(id, values) {
 
 
 
-async function getWeather(lat, lon) {
-    if (!navigator.onLine) return null;
-
-    const cacheKey = `${lat},${lon}`;
-    const now = Date.now();
-    const cachedData = weatherCache.get(cacheKey);
-
-    // Check if we have valid cached data
-    if (cachedData && (now - cachedData.timestamp < WEATHER_CACHE_DURATION)) {
-        return cachedData.data;
-    }
-
-
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-    + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weathercode,`
-    + `is_day,precipitation,cloud_cover,windspeed_10m,winddirection_10m,windgusts_10m,`
-    + `pressure_msl,visibility,uv_index`
-    + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,`
-    + `windspeed_10m_max,winddirection_10m_dominant,windgusts_10m_max,precipitation_sum,`
-    + `uv_index_max,sunrise,sunset`
-    + `&hourly=temperature_2m,apparent_temperature,windspeed_10m,winddirection_10m,windgusts_10m,`
-    + `cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,`
-    + `relative_humidity_2m,precipitation_probability,visibility,uv_index,precipitation,`
-    + `cloud_cover_1000hPa,cloud_cover_850hPa,cloud_cover_700hPa,cloud_cover_500hPa,cloud_cover_300hPa,cloud_cover_200hPa`
-    + `&forecast_days=7`
-    + `&timezone=auto`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const data = await response.json();
-        
-        // Store in cache
-        weatherCache.set(cacheKey, {
-            data: data,
-            timestamp: now
-        });
-        
-        return data;
-    } catch (error) {
-        console.error('Error fetching weather:', error);
-        return null;
-    }
-}
 
 
 const pendingWeatherFetches = new Map();
@@ -4857,750 +4823,6 @@ function formatDate(dateStr) {
         day: 'numeric' 
     });
 }
-
-
-
-async function updateWeather(siteName, lat, lon, modal) {
-    // If offline, update UI and return
-    if (!navigator.onLine) {
-        const weatherDiv = document.getElementById(`weather-${siteName.replace(/\s+/g, '-')}`);
-        if (weatherDiv) {
-            const weatherItem = weatherDiv.querySelector('.weather-item');
-            if (weatherItem) {
-                weatherItem.textContent = 'Weather unavailable (offline)';
-            }
-        }
-        return;
-    }
-
-    // Create a unique key for this site
-    const siteKey = `${siteName}-${lat}-${lon}`;
-    
-    // If there's already a pending fetch for this site, wait for it
-    if (pendingWeatherFetches.has(siteKey)) {
-        return pendingWeatherFetches.get(siteKey);
-    }
-    
-    const fetchPromise = (async () => {
-        try {
-            const weather = await getWeather(lat, lon);
-            if (!weather) return;
-
-            const weatherDiv = document.getElementById(`weather-${siteName.replace(/\s+/g, '-')}`);
-            if (!weatherDiv || !modal) return;
-
-            // Update card's current weather
-            const weatherItem = weatherDiv.querySelector('.weather-item');
-            if (weatherItem && weather.current) {
-                const current = weather.current;
-                weatherItem.innerHTML = `
-                    <div class="current-weather">
-                        <div class="weather-main">
-                            <div class="temp-container">
-                                <img src="assets/weather/${getWeatherIcon(current.weathercode)}.png" alt="Weather">
-                                <div class="temp-container-temp">
-                                    <div class="temp">${Math.round(current.temperature_2m)}°C</div>
-                                    <div class="feels-like-card">Feels: ${Math.round(current.apparent_temperature)}°C</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Update modal content with enhanced current weather
-            const modalCurrentWeather = modal.querySelector('.current-weather');
-            const modalForecast = modal.querySelector('.weather-forecast');
-
-            if (modalCurrentWeather && weather.current) {
-                const current = weather.current;
-                const today = weather.daily ? weather.daily.time[0] : null;
-                
-                modalCurrentWeather.innerHTML = `
-                    <div class="modal-current-weather">
-                        <div class="current-main">
-                            <img src="assets/weather/${getWeatherIcon(current.weathercode)}.png" 
-                                alt="${getWeatherDescription(current.weathercode)}" 
-                                class="weather-icon-large">
-                            <div class="current-details">
-                                <div class="temp-large">${Math.round(current.temperature_2m)}°C</div>
-                                <div class="feels-like">Feels like ${Math.round(current.apparent_temperature)}°C</div>
-                            </div>
-                        </div>
-                        
-                        <div class="current-details-grid">
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/humidity.png" class="detail-icon" alt="Humidity">
-                                <span>${Math.round(current.relative_humidity_2m)}%</span>
-                                <span class="detail-label">Humidity</span>
-                            </div>
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/wind.png" class="detail-icon" alt="Wind" 
-                                     style="transform: rotate(${current.winddirection_10m + 180}deg)">
-                                <span>${Math.round(current.windspeed_10m)} km/h</span>
-                                <span class="detail-label">Wind</span>
-                            </div>
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/windy.png" class="detail-icon" alt="Gusts">
-                                <span>${Math.round(current.windgusts_10m)} km/h</span>
-                                <span class="detail-label">Gusts</span>
-                            </div>
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/cloud.png" class="detail-icon" alt="Cloud Cover">
-                                <span>${Math.round(current.cloud_cover)}%</span>
-                                <span class="detail-label">Clouds</span>
-                            </div>
-                            ${current.visibility ? `
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/visibility.png" class="detail-icon" alt="Visibility">
-                                <span>${(current.visibility / 1000).toFixed(1)} km</span>
-                                <span class="detail-label">Visibility</span>
-                            </div>` : ''}
-                            ${current.uv_index ? `
-                            <div class="detail-item meteo">
-                                <img src="assets/weather/uv.png" class="detail-icon" alt="UV Index">
-                                <span>${Math.round(current.uv_index)}</span>
-                                <span class="detail-label">UV Index</span>
-                            </div>` : ''}
-                        </div>
-                        
-                        <div class="forecast-container">
-                            <div class="chart-container">
-                                <h4>Today's Temperature</h4>
-                                <canvas id="tempChart-today"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <h4>Today's Wind</h4>
-                                <canvas id="windChart-today"></canvas>
-                            </div>
-                            <div class="chart-container cloud">
-                                <h4>Today's Cloud Coverage</h4>
-                                <div id="cloudChart-today-container"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="spacer-dashed-today"></div>
-                `;
-                
-                // Create today's charts
-                createTodayCharts(weather);
-            }
-
-    if (modalForecast && weather.daily) {
-        const daily = weather.daily;
-        const hourly = weather.hourly;
-        modalForecast.innerHTML = `
-        <div class="day5-title">
-        <h4>5-Day Wind Forecast</h4>
-        </div>
-        <div class="forecast-container">
-            ${daily.time.slice(1, 6).map((date, i) => `
-                <div class="forecast-day">
-                    <div class="forecast-date">${formatDaymeteo(date)}</div>
-                    
-                    <!-- Weather Section -->
-                    <div class="forecast-weather">
-                    <div class="forecast-temps">
-                        <img src="assets/weather/${getWeatherIcon(daily.weathercode[i+1])}.png"  
-                             class="forecast-icon">
-                              </div>
-                        <div class="forecast-temps">
-                            <span class="max">${Math.round(daily.temperature_2m_max[i+1])}°</span>
-                            <span class="separator">/</span>
-                            <span class="min">${Math.round(daily.temperature_2m_min[i+1])}°</span>
-                        </div>
-                                            <div class="forecast-wind-section">
-                        <div class="forecast-wind">
-                            <div class="wind-direction">
-                                <img src="assets/weather/wind.png" 
-                                     class="wind-icon"
-                                     style="transform: rotate(${daily.winddirection_10m_dominant[i+1] + 180}deg)"
-                                     title="Wind Direction: ${daily.winddirection_10m_dominant[i+1]}°">
-                            </div>
-                            <span class">${Math.round(daily.windspeed_10m_max[i+1])} km/h</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Wind Section -->
-
-    
-                        <div class="forecast-gusts">
-                            
-                            <span>Gusts: ${Math.round(daily.windgusts_10m_max[i+1])} km/h</span>
-                        </div>
-                    </div>
-    
-
-    
-                    <div class="daily-wind-chart-container">
-                        <canvas id="windGraph-day-${i+1}"></canvas>
-                    </div>
-                </div>
-
-            `).join('')}
-    </div>
-<div class="day5-title">
-            <h4>5-Day Wind Overview</h4>
-            </div>
-            <div class="wind-graph-container">
-                <canvas id="windGraph-overview"></canvas>
-            </div>
-        `;
-
-
-
-        daily.time.slice(1, 6).forEach((date, i) => {
-            const dayStart = new Date(date);
-            const startHourIndex = hourly.time.findIndex(time => 
-                new Date(time).toDateString() === dayStart.toDateString()
-            ) + 6;  // Start at 6:00
-            
-            const dayHours = Array.from({length: 17}, (_, h) => // 17 hours from 6 to 22
-                new Date(dayStart.setHours(h + 6)).getHours() + 'h'  // Start at 6:00
-            );
-            
-            const ctx = document.getElementById(`windGraph-day-${i+1}`);
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: dayHours,
-                        datasets: [
-                   
-                    {
-                        label: 'Wind Speed',
-                        data: hourly.windspeed_10m.slice(startHourIndex, startHourIndex + 24),
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        tension: 0.4,
-                        pointStyle: 'circle',  // Simple circle instead of arrow
-                        pointRadius: 4,        // Smaller point
-                        pointHoverRadius: 6,
-                        // Remove the pointStyle function
-                    },
-                    {
-                        label: 'Wind Gusts',
-                        data: hourly.windgusts_10m.slice(startHourIndex, startHourIndex + 24),
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: true,
-                        tension: 0.4,
-                        pointStyle: 'circle',
-                        pointRadius: 3,
-                        pointHoverRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: false
-                    },
-                    
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            font: {
-                                size: 9
-                            }
-                        }
-                    },
-                   
-                    tooltip: {
-                        enabled: !isMobileDevice(),
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                const dataIndex = context.dataIndex;
-                                const value = context.raw;
-                                
-                                if (context.dataset.label === 'Wind Speed') {
-                                    const degrees = hourly.winddirection_10m[startHourIndex + dataIndex];
-                                    const direction = getWindDirection(degrees); // New helper function
-                                    return [
-                                        `Wind: ${value} km/h`,
-                                        `Direction: ${direction} (${degrees}°)`
-                                    ];
-                                } else if (context.dataset.label === 'Wind Gusts') {
-                                    return `Gusts: ${value} km/h`;
-                                }
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Wind Speed (km/h)',
-                            font: {
-                                size: 9
-                            }
-                        },
-                        grid: {
-                            display: true,
-                            color: 'rgba(0,0,0,0.05)'
-                        },
-                        suggestedMax: (context) => {
-                            const maxGust = Math.max(...hourly.windgusts_10m.slice(startHourIndex, startHourIndex + 24));
-                            return Math.ceil(maxGust * 1.1);
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: true,
-                            color: 'rgba(0,0,0,0.05)'
-                        },
-                        ticks: {
-                            callback: function(value, index) {
-                                const hour = dayHours[index]; 
-                                const direction = getWindDirection(hourly.winddirection_10m[startHourIndex + index]);
-                                return [hour, direction]; // This creates two lines of text
-                            },
-                            font: {
-                                size: 9,
-                                weight: 'bold'
-                            },
-                            padding: 5,
-                            maxRotation: 0,     // Prevent label rotation
-                            minRotation: 0
-                        }
-                    }
-                },
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                }
-            }
-        });
-    }
-});
-
-// 5-day overview chart
-const ctxOverview = document.getElementById('windGraph-overview');
-if (ctxOverview) {
-    new Chart(ctxOverview, {
-        type: 'line',
-        data: {
-            labels: daily.time.slice(1, 6).map(date => formatDaymeteo(date)),
-            datasets: [
-                {
-                    label: 'Wind Speed',
-                    data: daily.windspeed_10m_max.slice(1, 6),
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0.4,
-                    pointStyle: (context) => {
-                        const angle = daily.winddirection_10m_dominant[context.dataIndex + 1];
-                        const canvas = document.createElement('canvas');
-                        const size = 16;
-                        canvas.width = size;
-                        canvas.height = size;
-                        const ctx = canvas.getContext('2d');
-                        
-                        ctx.translate(size/2, size/2);
-                        ctx.rotate((angle + 180) * Math.PI / 180);
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(0, -size/2);
-                        ctx.lineTo(-size/4, size/4);
-                        ctx.lineTo(size/4, size/4);
-                        ctx.closePath();
-                        
-                        ctx.fillStyle = 'rgb(75, 192, 192)';
-                        ctx.fill();
-                        
-                        return canvas;
-                    },
-                    pointRadius: 8,
-                    pointHoverRadius: 10
-                },
-                {
-                    label: 'Wind Gusts',
-                    data: daily.windgusts_10m_max.slice(1, 6),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    fill: true,
-                    tension: 0.4,
-                    pointStyle: 'circle',
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Wind Forecast',
-                    font: {
-                        size: 16
-                    }
-                },
-                tooltip: {
-                    enabled: !isMobileDevice(),
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            const dataIndex = context.dataIndex;
-                            const value = context.raw;
-                            
-                            if (context.dataset.label === 'Wind Speed') {
-                                return [
-                                    `Wind: ${value} km/h`,
-                                    `Direction: ${daily.winddirection_10m_dominant[dataIndex + 1]}°`
-                                ];
-                            } else if (context.dataset.label === 'Wind Gusts') {
-                                return `Gusts: ${value} km/h`;
-                            }
-                        }
-                    }
-                },
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Wind Speed (km/h)'
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    },
-                    ticks: {
-                        callback: function(value, index) {
-                            const day = formatDaymeteo(daily.time[index + 1]);
-                            const direction = getWindDirection(daily.winddirection_10m_dominant[index + 1]);
-                            return [day, direction]; // This creates two lines of text
-                        },
-                        font: {
-                            size: 7,
-                            weight: 'bold'
-                        },
-                        padding: 5
-                    }
-                }
-            }
-        }
-    });
-
-}
-}
-} finally {
-    // Clean up pending fetch
-    pendingWeatherFetches.delete(siteKey);
-}
-})();
-
-// Store the promise
-pendingWeatherFetches.set(siteKey, fetchPromise);
-
-return fetchPromise;
-}
-
-
-
-
-function createTodayCharts(weather) {
-    if (!weather.hourly) return;
-    
-    const hourly = weather.hourly;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Find indices for today's data
-    const startIndex = hourly.time.findIndex(time => new Date(time) >= today);
-    const endIndex = hourly.time.findIndex(time => new Date(time) >= tomorrow);
-    
-    if (startIndex === -1 || endIndex === -1) {
-        console.error('Could not find today\'s data in hourly forecast');
-        return;
-    }
-    
-    // Filter for hours between 6:00 and 22:00
-    const dayHours = [];
-    const dayIndices = [];
-    
-    for (let i = startIndex; i < endIndex; i++) {
-        const hour = new Date(hourly.time[i]).getHours();
-        if (hour >= 6 && hour <= 22) {
-            dayHours.push(hour + 'h');
-            dayIndices.push(i);
-        }
-    }
-    
-
-    // Wind Chart
-const windCtx = document.getElementById('windChart-today');
-if (windCtx) {
-    // Extract data for the selected hours
-    const windData = dayIndices.map(i => hourly.windspeed_10m[i]);
-    const gustData = dayIndices.map(i => hourly.windgusts_10m[i]);
-    const directionData = dayIndices.map(i => hourly.winddirection_10m[i]);
-    
-    new Chart(windCtx, {
-        type: 'line',
-        data: {
-            labels: dayHours,
-            datasets: [
-                {
-                    label: 'Wind Speed',
-                    data: windData,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0.4,
-                    pointStyle: 'circle',
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'Wind Gusts',
-                    data: gustData,
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    fill: true,
-                    tension: 0.4,
-                    pointStyle: 'circle',
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: false
-                },
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        font: {
-                            size: 9
-                        }
-                    }
-                },
-                tooltip: {
-                    enabled: !isMobileDevice(),
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            const dataIndex = context.dataIndex;
-                            const value = context.raw;
-                            
-                            if (context.dataset.label === 'Wind Speed') {
-                                const degrees = directionData[dataIndex];
-                                const direction = getWindDirection(degrees);
-                                return [
-                                    `Wind: ${value} km/h`,
-                                    `Direction: ${direction} (${degrees}°)`
-                                ];
-                            } else {
-                                return `Gusts: ${value} km/h`;
-                            }
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Wind Speed (km/h)',
-                        font: {
-                            size: 9
-                        }
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(0,0,0,0.05)'
-                    },
-                    suggestedMax: () => {
-                        const maxGust = Math.max(...gustData);
-                        return Math.ceil(maxGust * 1.1);
-                    }
-                },
-                x: {
-                    grid: {
-                        display: true,
-                        color: 'rgba(0,0,0,0.05)'
-                    },
-                    ticks: {
-                        callback: function(value, index) {
-                            const hour = dayHours[index];
-                            const direction = getWindDirection(directionData[index]);
-                            return [hour, direction]; // This creates two lines of text
-                        },
-                        font: {
-                            size: 9,
-                            weight: 'bold'
-                        },
-                        padding: 5,
-                        maxRotation: 0,
-                        minRotation: 0
-                    }
-                }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false
-            }
-        }
-    });
-}
-    
-    // Temperature Chart
-    const tempCtx = document.getElementById('tempChart-today');
-    if (tempCtx) {
-        // Extract temperature data for the selected hours
-        const tempData = dayIndices.map(i => hourly.temperature_2m[i]);
-        
-        new Chart(tempCtx, {
-            type: 'line',
-            data: {
-                labels: dayHours,
-                datasets: [
-                    {
-                        label: 'Min Temp',
-                        data: tempData.map(temp => Math.max(temp - 2, -30)), // Min temp (2°C lower)
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        pointStyle: 'circle',
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Avg Temp',
-                        data: tempData, // Actual temperature
-                        borderColor: 'rgb(255, 159, 64)',
-                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        pointStyle: 'circle',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Max Temp',
-                        data: tempData.map(temp => temp + 2), // Max temp (2°C higher)
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        pointStyle: 'circle',
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: false
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            font: {
-                                size: 9
-                            }
-                        }
-                    },
-                    tooltip: {
-                        enabled: !isMobileDevice(),
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.raw;
-                                return `${context.dataset.label}: ${value.toFixed(1)}°C`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Temperature (°C)',
-                            font: {
-                                size: 9
-                            }
-                        },
-                        grid: {
-                            display: true,
-                            color: 'rgba(0,0,0,0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: true,
-                            color: 'rgba(0,0,0,0.05)'
-                        },
-                        ticks: {
-                            font: {
-                                size: 9,
-                                weight: 'bold'
-                            },
-                            padding: 5,
-                            maxRotation: 0,
-                            minRotation: 0
-                        }
-                    }
-                },
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                }
-            }
-        });
-    }
-
-
-
-if (hourly.cloud_cover && hourly.cloud_cover_low && 
-    hourly.cloud_cover_mid && hourly.cloud_cover_high) {
-    createCloudVisualization(hourly, dayIndices, dayHours);
-}
-
-
-
-}
-
 
 
 
@@ -5966,46 +5188,11 @@ ctx.textBaseline = 'alphabetic';
 function formatDaymeteo(dateStr) {
     return new Date(dateStr).toLocaleDateString(undefined, { weekday: 'long' });
 }
-function getWeatherDescription(code) {
-    const descriptions = {
-        0: "Clear skies",
-        1: "Mainly clear",
-        2: "Partly cloudy",
-        3: "Overcast",
-        45: "Foggy",
-        48: "Depositing rime fog",
-        51: "Light drizzle",
-        53: "Moderate drizzle",
-        55: "Dense drizzle",
-        56: "Light freezing drizzle",
-        57: "Dense freezing drizzle",
-        61: "Slight rain",
-        63: "Moderate rain",
-        65: "Heavy rain",
-        66: "Light freezing rain",
-        67: "Heavy freezing rain",
-        71: "Slight snow fall",
-        73: "Moderate snow fall",
-        75: "Heavy snow fall",
-        77: "Snow grains",
-        80: "Slight rain showers",
-        81: "Moderate rain showers",
-        82: "Violent rain showers",
-        85: "Slight snow showers",
-        86: "Heavy snow showers",
-        95: "Slight/moderate thunderstorm",
-        96: "Thunderstorm with slight hail",
-        99: "Thunderstorm with heavy hail"
-    };
-    return descriptions[code] || "Unknown conditions";
-}
+
 function formatDay(dateStr) {
     return new Date(dateStr).toLocaleDateString(undefined, { weekday: 'short' });
 }
-// function getWindDirection(degrees) {
-//     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-//     return directions[Math.round(degrees / 45) % 8];
-// }
+
 
 function getWindDirection(degrees) {
     // Simpler version with 8 directions instead of 16
@@ -6014,38 +5201,6 @@ function getWindDirection(degrees) {
     return directions[index];
 }
 
-
-
-
-function getWeatherIcon(code) {
-    // Clear and cloudy conditions
-    if (code === 0) return 'clear';                    // Clear sky
-    if ([1, 2].includes(code)) return 'partly-cloudy'; // Mainly clear, partly cloudy
-    if (code === 3) return 'cloudy';                   // Overcast
-
-    // Fog conditions
-    if ([45, 48].includes(code)) return 'fog';         // Fog and depositing rime fog
-
-    // Drizzle conditions
-    if ([51, 53, 55].includes(code)) return 'rain';    // Light to dense drizzle
-    if ([56, 57].includes(code)) return 'snow';        // Freezing drizzle
-
-    // Rain conditions
-    if ([61, 63, 65].includes(code)) return 'rain';    // Slight to heavy rain
-    if ([66, 67].includes(code)) return 'snow';        // Freezing rain
-    if ([80, 81, 82].includes(code)) return 'rain';    // Rain showers
-
-    // Snow conditions
-    if ([71, 73, 75, 77].includes(code)) return 'snow';// All snow conditions
-    if ([85, 86].includes(code)) return 'snow';        // Snow showers
-
-    // Thunderstorm conditions
-    if ([95, 96, 99].includes(code)) return 'thunderstorm'; // All thunderstorm types
-
-    return 'unknown';
-}
-
-//MENU
 
 
 
@@ -6398,9 +5553,9 @@ async function displayGridView(flights) {
         const getFlightType2Text = (type) => {
             switch(type?.toLowerCase()) {
                 case 'tandempilot':
-                    return '<span class="flight-type delta">Tandem Pilot</span>';
+                    return '<span class="flight-type-tandem"><img src="assets/tandems.png" class="spacer-img2" alt="UV Index">Tandem Pilot</span>';
                 case 'tandempassenger':
-                    return '<span class="flight-type paramotor">Tanndem Passenger</span>';
+                    return '<span class="flight-type-tandem"><img src="assets/tandems.png" class="spacer-img2" alt="UV Index">Tandem Passenger</span>';
                 default:
                     return '';
             }
@@ -6714,297 +5869,279 @@ async function getUniqueFavoriteSites() {
 
 
 
-function createSiteCard(site) {
-    const card = document.createElement('div');
-    card.className = 'site-card';
-    const totalFlights = site.flights?.length || 0;
-    const maxGrade = Math.max(...(site.flights?.map(f => f.grade || 0) || [0]));
-    const uniqueTakeoffs = new Set(site.flights?.map(f => f.takeoff) || []).size;
-    const uniqueLandings = new Set(site.flights?.map(f => f.landing) || []).size;
-    const longestFlight = Math.max(...(site.flights?.map(f => f.time || 0) || [0]));
+// function createSiteCard(site) {
+//     const card = document.createElement('div');
+//     card.className = 'site-card';
+//     const totalFlights = site.flights?.length || 0;
+//     const maxGrade = Math.max(...(site.flights?.map(f => f.grade || 0) || [0]));
+//     const uniqueTakeoffs = new Set(site.flights?.map(f => f.takeoff) || []).size;
+//     const uniqueLandings = new Set(site.flights?.map(f => f.landing) || []).size;
+//     const longestFlight = Math.max(...(site.flights?.map(f => f.time || 0) || [0]));
     
 
-    const countrySection = site.country 
-        ? `<span class="site-country">
-             <img 
-                src="./assets/flags/${site.country.toLowerCase()}.png"
-                width="40" 
-                height="30" 
-                alt="${site.country}"
-                class="country-flag-mysite"
-             >
-           </span>`
-        : '';
+//     const countrySection = site.country 
+//         ? `<span class="site-country">
+//              <img 
+//                 src="./assets/flags/${site.country.toLowerCase()}.png"
+//                 width="40" 
+//                 height="30" 
+//                 alt="${site.country}"
+//                 class="country-flag-mysite"
+//              >
+//            </span>`
+//         : '';
 
-        let initialWeatherMessage = 'Weather unavailable (offline)';
-        if (navigator.onLine) {
-            if (site.coordinates && 
-                Array.isArray(site.coordinates) && 
-                site.coordinates.length === 2) {
-                const [lat, lon] = site.coordinates;
-                const cacheKey = `${lat},${lon}`;
-                const cachedData = weatherCache.get(cacheKey);
+//         let initialWeatherMessage = 'Weather unavailable (offline)';
+//         if (navigator.onLine) {
+//             if (site.coordinates && 
+//                 Array.isArray(site.coordinates) && 
+//                 site.coordinates.length === 2) {
+//                 const [lat, lon] = site.coordinates;
+//                 const cacheKey = `${lat},${lon}`;
+//                 const cachedData = weatherCache.get(cacheKey);
                 
-                if (cachedData && cachedData.data?.current) {
-                    const current = cachedData.data.current;
-                    initialWeatherMessage = `
-                        <div class="current-weather">
-                            <div class="weather-main">
-                                <div class="temp-container">
-                                    <img src="assets/weather/${getWeatherIcon(current.weathercode)}.png" alt="Weather">
-                                    <div class="temp-container-temp">
-                                        <div class="temp">${Math.round(current.temperature_2m)}°C</div>
-                                        <div class="feels-like-card">Feels: ${Math.round(current.apparent_temperature)}°C</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    initialWeatherMessage = 'Loading weather...';
-                }
-            } else {
-                initialWeatherMessage = 'No weather data available';
-            }
-        }
+//                 if (cachedData && cachedData.data?.current) {
+//                     const current = cachedData.data.current;
+//                     initialWeatherMessage = `
+//                         <div class="current-weather">
+//                             <div class="weather-main">
+//                                 <div class="temp-container">
+//                                     <img src="assets/weather/${getWeatherIcon(current.weathercode)}.png" alt="Weather">
+//                                     <div class="temp-container-temp">
+//                                         <div class="temp">${Math.round(current.temperature_2m)}°C</div>
+//                                         <div class="feels-like-card">Feels: ${Math.round(current.apparent_temperature)}°C</div>
+//                                     </div>
+//                                 </div>
+//                             </div>
+//                         </div>
+//                     `;
+//                 } else {
+//                     initialWeatherMessage = 'Loading weather...';
+//                 }
+//             } else {
+//                 initialWeatherMessage = 'No weather data available';
+//             }
+//         }
 
 
-        card.innerHTML = `
-        <div class="site-header">
-            <span class="site-name-mysite">${site.name || 'Unnamed Site'}</span>
-            ${countrySection}
-        </div>
-        <div class="site-stats-box">
-        <div class="site-stats">
-        <div><img src="assets/fly.png" class"weather-icon-card">${totalFlights} flights</div>
-        </div>
-        <div class="site-stats">
-        <div><img src="assets/up.png" class"weather-icon-card">${uniqueTakeoffs} diferent takeoff${uniqueTakeoffs !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="site-stats">
-        <div><img src="assets/down.png" class"weather-icon-card">${uniqueLandings} diferent landing${uniqueLandings !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="site-stats">
-        <div><img src="assets/distance.png" class"weather-icon-card">Longest flight: ${formatDuration(longestFlight)}</div>
-        </div>
-        </div>
-            <button class="remove-favorite-button" title="Remove from favorites">
-                <img src="assets/check1.png" alt="Remove from favorites" class="favorite-icon">
-                <span class="favorite-text">Remove SITE from Favorites</span>
-            </button>
+//         card.innerHTML = `
+//         <div class="site-header">
+//             <span class="site-name-mysite">${site.name || 'Unnamed Site'}</span>
+//             ${countrySection}
+//         </div>
+//         <div class="site-stats-box">
+//         <div class="site-stats">
+//         <div><img src="assets/fly.png" class"weather-icon-card">${totalFlights} flights</div>
+//         </div>
+//         <div class="site-stats">
+//         <div><img src="assets/up.png" class"weather-icon-card">${uniqueTakeoffs} diferent takeoff${uniqueTakeoffs !== 1 ? 's' : ''}</div>
+//         </div>
+//         <div class="site-stats">
+//         <div><img src="assets/down.png" class"weather-icon-card">${uniqueLandings} diferent landing${uniqueLandings !== 1 ? 's' : ''}</div>
+//         </div>
+//         <div class="site-stats">
+//         <div><img src="assets/distance.png" class"weather-icon-card">Longest flight: ${formatDuration(longestFlight)}</div>
+//         </div>
+//         </div>
+//             <button class="remove-favorite-button" title="Remove from favorites">
+//                 <img src="assets/check1.png" alt="Remove from favorites" class="favorite-icon">
+//                 <span class="favorite-text">Remove SITE from Favorites</span>
+//             </button>
 
-<div class="spacer-dashed"></div>
+// <div class="spacer-dashed"></div>
 
-        <div class="weather-info" id="weather-${site.name.replace(/\s+/g, '-')}">
-            <div class="weather-box-mini">
-                <div class="weather-item">${initialWeatherMessage}</div>
-                <button type="button" class="forecast-toggle" ${!navigator.onLine ? 'disabled' : ''}>
-                    <span class="toggle-icon">
-                        <img src="assets/weather/forecast.png" alt="forecast" class="forecast-icon-button">
-                    </span>
-                    <span class="toggle-text">View Forecast</span>
-                </button>
-            </div>
-        </div>
-    `;
-// Add remove favorite handler
-const removeFavoriteBtn = card.querySelector('.remove-favorite-button');
-removeFavoriteBtn.addEventListener('click', async (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    try {
-        await dbOperations.toggleFavoriteSite(site.name);
+//         <div class="weather-info" id="weather-${site.name.replace(/\s+/g, '-')}">
+//             <div class="weather-box-mini">
+//                 <div class="weather-item">${initialWeatherMessage}</div>
+//                 <button type="button" class="forecast-toggle" ${!navigator.onLine ? 'disabled' : ''}>
+//                     <span class="toggle-icon">
+//                         <img src="assets/weather/forecast.png" alt="forecast" class="forecast-icon-button">
+//                     </span>
+//                     <span class="toggle-text">View Forecast</span>
+//                 </button>
+//             </div>
+//         </div>
+//     `;
+// // Add remove favorite handler
+// const removeFavoriteBtn = card.querySelector('.remove-favorite-button');
+// removeFavoriteBtn.addEventListener('click', async (e) => {
+//     e.stopPropagation(); // Prevent event bubbling
+//     try {
+//         await dbOperations.toggleFavoriteSite(site.name);
         
-        // Animate card removal
-        card.style.transition = 'all 0.3s ease-out';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.9)';
+//         // Animate card removal
+//         card.style.transition = 'all 0.3s ease-out';
+//         card.style.opacity = '0';
+//         card.style.transform = 'scale(0.9)';
         
-        setTimeout(() => {
-            card.remove();
-            showSuccessMessage('Site removed from favorites');
+//         setTimeout(() => {
+//             card.remove();
+//             showSuccessMessage('Site removed from favorites');
 
-        }, 300);
+//         }, 300);
         
-    } catch (error) {
-        console.error('Error removing site from favorites:', error);
-        showCustomAlert('Error removing site from favorites. Please try again.');
-    }
-});
-    // Get the shared modal elements
-    const modal = document.getElementById('weather-modal');
-    const modalTitle = document.getElementById('modal-title-weather');
-    const modalClose = modal.querySelector('.modal-close');
-    const forecastToggle = card.querySelector('.forecast-toggle');
+//     } catch (error) {
+//         console.error('Error removing site from favorites:', error);
+//         showCustomAlert('Error removing site from favorites. Please try again.');
+//     }
+// });
+//     // Get the shared modal elements
+//     const modal = document.getElementById('weather-modal');
+//     const modalTitle = document.getElementById('modal-title-weather');
+//     const modalClose = modal.querySelector('.modal-close');
+//     const forecastToggle = card.querySelector('.forecast-toggle');
     
-    // Modal open
-    forecastToggle.addEventListener('click', () => {
-        // Check online status before proceeding
-        if (!navigator.onLine) {
-            showCustomAlert('Weather forecast unavailable offline');
-            return;
-        }
+//     // Modal open
+//     forecastToggle.addEventListener('click', () => {
+//         // Check online status before proceeding
+//         if (!navigator.onLine) {
+//             showCustomAlert('Weather forecast unavailable offline');
+//             return;
+//         }
     
-        if (!site.coordinates) {
-            showCustomAlert('No coordinates available for this site');
-            return;
-        }
+//         if (!site.coordinates) {
+//             showCustomAlert('No coordinates available for this site');
+//             return;
+//         }
     
-        modalTitle.textContent = `${site.name}`;
-        displayRandomQuote();
-        const [lat, lon] = site.coordinates;
-        updateWeather(site.name, lat, lon, modal);
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    });
+//         modalTitle.textContent = `${site.name}`;
+//         displayRandomQuote();
+//         const [lat, lon] = site.coordinates;
+//         updateWeather(site.name, lat, lon, modal);
+//         modal.classList.remove('hidden');
+//         document.body.style.overflow = 'hidden';
+//     });
     
-// Modal close button
-modalClose.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-});
+// // Modal close button
+// modalClose.addEventListener('click', (e) => {
+//     e.preventDefault();
+//     modal.classList.add('hidden');
+//     document.body.style.overflow = '';
+// });
 
-// Modal background click
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-});
+// // Modal background click
+// modal.addEventListener('click', (e) => {
+//     if (e.target === modal) {
+//         modal.classList.add('hidden');
+//         document.body.style.overflow = '';
+//     }
+// });
 
-// Escape key to close modal
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-});
+// // Escape key to close modal
+// document.addEventListener('keydown', (e) => {
+//     if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+//         modal.classList.add('hidden');
+//         document.body.style.overflow = '';
+//     }
+// });
 
-// Add online/offline event listeners to update button state
-window.addEventListener('online', async () => {
-    const weatherDiv = card.querySelector('.weather-item');
-    const forecastBtn = card.querySelector('.forecast-toggle');
+// // Add online/offline event listeners to update button state
+// window.addEventListener('online', async () => {
+//     const weatherDiv = card.querySelector('.weather-item');
+//     const forecastBtn = card.querySelector('.forecast-toggle');
     
-    if (forecastBtn) {
-        forecastBtn.disabled = false;
-    }
+//     if (forecastBtn) {
+//         forecastBtn.disabled = false;
+//     }
     
-    if (weatherDiv && site.coordinates) {
-        const [lat, lon] = site.coordinates;
-        const cacheKey = `${lat},${lon}`;
-        const cachedData = weatherCache.get(cacheKey);
+//     if (weatherDiv && site.coordinates) {
+//         const [lat, lon] = site.coordinates;
+//         const cacheKey = `${lat},${lon}`;
+//         const cachedData = weatherCache.get(cacheKey);
         
-        if (cachedData && (Date.now() - cachedData.timestamp < WEATHER_CACHE_DURATION)) {
-            // Use cached data if available and not expired
-            await updateWeather(site.name, lat, lon, modal);
-        } else {
-            weatherDiv.textContent = 'Click forecast to load weather';
-        }
-    }
-});
+//         if (cachedData && (Date.now() - cachedData.timestamp < WEATHER_CACHE_DURATION)) {
+//             // Use cached data if available and not expired
+//             await updateWeather(site.name, lat, lon, modal);
+//         } else {
+//             weatherDiv.textContent = 'Click forecast to load weather';
+//         }
+//     }
+// });
 
-window.addEventListener('offline', () => {
-    const weatherDiv = card.querySelector('.weather-item');
-    const forecastBtn = card.querySelector('.forecast-toggle');
-    if (weatherDiv) weatherDiv.textContent = 'Weather unavailable (offline)';
-    if (forecastBtn) forecastBtn.disabled = true;
-});
+// window.addEventListener('offline', () => {
+//     const weatherDiv = card.querySelector('.weather-item');
+//     const forecastBtn = card.querySelector('.forecast-toggle');
+//     if (weatherDiv) weatherDiv.textContent = 'Weather unavailable (offline)';
+//     if (forecastBtn) forecastBtn.disabled = true;
+// });
 
 
 
-    return card;
-}
+//     return card;
+// }
 
 
 
 // Add these event listeners somewhere in your initialization code
-window.addEventListener('online', () => {
-    // Refresh weather for all sites when coming back online
-    document.querySelectorAll('.site-card').forEach(card => {
-        const weatherDiv = card.querySelector('.weather-item');
-        if (weatherDiv) {
-            weatherDiv.textContent = 'Loading weather...';
-            // Extract site name and try to update weather
-            const siteNameMatch = weatherDiv.id.match(/weather-(.*)/);
-            if (siteNameMatch) {
-                const siteName = siteNameMatch[1].replace(/-/g, ' ');
-                // We need to get the site data from your existing sites data
-                const site = currentSites.find(s => s.name === siteName);
-                if (site?.coordinates) {
-                    updateWeather(siteName, site.coordinates[0], site.coordinates[1]);
-                }
-            }
-        }
-    });
-});
-
-window.addEventListener('offline', () => {
-    // Update all weather displays to show offline status
-    document.querySelectorAll('.weather-item').forEach(div => {
-        div.textContent = 'Weather unavailable (offline)';
-    });
-});
-function updateSiteCard(site, card) {
-    // Recalculate stats
-    const totalFlights = site.flights?.length || 0;
-    const maxGrade = Math.max(...(site.flights?.map(f => f.grade || 0) || [0]));
-    const uniqueTakeoffs = new Set(site.flights?.map(f => f.takeoff) || []).size;
-    const uniqueLandings = new Set(site.flights?.map(f => f.landing) || []).size;
-    const longestFlight = Math.max(...(site.flights?.map(f => f.time || 0) || [0]));
-
-    // Update stats in the card
-    const statsBox = card.querySelector('.site-stats-box');
-    if (statsBox) {
-        statsBox.innerHTML = `
-            <div class="site-stats">
-                <div><img src="assets/fly.png" class="weather-icon-card">${totalFlights} flights</div>
-            </div>
-            <div class="site-stats">
-                <div><img src="assets/up.png" class="weather-icon-card">${uniqueTakeoffs} diferent takeoff${uniqueTakeoffs !== 1 ? 's' : ''}</div>
-            </div>
-            <div class="site-stats">
-                <div><img src="assets/down.png" class="weather-icon-card">${uniqueLandings} diferent landing${uniqueLandings !== 1 ? 's' : ''}</div>
-            </div>
-            <div class="site-stats">
-                <div><img src="assets/distance.png" class="weather-icon-card">Longest flight: ${formatDuration(longestFlight)}</div>
-            </div>
-        `;
-    }
-}
-
-// Call this function whenever you add/remove flights
-function updateAllSiteCards() {
-    currentSites.forEach(site => {
-        const card = document.querySelector(`#site-card-${site.name.replace(/\s+/g, '-')}`);
-        if (card) {
-            updateSiteCard(site, card);
-        }
-    });
-}
-
-
-// async function initSitesSection() {
-//     const sitesGrid = document.getElementById('sitesGrid');
-//     sitesGrid.innerHTML = '';
-    
-//     try {
-//         const favoriteSites = await getUniqueFavoriteSites();
-        
-//         if (favoriteSites.length === 0) {
-//             sitesGrid.innerHTML = '<div class="no-favorites">No favorite sites yet. Add sites to favorites to see them here.</div>';
-//             return;
+// window.addEventListener('online', () => {
+//     // Refresh weather for all sites when coming back online
+//     document.querySelectorAll('.site-card').forEach(card => {
+//         const weatherDiv = card.querySelector('.weather-item');
+//         if (weatherDiv) {
+//             weatherDiv.textContent = 'Loading weather...';
+//             // Extract site name and try to update weather
+//             const siteNameMatch = weatherDiv.id.match(/weather-(.*)/);
+//             if (siteNameMatch) {
+//                 const siteName = siteNameMatch[1].replace(/-/g, ' ');
+//                 // We need to get the site data from your existing sites data
+//                 const site = currentSites.find(s => s.name === siteName);
+//                 if (site?.coordinates) {
+//                     updateWeather(siteName, site.coordinates[0], site.coordinates[1]);
+//                 }
+//             }
 //         }
+//     });
+// });
 
-//         // Just create and append cards, no weather updates
-//         favoriteSites.forEach(site => {
-//             sitesGrid.appendChild(createSiteCard(site));
-//         });
+// window.addEventListener('offline', () => {
+//     // Update all weather displays to show offline status
+//     document.querySelectorAll('.weather-item').forEach(div => {
+//         div.textContent = 'Weather unavailable (offline)';
+//     });
+// });
 
-//     } catch (error) {
-//         console.error('Error loading sites:', error);
-//         sitesGrid.innerHTML = '<div class="error">Error loading sites</div>';
+
+
+// function updateSiteCard(site, card) {
+//     // Recalculate stats
+//     const totalFlights = site.flights?.length || 0;
+//     const maxGrade = Math.max(...(site.flights?.map(f => f.grade || 0) || [0]));
+//     const uniqueTakeoffs = new Set(site.flights?.map(f => f.takeoff) || []).size;
+//     const uniqueLandings = new Set(site.flights?.map(f => f.landing) || []).size;
+//     const longestFlight = Math.max(...(site.flights?.map(f => f.time || 0) || [0]));
+
+//     // Update stats in the card
+//     const statsBox = card.querySelector('.site-stats-box');
+//     if (statsBox) {
+//         statsBox.innerHTML = `
+//             <div class="site-stats">
+//                 <div><img src="assets/fly.png" class="weather-icon-card">${totalFlights} flights</div>
+//             </div>
+//             <div class="site-stats">
+//                 <div><img src="assets/up.png" class="weather-icon-card">${uniqueTakeoffs} diferent takeoff${uniqueTakeoffs !== 1 ? 's' : ''}</div>
+//             </div>
+//             <div class="site-stats">
+//                 <div><img src="assets/down.png" class="weather-icon-card">${uniqueLandings} diferent landing${uniqueLandings !== 1 ? 's' : ''}</div>
+//             </div>
+//             <div class="site-stats">
+//                 <div><img src="assets/distance.png" class="weather-icon-card">Longest flight: ${formatDuration(longestFlight)}</div>
+//             </div>
+//         `;
 //     }
 // }
+
+// // Call this function whenever you add/remove flights
+// function updateAllSiteCards() {
+//     currentSites.forEach(site => {
+//         const card = document.querySelector(`#site-card-${site.name.replace(/\s+/g, '-')}`);
+//         if (card) {
+//             updateSiteCard(site, card);
+//         }
+//     });
+// }
+
+
+
 
 
 
@@ -9994,132 +9131,369 @@ function showSuggestions(input, suggestions) {
     }
 }
 
+// function setupAutocomplete(inputId, getOptions) {
+//     const input = document.getElementById(inputId);
+//     if (!input) return;
+
+//     // Create dropdown container
+//     const dropdownId = `${inputId}-dropdown`;
+//     let dropdown = document.getElementById(dropdownId);
+//     if (!dropdown) {
+//         dropdown = document.createElement('div');
+//         dropdown.id = dropdownId;
+//         dropdown.className = 'autocomplete-dropdown';
+//         input.parentNode.insertBefore(dropdown, input.nextSibling);
+//     }
+
+//     // Style for dropdown
+//     dropdown.style.display = 'none';
+//     dropdown.style.position = 'absolute';
+//     dropdown.style.zIndex = '1000';
+//     dropdown.style.maxHeight = '200px';
+//     dropdown.style.overflowY = 'auto';
+//     dropdown.style.backgroundColor = 'white';
+//     dropdown.style.border = '1px solid #ddd';
+//     dropdown.style.borderRadius = '4px';
+//     dropdown.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+//     dropdown.style.width = `${input.offsetWidth}px`;
+
+//     let currentFocus = -1;
+
+//     input.addEventListener('input', function(e) {
+//         const val = this.value.toLowerCase();
+//         const options = getOptions();
+        
+//         // Clear previous dropdown content
+//         dropdown.innerHTML = '';
+//         dropdown.style.display = 'none';
+//         currentFocus = -1;
+
+//         if (!val) return;
+
+//         // Filter and display matching options
+//         const matches = options.filter(opt => 
+//             opt.toLowerCase().includes(val)
+//         );
+
+//         if (matches.length > 0) {
+//             dropdown.style.display = 'block';
+//             matches.forEach((match, index) => {
+//                 const div = document.createElement('div');
+//                 div.className = 'autocomplete-item';
+//                 div.style.padding = '8px 12px';
+//                 div.style.cursor = 'pointer';
+//                 div.style.borderBottom = '1px solid #eee';
+
+//                 // Highlight matching part
+//                 const matchIndex = match.toLowerCase().indexOf(val);
+//                 div.innerHTML = match.substring(0, matchIndex) +
+//                     `<strong>${match.substring(matchIndex, matchIndex + val.length)}</strong>` +
+//                     match.substring(matchIndex + val.length);
+
+//                 div.addEventListener('click', function() {
+//                     input.value = match;
+//                     dropdown.style.display = 'none';
+//                 });
+
+//                 div.addEventListener('mouseover', function() {
+//                     removeActive();
+//                     currentFocus = index;
+//                     addActive();
+//                 });
+
+//                 dropdown.appendChild(div);
+//             });
+//         }
+//     });
+
+//     // Handle keyboard navigation
+//     input.addEventListener('keydown', function(e) {
+//         const items = dropdown.getElementsByClassName('autocomplete-item');
+//         if (!items.length) return;
+
+//         if (e.keyCode === 40) { // Down arrow
+//             currentFocus++;
+//             addActive();
+//             e.preventDefault();
+//         } else if (e.keyCode === 38) { // Up arrow
+//             currentFocus--;
+//             addActive();
+//             e.preventDefault();
+//         } else if (e.keyCode === 13) { // Enter
+//             e.preventDefault();
+//             if (currentFocus > -1) {
+//                 if (items[currentFocus]) {
+//                     items[currentFocus].click();
+//                 }
+//             }
+//         }
+
+//         if (currentFocus >= items.length) currentFocus = 0;
+//         if (currentFocus < 0) currentFocus = items.length - 1;
+//     });
+
+//     // Close dropdown when clicking outside
+//     document.addEventListener('click', function(e) {
+//         if (e.target !== input) {
+//             dropdown.style.display = 'none';
+//         }
+//     });
+
+//     function addActive() {
+//         const items = dropdown.getElementsByClassName('autocomplete-item');
+//         if (!items.length) return;
+
+//         removeActive();
+//         if (currentFocus >= items.length) currentFocus = 0;
+//         if (currentFocus < 0) currentFocus = items.length - 1;
+
+//         items[currentFocus].style.backgroundColor = '#f0f0f0';
+//     }
+
+//     function removeActive() {
+//         const items = dropdown.getElementsByClassName('autocomplete-item');
+//         Array.from(items).forEach(item => {
+//             item.style.backgroundColor = 'white';
+//         });
+//     }
+// }
+
+
+
 function setupAutocomplete(inputId, getOptions) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
+    // ---------------------------------------------------------
+    // Prevent duplicate initialization
+    // ---------------------------------------------------------
+    if (input._autocompleteCleanup) {
+        input._autocompleteCleanup();
+    }
+
     // Create dropdown container
     const dropdownId = `${inputId}-dropdown`;
     let dropdown = document.getElementById(dropdownId);
+
     if (!dropdown) {
         dropdown = document.createElement('div');
         dropdown.id = dropdownId;
         dropdown.className = 'autocomplete-dropdown';
+
         input.parentNode.insertBefore(dropdown, input.nextSibling);
     }
 
-    // Style for dropdown
-    dropdown.style.display = 'none';
-    dropdown.style.position = 'absolute';
-    dropdown.style.zIndex = '1000';
-    dropdown.style.maxHeight = '200px';
-    dropdown.style.overflowY = 'auto';
-    dropdown.style.backgroundColor = 'white';
-    dropdown.style.border = '1px solid #ddd';
-    dropdown.style.borderRadius = '4px';
-    dropdown.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-    dropdown.style.width = `${input.offsetWidth}px`;
+    // ---------------------------------------------------------
+    // Dropdown style
+    // ---------------------------------------------------------
+    // dropdown.style.display = 'none';
+    // dropdown.style.position = 'absolute';
+    // dropdown.style.zIndex = '1000';
+    // dropdown.style.maxHeight = '200px';
+    // dropdown.style.overflowY = 'auto';
+    // dropdown.style.backgroundColor = 'white';
+    // dropdown.style.border = '1px solid #ddd';
+    // dropdown.style.borderRadius = '4px';
+    // dropdown.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+    // dropdown.style.width = `${input.offsetWidth}px`;
 
     let currentFocus = -1;
 
-    input.addEventListener('input', function(e) {
-        const val = this.value.toLowerCase();
-        const options = getOptions();
-        
-        // Clear previous dropdown content
+    // ---------------------------------------------------------
+    // INPUT
+    // ---------------------------------------------------------
+    function handleInput() {
+        const val = this.value.trim().toLowerCase();
+
+        // Always clear previous results
         dropdown.innerHTML = '';
         dropdown.style.display = 'none';
         currentFocus = -1;
 
         if (!val) return;
 
-        // Filter and display matching options
-        const matches = options.filter(opt => 
+        // -----------------------------------------------------
+        // Get options and remove duplicates
+        // Case-insensitive + trim
+        // -----------------------------------------------------
+        const options = [...new Map(
+            getOptions()
+                .filter(opt => opt != null)
+                .map(opt => String(opt).trim())
+                .filter(opt => opt.length > 0)
+                .map(opt => [opt.toLowerCase(), opt])
+        ).values()];
+
+        // Filter
+        const matches = options.filter(opt =>
             opt.toLowerCase().includes(val)
         );
 
-        if (matches.length > 0) {
-            dropdown.style.display = 'block';
-            matches.forEach((match, index) => {
-                const div = document.createElement('div');
-                div.className = 'autocomplete-item';
-                div.style.padding = '8px 12px';
-                div.style.cursor = 'pointer';
-                div.style.borderBottom = '1px solid #eee';
+        if (!matches.length) return;
 
-                // Highlight matching part
-                const matchIndex = match.toLowerCase().indexOf(val);
-                div.innerHTML = match.substring(0, matchIndex) +
-                    `<strong>${match.substring(matchIndex, matchIndex + val.length)}</strong>` +
-                    match.substring(matchIndex + val.length);
+        dropdown.style.display = 'block';
 
-                div.addEventListener('click', function() {
-                    input.value = match;
-                    dropdown.style.display = 'none';
-                });
+        // -----------------------------------------------------
+        // Create suggestions
+        // -----------------------------------------------------
+        matches.forEach((match, index) => {
+            const div = document.createElement('div');
 
-                div.addEventListener('mouseover', function() {
-                    removeActive();
-                    currentFocus = index;
-                    addActive();
-                });
+            div.className = 'autocomplete-item';
 
-                dropdown.appendChild(div);
+            div.style.padding = '8px 12px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #eee';
+
+            // Highlight matching text
+            const matchIndex = match.toLowerCase().indexOf(val);
+
+            div.innerHTML =
+                match.substring(0, matchIndex) +
+                `<strong>${match.substring(
+                    matchIndex,
+                    matchIndex + val.length
+                )}</strong>` +
+                match.substring(matchIndex + val.length);
+
+            // Click suggestion
+            div.addEventListener('click', function() {
+                input.value = match;
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                currentFocus = -1;
+
+                // Optional: trigger change/input event
+                input.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             });
-        }
-    });
 
-    // Handle keyboard navigation
-    input.addEventListener('keydown', function(e) {
-        const items = dropdown.getElementsByClassName('autocomplete-item');
+            // Mouse hover
+            div.addEventListener('mouseover', function() {
+                removeActive();
+
+                currentFocus = index;
+
+                addActive();
+            });
+
+            dropdown.appendChild(div);
+        });
+    }
+
+    // ---------------------------------------------------------
+    // KEYBOARD NAVIGATION
+    // ---------------------------------------------------------
+    function handleKeydown(e) {
+        const items = dropdown.getElementsByClassName(
+            'autocomplete-item'
+        );
+
         if (!items.length) return;
 
-        if (e.keyCode === 40) { // Down arrow
+        if (e.key === 'ArrowDown') {
             currentFocus++;
-            addActive();
-            e.preventDefault();
-        } else if (e.keyCode === 38) { // Up arrow
-            currentFocus--;
-            addActive();
-            e.preventDefault();
-        } else if (e.keyCode === 13) { // Enter
-            e.preventDefault();
-            if (currentFocus > -1) {
-                if (items[currentFocus]) {
-                    items[currentFocus].click();
-                }
+
+            if (currentFocus >= items.length) {
+                currentFocus = 0;
             }
-        }
 
-        if (currentFocus >= items.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = items.length - 1;
-    });
+            addActive();
+            e.preventDefault();
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (e.target !== input) {
+        } else if (e.key === 'ArrowUp') {
+            currentFocus--;
+
+            if (currentFocus < 0) {
+                currentFocus = items.length - 1;
+            }
+
+            addActive();
+            e.preventDefault();
+
+        } else if (e.key === 'Enter') {
+            if (currentFocus > -1 && items[currentFocus]) {
+                e.preventDefault();
+                items[currentFocus].click();
+            }
+        } else if (e.key === 'Escape') {
             dropdown.style.display = 'none';
+            currentFocus = -1;
         }
-    });
+    }
 
+    // ---------------------------------------------------------
+    // CLICK OUTSIDE
+    // ---------------------------------------------------------
+    function handleDocumentClick(e) {
+        if (
+            e.target !== input &&
+            !dropdown.contains(e.target)
+        ) {
+            dropdown.style.display = 'none';
+            currentFocus = -1;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // ACTIVE ITEM
+    // ---------------------------------------------------------
     function addActive() {
-        const items = dropdown.getElementsByClassName('autocomplete-item');
+        const items = dropdown.getElementsByClassName(
+            'autocomplete-item'
+        );
+
         if (!items.length) return;
 
         removeActive();
-        if (currentFocus >= items.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = items.length - 1;
+
+        if (currentFocus >= items.length) {
+            currentFocus = 0;
+        }
+
+        if (currentFocus < 0) {
+            currentFocus = items.length - 1;
+        }
 
         items[currentFocus].style.backgroundColor = '#f0f0f0';
     }
 
     function removeActive() {
-        const items = dropdown.getElementsByClassName('autocomplete-item');
+        const items = dropdown.getElementsByClassName(
+            'autocomplete-item'
+        );
+
         Array.from(items).forEach(item => {
             item.style.backgroundColor = 'white';
         });
     }
+
+    // ---------------------------------------------------------
+    // Attach listeners
+    // ---------------------------------------------------------
+    input.addEventListener('input', handleInput);
+    input.addEventListener('keydown', handleKeydown);
+    document.addEventListener('click', handleDocumentClick);
+
+    // ---------------------------------------------------------
+    // Cleanup function
+    // Used if setupAutocomplete() is called again
+    // ---------------------------------------------------------
+    input._autocompleteCleanup = function() {
+        input.removeEventListener('input', handleInput);
+        input.removeEventListener('keydown', handleKeydown);
+        document.removeEventListener('click', handleDocumentClick);
+
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+
+        delete input._autocompleteCleanup;
+    };
 }
+
+
+
 
 // async function handleMySitesBoxActivation() {
 //     try {
@@ -10158,27 +9532,27 @@ function hasValidCoordinates(site) {
 
 
 // Add a cleanup function to clear the interval when leaving the section
-function cleanupMySitesBox() {
-    if (window.weatherUpdateInterval) {
-        clearInterval(window.weatherUpdateInterval);
-        window.weatherUpdateInterval = null;
-    }
-}
+// function cleanupMySitesBox() {
+//     if (window.weatherUpdateInterval) {
+//         clearInterval(window.weatherUpdateInterval);
+//         window.weatherUpdateInterval = null;
+//     }
+// }
 
 
-function updateSitesDisplay(favoriteSites) {
-    const sitesContainer = document.querySelector('.sites-container');
-    if (!sitesContainer) return;
+// function updateSitesDisplay(favoriteSites) {
+//     const sitesContainer = document.querySelector('.sites-container');
+//     if (!sitesContainer) return;
 
-    // Clear existing content
-    sitesContainer.innerHTML = '';
+//     // Clear existing content
+//     sitesContainer.innerHTML = '';
     
-    // Use createSiteCard for each site
-    favoriteSites.forEach(site => {
-        const card = createSiteCard(site);
-        sitesContainer.appendChild(card);
-    });
-}
+//     // Use createSiteCard for each site
+//     favoriteSites.forEach(site => {
+//         const card = createSiteCard(site);
+//         sitesContainer.appendChild(card);
+//     });
+// }
 async function handleFlightsBoxActivation() {
     try {
         if (!currentSortedFlights || currentSortedFlights.length === 0) {
@@ -13642,16 +13016,16 @@ function displayListView(flights) {
                     <img src="assets/calendar.png" class="header-icon" alt="Date">
                 </th>
                 <th class="${currentSortColumn === 'site' ? 'active-sort' : ''}" onclick="sortFlights('site')" title="Site">
-                    <img src="assets/windsock.png" class="header-icon" alt="Site">
+                    <img src="assets/pin.png" class="header-icon" alt="Site">
                 </th>
                 <th class="${currentSortColumn === 'country' ? 'active-sort' : ''}" onclick="sortFlights('country')" title="Country">
-                    <img src="assets/country.png" class="header-icon" alt="Country">
+                    <img src="assets/earth2.png" class="header-icon" alt="Country">
                 </th>
                 <th class="${currentSortColumn === 'type' ? 'active-sort' : ''}" onclick="sortFlights('type')" title="Flight Type">
                     <img src="assets/plane.png" class="header-icon" alt="Flight Type">
                 </th>
                 <th class="${currentSortColumn === 'time' ? 'active-sort' : ''}" onclick="sortFlights('time')" title="Flight Time">
-                    <img src="assets/time.png" class="header-icon" alt="Time">
+                    <img src="assets/times.png" class="header-icon" alt="Time">
                 </th>
                 <th class="${currentSortColumn === 'grade' ? 'active-sort' : ''}" onclick="sortFlights('grade')" title="Elevation">
                     <img src="assets/elevation.png" class="header-icon" alt="Elevation">
@@ -13667,6 +13041,9 @@ function displayListView(flights) {
                 </th>
                 <th class="${currentSortColumn === 'school' ? 'active-sort' : ''}" onclick="sortFlights('school')" title="School">
                     <img src="assets/school.png" class="header-icon" alt="School">
+                </th>
+                <th class="${currentSortColumn === 'club' ? 'active-sort' : ''}" onclick="sortFlights('club')" title="Club">
+                    <img src="assets/clubs.png" class="header-icon" alt="Club">
                 </th>
             </tr>
         </thead>
@@ -13686,6 +13063,7 @@ function displayListView(flights) {
                     <td>${flight.rating ? '<img src="assets/rating.png" class="rating-star">'.repeat(flight.rating) : '-'}</td>
                     <td data-type="number">${flight.stressLevel !== null && flight.stressLevel !== undefined ? `${flight.stressLevel}%` : '-'}</td>
                     <td>${flight.school || '-'}</td>
+                    <td>${flight.club || '-'}</td>
                 </tr>
             `}).join('')}
         </tbody>

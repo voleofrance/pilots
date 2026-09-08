@@ -1419,13 +1419,17 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
             </div>
 
+               
                 <div class="form-group">
                     <label for="flightSchool">School (optional) :</label>
-                    <input type="text" id="flightSchool">
+                    <input type="text" id="flightSchool" autocomplete="off">
+                    <datalist id="schoolList"></datalist>
                 </div>
+              
                 <div class="form-group">
                     <label for="flightClub">Club (optional) :</label>
-                    <input type="text" id="flightClub">
+                    <input type="text" id="flightClub" autocomplete="off">
+                    <datalist id="clubList"></datalist>
                 </div>
                 <div class="form-group">
                     <label for="flightMaxAlt">Maximum Altitude (m) :</label>
