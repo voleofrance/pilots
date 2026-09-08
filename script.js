@@ -2609,6 +2609,7 @@ async function handleAddFlight(event) {
         timeOfDay: document.getElementById('flightTimeOfDay').value || null,
         altitude_gain: parseInt(document.getElementById('flightAltGain').value) || null,
         type: document.getElementById('flightType').value,
+        type2: document.getElementById('flightType2').value,
         rating: parseInt(document.querySelector('input[name="flightRating"]:checked')?.value) || 0,
         stressLevel: parseInt(document.getElementById('stressLevel').value) || 0,
         site: document.getElementById('flightSite').value,
@@ -3999,6 +4000,7 @@ async function handleUpdateFlight(event, flight) {
             ...flight,
             id: flight.id,
             type: document.getElementById('flightType').value || flight.type,
+            type2: document.getElementById('flightType2').value || flight.type2,
             coordinates: coordinates ? JSON.stringify(coordinates) : flight.coordinates,
             // minimapImage: coordinates ? null : flight.minimapImage,
             rating: parseInt(document.querySelector('input[name="flightRating"]:checked')?.value) || flight.rating || 0,
@@ -4249,6 +4251,7 @@ if (stressValue) {
         document.getElementById('flightSchool').value = flight.school || '';
         document.getElementById('flightClub').value = flight.club || '';
         document.getElementById('flightType').value = flight.type || '';
+        document.getElementById('flightType2').value = flight.type2 || '';
         // Add these lines to populate the additional metrics
         document.getElementById('flightMaxAlt').value = flight.max_altitude || '';
         document.getElementById('flightMaxSpeed').value = flight.max_speed || '';
@@ -4503,6 +4506,10 @@ async function openAddFlightModal() {
         if (flightTypeSelect) {
             flightTypeSelect.value = ''; // Reset the value
         }
+        const flightType2Select = document.getElementById('flightType2');
+        if (flightType2Select) {
+            flightType2Select.value = ''; // Reset the value
+        }
         // Remove any existing datalists
         ['sitesList', 'takeoffsList', 'landingsList'].forEach(id => {
             const datalist = document.getElementById(id);
@@ -4725,22 +4732,22 @@ function initializeMap(mapDiv, coordinates, speeds = null) {
     }
 
     // Add legend if speeds are provided
-    if (speeds) {
-        const legend = L.control({position: 'bottomright'});
-        legend.onAdd = function() {
-            const div = L.DomUtil.create('div', 'speed-legend');
-            div.innerHTML = `
+    // if (speeds) {
+    //     const legend = L.control({position: 'bottomright'});
+    //     legend.onAdd = function() {
+    //         const div = L.DomUtil.create('div', 'speed-legend');
+    //         div.innerHTML = `
                 
-                <div class="legend-gradient"></div>
-                <div class="legend-labels">
-                    <span>${Math.round(Math.min(...speeds))} km/h</span>
-                    <span>${Math.round(Math.max(...speeds))} km/h</span>
-                </div>
-            `;
-            return div;
-        };
-        legend.addTo(map);
-    }
+    //             <div class="legend-gradient"></div>
+    //             <div class="legend-labels">
+    //                 <span>${Math.round(Math.min(...speeds))} km/h</span>
+    //                 <span>${Math.round(Math.max(...speeds))} km/h</span>
+    //             </div>
+    //         `;
+    //         return div;
+    //     };
+    //     legend.addTo(map);
+    // }
 
     return map;
 }
@@ -6381,6 +6388,16 @@ async function displayGridView(flights) {
                     return '';
             }
         };
+        const getFlightType2Text = (type) => {
+            switch(type?.toLowerCase()) {
+                case 'tandempilot':
+                    return '<span class="flight-type delta">Tandem Pilot</span>';
+                case 'tandempassenger':
+                    return '<span class="flight-type paramotor">Tanndem Passenger</span>';
+                default:
+                    return '';
+            }
+        };
 
         return `
         <div class="flight-card-grid" onclick="showFlightDetails(${actualIndex})">
@@ -6483,6 +6500,7 @@ async function displayGridView(flights) {
 
 <div class="stress-card-left">
 <div class="flight-card-type">${getFlightTypeText(flight.type)}</div>
+<div class="flight-card-type">${getFlightType2Text(flight.type2)}</div>
 ${flight.club ? `
     <div class="flight-card-type-club"><span class="flight-card-club-type"><img src="assets/clubs.png" class="spacer-img2" alt="UV Index"></span>${flight.club}</div>
 ` : ''}
@@ -10978,7 +10996,26 @@ function createAltitudeChart(points, speeds) {
         elevationGain: elevationGainTotal
     };
 }
+// function calculateElevationGain(elevations, minGainStep = 0) {
+//     let gain = 0;
+
+//     for (let i = 1; i < elevations.length; i++) {
+//         const diff = elevations[i] - elevations[i - 1];
+
+//         if (diff > minGainStep) {
+//             gain += diff;
+//         }
+//     }
+
+//     return Math.round(gain);
+// }
+
+
 function calculateElevationGain(elevations, minGainStep = 0) {
+    if (!elevations || elevations.length <= 2) {
+        return 0;
+    }
+
     let gain = 0;
 
     for (let i = 1; i < elevations.length; i++) {
@@ -10991,6 +11028,7 @@ function calculateElevationGain(elevations, minGainStep = 0) {
 
     return Math.round(gain);
 }
+
 
 
 
@@ -12059,9 +12097,22 @@ if (flight.coordinates) {
                             
                             return false;
                         })();
-                        
+                                                    // Update altitude gain
+                            if (hasValidElevation && flightData.points.length > 2) {
+                                const altitudeChartResult = createAltitudeChart(
+                                    flightData.points,
+                                    flightData.speeds
+                                );
+
+                                updateTextContent(
+                                    '.elevation-gain',
+                                    `${altitudeChartResult.elevationGain} m`
+                                );
+                            } else {
+                                updateTextContent('.elevation-gain', '-');
+                            }
                         // Only show chart tabs if at least one chart has valid data
-                        if (hasValidElevation & hasValidVerticalSpeed) {
+                        if (hasValidElevation && hasValidVerticalSpeed) {
                             // Show the chart containers
                             if (chartTabsContainer) {
                                 chartTabsContainer.style.display = 'flex'; // Show tabs
@@ -12071,26 +12122,30 @@ if (flight.coordinates) {
                             }
                             
                             // Handle altitude chart
-                            if (hasValidElevation) {
-                                // createAltitudeChart(flightData.points, flightData.speeds);
-                                const altitudeChartResult = createAltitudeChart(
-                                    flightData.points,
-                                    flightData.speeds
-                                );
+                            // if (hasValidElevation) {
+                            //     // createAltitudeChart(flightData.points, flightData.speeds);
+                            //     const altitudeChartResult = createAltitudeChart(
+                            //         flightData.points,
+                            //         flightData.speeds
+                            //     );
                                 
-                                updateTextContent(
-                                    '.elevation-gain',
-                                    `${altitudeChartResult.elevationGain} m`
-                                );
+                            //     updateTextContent(
+                            //         '.elevation-gain',
+                            //         `${altitudeChartResult.elevationGain} m`
+                            //     );
                                 
-                            } else {
-                                // Hide the altitude tab if no valid elevation data
-                                document.querySelectorAll('.chart-tab').forEach(tab => {
-                                    if (tab.getAttribute('data-chart') === 'altitude') {
-                                        tab.style.display = 'none';
-                                    }
-                                });
-                            }
+                            // } else {
+                            //     // Hide the altitude tab if no valid elevation data
+                            //     document.querySelectorAll('.chart-tab').forEach(tab => {
+                            //         if (tab.getAttribute('data-chart') === 'altitude') {
+                            //             tab.style.display = 'none';
+                            //         }
+                            //     });
+                            // }
+
+
+
+
                             
                             // Handle vertical speed chart
                             if (hasValidVerticalSpeed) {
