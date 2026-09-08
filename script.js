@@ -1080,7 +1080,14 @@ function closefaqmodal() {
 //   });
   
   
-  
+function scrollModalToTop(modal) {
+    const modalContent = modal.querySelector('.modal-content');
+
+    if (modalContent) {
+        modalContent.scrollTop = 0;
+    }
+}
+
   
 // Close modal when clicking outside
 document.addEventListener('DOMContentLoaded', () => {
@@ -4120,7 +4127,7 @@ async function editFlight(index) {
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-
+    scrollModalToTop(modal);
     // Update modal title for editing
     const modalTitle = modal.querySelector('.modal-title');  // Add this class to your title element
     if (modalTitle) {
@@ -4318,7 +4325,7 @@ async function addNewFlight() {
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-
+    scrollModalToTop(modal);
     try {
         await populateFlightDataLists();
         const gearData = await dbOperations.getData(STORES.gear) || { gliders: [], harnesses: [], reserve: [] };
@@ -4495,7 +4502,7 @@ async function openAddFlightModal() {
     
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    
+    scrollModalToTop(modal);
     try {
         // Get existing values from IndexedDB for autocomplete
         const flights = await dbOperations.getAllData(STORES.flights);
@@ -11656,7 +11663,7 @@ async function showFlightDetails(index) {
         
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-
+        
         
         // MOVED HERE: Reset chart state after modal is initialized
         const chartTabsContainer = modal.querySelector('.chart-tabs');
@@ -13199,7 +13206,7 @@ async function openProfileGearModal() {
     };
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-
+    scrollModalToTop(modal);
     gearChanged = false;
 
     const profileImageInput = document.getElementById('profileImageInput');

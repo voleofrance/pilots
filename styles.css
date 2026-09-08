@@ -1419,13 +1419,13 @@ cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.fields-box-pilot input:focus,
+/* .fields-box-pilot input:focus,
 .fields-box-gear input:focus,
 .fields-box-qualif input:focus {
     border-color: #90CAF9;
     box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.1);
     outline: none;
-}
+} */
 
 /* Add gear buttons styling */
 .add-gear-button {
@@ -2869,6 +2869,9 @@ cursor: pointer;
 }
 .form-group textarea {
     padding: 20px 20px;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #696a6b;
 }
 .form-group select {
     appearance: none;
@@ -5352,11 +5355,15 @@ input[type="date"] {
     align-items: flex-start;
     justify-content: left;
     width: max-content;
+    width: 100%;
 }
 .rating-group, .stress-level-group {
     margin: 10px 0;
 }
-
+.stress-level-group {
+    width: 100%;
+    margin: auto;
+}
 .star-rating {
     display: flex;
     width: max-content;
@@ -5464,6 +5471,7 @@ input[type="date"] {
     #FF8A80  /* Medium red */
     );
     outline: none;
+    opacity: 0.7;
 }
 
 
@@ -6216,7 +6224,12 @@ input[type="date"] {
 .weather-modal.hidden {
     display: none;
 }
-
+.qualificationCompleted {
+    height: 15px !important;
+    border: transparent !important;
+    border-color: transparent !important;
+    outline: none !important;
+}
 .modal-content-weather {
     background: white;
     width: 90%;
