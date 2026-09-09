@@ -152,11 +152,11 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                         </div>
                     <div class="fields-box-pilot-inner">
                     <div class="form-group">
-                        <label for="profileNameInputModal">Name</label>
+                        <label for="profileNameInputModal">Name :</label>
                         <input type="text" id="profileNameInputModal" placeholder="Enter your name">
                     </div>
                     <div class="form-group">
-                        <label for="profileBirthDateInput">Birth Date</label>
+                        <label for="profileBirthDateInput">Birth Date :</label>
                         <input type="date" 
                                id="profileBirthDateInput" 
                                min="1940-01-01" 
@@ -165,8 +165,16 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                                placeholder="Select Date">
                     </div>
                     <div class="form-group">
-                        <label for="profileWeightInputModal">Weight</label>
+                        <label for="profileWeightInputModal">Weight :</label>
                         <input type="text" id="profileWeightInputModal" placeholder="Enter your weight">
+                    </div>
+                    <div class="form-group">
+                        <label for="bloodInputModal">Blood Type :</label>
+                        <input type="text" id="bloodInputModal" placeholder="Enter your blood type">
+                    </div>
+                    <div class="form-group">
+                        <label for="licenseInputModal">License number :</label>
+                        <input type="text" id="licenseInputModal" placeholder="Enter your license number">
                     </div>
                     </div>
                     </div>
@@ -789,7 +797,17 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
     <div class="settings-menu-items">
                                  
 
+        <div class="profile-tabs">
 
+            <button class="profile-tab active" data-tab="gear">
+                <img src="assets/document.png" class="profile-tab-img">Pilot & Gear
+            </button>
+            <button class="profile-tab" data-tab="qualifications">
+                <img src="assets/document.png" class="profile-tab-img">Qualifications & Training
+            </button>
+        
+            
+        </div>
 
 
         <div class="profile-settings-box">
@@ -820,7 +838,10 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
         </label>
     </div>
 </div>
-        
+
+
+
+
     </div>
 
 
@@ -828,7 +849,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
 
 
-    <div class="profile-page">
+    <!-- <div class="profile-page">
         <div class="gear-preview-content">
             <div class="preview-section pilot-info">
                 <h4>Pilot Info</h4>
@@ -860,7 +881,60 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                 <div class="preview-list" id="reservePreviewList"></div>
             </div>
         </div>
+    </div> -->
+
+
+    <div class="profile-page">
+        <div class="gear-preview-content">
+            
+           
+            <!-- Tabs -->
+            
+    
+            <!-- Qualifications & Training -->
+            <div class="tab-content" id="qualificationsTab">
+                
+                <div class="preview-section">
+                    <h4>Qualifications</h4>
+                    <div class="preview-list" id="qualificationsPreviewList"></div>
+                </div>
+    
+                <div class="preview-section">
+                    <h4>Training Courses</h4>
+                    <div class="preview-list2" id="CoursesPreviewList"></div>
+                </div>
+    
+            </div>
+    
+            <!-- Gear -->
+            <div class="tab-content active" id="gearTab">
+                <div class="preview-section pilot-info">
+                    <h4>Pilot Info</h4>
+                    <div class="preview-list" id="pilotPreviewList"></div>
+                </div>
+                <div class="preview-section">
+                    <h4>Wings</h4>
+                    <div class="preview-list" id="gliderPreviewList"></div>
+                </div>
+    
+                <div class="preview-section">
+                    <h4>Harnesses</h4>
+                    <div class="preview-list" id="harnessPreviewList"></div>
+                </div>
+    
+                <div class="preview-section">
+                    <h4>Reserves</h4>
+                    <div class="preview-list" id="reservePreviewList"></div>
+                </div>
+    
+            </div>
+    
+        </div>
     </div>
+    
+
+
+
 </div>
 
 
@@ -1055,7 +1129,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     
                             <div class="stat-box featured">
                                 <div class="stat-content cl">
-                                    <h3>Distance</h3>
+                                    <h3>Distance:</h3>
                                     <p class="flight-distance"></p>
                                 </div>
                             </div>
@@ -1168,10 +1242,10 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
      
 
-                <button class="favorite-site-button" style="display: none;">
+                <!-- <button class="favorite-site-button" style="display: none;">
                     <img src="assets/check1.png" alt="Favorite" class="action-icon">
                     <span class="favorite-text">Add SITE to Favorites</span>
-                </button>
+                </button> -->
 
             <div class="modal-buttons-container">
                 <div class="modal-action-buttons">
@@ -1190,7 +1264,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
             
             <small class="elevation-attribution">
                 Elevation data provided by 
-                <a href="https://open-meteo.com/" target="_blank">Open-Meteo<img src="assets/weather/open-meteo.png" alt="Open-Meteo" class="openmeteo-icon"></a> 
+                <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> 
                 using 
                 <a href="https://doi.org/10.5270/ESA-c5d3d65" target="_blank">Copernicus DEM</a>
             </small>  
@@ -1268,28 +1342,6 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <input type="time" id="flightTimeOfDay">
                 </div>
                 
-                <!-- <div class="form-group">
-                    <label for="flightSite">Site :</label>
-                    <input type="text" id="flightSite" autocomplete="off" required>
-                    <datalist id="sitesList"></datalist>
-                </div>
-                <div class="form-group">
-                    <label for="flightTakeoff">Takeoff name :</label>
-                    <input type="text" id="flightTakeoff" autocomplete="off">
-                    <datalist id="takeoffsList"></datalist>
-
-                    <input type="hidden" id="flightTakeoffLat">
-                    <input type="hidden" id="flightTakeoffLon">
-                </div>
-
-                <div class="form-group">
-                    <label for="flightLanding">Landing name :</label>
-                    <input type="text" id="flightLanding" autocomplete="off">
-                    <datalist id="landingsList"></datalist>
-                </div> -->
-
-
-
                 <div class="form-group">
                     <label for="flightSite">
                         Site :

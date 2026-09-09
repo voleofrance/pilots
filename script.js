@@ -261,6 +261,30 @@ let flightDataForCalendar = []; // Store flight data for calendar
 // }, 10000);
 
 
+const tabs = document.querySelectorAll('.profile-tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+
+        // Retire active de tous les tabs
+        tabs.forEach(t => t.classList.remove('active'));
+
+        // Cache tous les contenus
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Active le tab sélectionné
+        tab.classList.add('active');
+
+        // Affiche son contenu
+        document
+            .getElementById(`${target}Tab`)
+            .classList.add('active');
+    });
+});
 
 
 
@@ -1197,6 +1221,8 @@ const initDB = () => {
                         image: 'assets/default-profile.png',
                         birthDate: '',
                         weight: '',
+                        blood: '',
+                        license: '',
                         backgroundImage: 'none',
                         backgroundColor: 'white'
                     }, 'basicProfile');
@@ -8277,6 +8303,8 @@ async function exportAsJson() {
             image: basicProfile.image,
             birthDate: basicProfile.birthDate,
             weight: basicProfile.weight,
+            blood: basicProfile.blood,
+            license: basicProfile.license,
             backgroundImage: basicProfile.backgroundImage,
             qualifications: extendedProfile.qualifications || [],
             Courses: extendedProfile.Courses || [],
@@ -8539,6 +8567,8 @@ async function handleBackupFile(file) {
                             image: importedData.profile.image,
                             birthDate: importedData.profile.birthDate || '', // Don't set a default
                             weight: importedData.profile.weight,
+                            blood: importedData.profile.blood,
+                            license: importedData.profile.license,
                             backgroundImage: importedData.profile.backgroundImage || null // Add this line
                         };
                         await dbOperations.setData(STORES.profile, basicProfileData, 'basicProfile');
@@ -8784,26 +8814,26 @@ function showCustomConfirm(message, showLoadingOnConfirm = true) {
 }
 
 
-function showCustomAlert(message) {
-    const alertOverlay = document.getElementById('customAlert');
-    const alertMessage = document.getElementById('customAlertMessage');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+// function showCustomAlert(message) {
+//     const alertOverlay = document.getElementById('customAlert');
+//     const alertMessage = document.getElementById('customAlertMessage');
+//     const loadingOverlay = document.getElementById('loadingOverlay');
     
-    alertMessage.textContent = message;
-    alertOverlay.style.display = 'flex';
-    alertOverlay.style.opacity = '0';
+//     alertMessage.textContent = message;
+//     alertOverlay.style.display = 'flex';
+//     alertOverlay.style.opacity = '0';
     
-    // Short delay to ensure smooth transition
-    setTimeout(() => {
-        alertOverlay.style.opacity = '1';
-        if (loadingOverlay) {
-            loadingOverlay.style.opacity = '0';
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-            }, 300);
-        }
-    }, 10);
-}
+//     // Short delay to ensure smooth transition
+//     setTimeout(() => {
+//         alertOverlay.style.opacity = '1';
+//         if (loadingOverlay) {
+//             loadingOverlay.style.opacity = '0';
+//             setTimeout(() => {
+//                 loadingOverlay.style.display = 'none';
+//             }, 300);
+//         }
+//     }, 10);
+// }
 function showCustomAlert(message) {
     const alertOverlay = document.getElementById('customAlert');
     const alertMessage = document.getElementById('customAlertMessage');
@@ -12249,6 +12279,12 @@ function createSitesList(flightData) {
 function initializeFlights() {
     sortFlights('date');
 }
+function normalizeText(text) {
+    return String(text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
 
 function sortFlights(column = 'date', forceDateSort = false) {
     // Toggle sort direction if clicking the same column
@@ -12272,33 +12308,53 @@ function sortFlights(column = 'date', forceDateSort = false) {
             return dateB - dateA; // Always descending for grid view
         }
 
-        // List view sorting logic
         switch (column) {
-            case 'date':
+            case 'date': {
                 const [dayA, monthA, yearA] = a.date.split('/');
                 const [dayB, monthB, yearB] = b.date.split('/');
+        
                 const dateA = new Date('20' + yearA, monthA - 1, dayA);
                 const dateB = new Date('20' + yearB, monthB - 1, dayB);
+        
                 comparison = dateA - dateB;
                 break;
+            }
+        
             case 'site':
+            case 'takeoff':
+            case 'landing':
             case 'country':
             case 'glider':
-                comparison = (a[column] || '').localeCompare(b[column] || '');
+            case 'type':
+            case 'school':
+            case 'club':
+                comparison = normalizeText(a[column]).localeCompare(
+                    normalizeText(b[column]),
+                    undefined,
+                    { numeric: true }
+                );
                 break;
+        
             case 'time':
             case 'grade':
             case 'flight_distance':
             case 'rating':
             case 'stressLevel':
-                // Handle null/undefined values
-                const valA = a[column] !== null ? Number(a[column]) || 0 : -1;
-                const valB = b[column] !== null ? Number(b[column]) || 0 : -1;
+                const valA = a[column] !== null && a[column] !== undefined
+                    ? Number(a[column]) || 0
+                    : -1;
+        
+                const valB = b[column] !== null && b[column] !== undefined
+                    ? Number(b[column]) || 0
+                    : -1;
+        
                 comparison = valA - valB;
                 break;
+        
             default:
                 comparison = 0;
         }
+        
         
         // If values are equal, use date as secondary sort
         if (comparison === 0 && column !== 'date') {
@@ -13176,6 +13232,15 @@ async function openProfileGearModal() {
         if (weightInput && basicProfileData.weight) {
             weightInput.value = basicProfileData.weight;
         }
+        const bloodInput = document.getElementById('bloodInputModal');
+            if (bloodInput) {
+                bloodInput.value = basicProfileData.blood || '';
+            }
+            const licenseInput = document.getElementById('licenseInputModal');
+            if (licenseInput) {
+                licenseInput.value = basicProfileData.license || '';
+            }
+
     } catch (error) {
         console.error('Error loading basic profile data:', error);
     }
@@ -13347,6 +13412,8 @@ async function saveProfileGearDetails() {
             image: document.getElementById('profileImageModal').src,
             birthDate: document.getElementById('profileBirthDateInput').value,
             weight: document.getElementById('profileWeightInputModal').value,
+            blood: document.getElementById('bloodInputModal').value,
+            license: document.getElementById('licenseInputModal').value,
             backgroundImage: profileInfo.style.backgroundImage || null // Add this line
         };
         await dbOperations.setData(STORES.profile, basicProfileData, 'basicProfile');
@@ -13475,6 +13542,8 @@ async function loadProfile() {
         const profileNameDisplay = document.getElementById('profileNameDisplay');
         const profileNameInputModal = document.getElementById('profileNameInputModal');
         const profileWeightInputModal = document.getElementById('profileWeightInputModal');
+        const bloodInputModal = document.getElementById('bloodInputModal');
+        const licenseInputModal = document.getElementById('licenseInputModal');
         const profileImageModal = document.getElementById('profileImageModal');
 
         if (profileImage) {
@@ -13495,6 +13564,12 @@ async function loadProfile() {
 
         if (profileWeightInputModal) {
             profileWeightInputModal.value = basicProfileData.weight || '';
+        }
+        if (bloodInputModal) {
+            bloodInputModal.value = basicProfileData.blood || '';
+        }
+        if (licenseInputModal) {
+            licenseInputModal.value = basicProfileData.license || '';
         }
 
         profileData.qualifications = savedProfileData.qualifications || [];
@@ -13565,26 +13640,33 @@ function displayListView(flights) {
                 <th class="${currentSortColumn === 'site' ? 'active-sort' : ''}" onclick="sortFlights('site')" title="Site">
                     <img src="assets/pin.png" class="header-icon" alt="Site">
                 </th>
+
                 <th class="${currentSortColumn === 'country' ? 'active-sort' : ''}" onclick="sortFlights('country')" title="Country">
-                    <img src="assets/earth2.png" class="header-icon" alt="Country">
+                    <img src="assets/earth.png" class="header-icon" alt="Country">
                 </th>
                 <th class="${currentSortColumn === 'type' ? 'active-sort' : ''}" onclick="sortFlights('type')" title="Flight Type">
                     <img src="assets/plane.png" class="header-icon" alt="Flight Type">
                 </th>
                 <th class="${currentSortColumn === 'time' ? 'active-sort' : ''}" onclick="sortFlights('time')" title="Flight Time">
-                    <img src="assets/times.png" class="header-icon" alt="Time">
+                    <img src="assets/timess.png" class="header-icon" alt="Time">
                 </th>
                 <th class="${currentSortColumn === 'grade' ? 'active-sort' : ''}" onclick="sortFlights('grade')" title="Elevation">
-                    <img src="assets/elevation.png" class="header-icon" alt="Elevation">
+                    <img src="assets/doublear.png" class="header-icon" alt="Elevation">
                 </th>
                 <th class="${currentSortColumn === 'flight_distance' ? 'active-sort' : ''}" onclick="sortFlights('flight_distance')" title="Distance">
-                    <img src="assets/distance.png" class="header-icon" alt="Distance">
+                    <img src="assets/distances.png" class="header-icon" alt="Distance">
                 </th>
                 <th class="${currentSortColumn === 'rating' ? 'active-sort' : ''}" onclick="sortFlights('rating')" title="Rating">
                     <img src="assets/rating.png" class="header-icon" alt="Rating">
                 </th>
                 <th class="${currentSortColumn === 'stressLevel' ? 'active-sort' : ''}" onclick="sortFlights('stressLevel')" title="Stress Level">
                     <img src="assets/profile.png" class="header-icon" alt="Stress">
+                </th>
+                                <th class="${currentSortColumn === 'takeoff' ? 'active-sort' : ''}" onclick="sortFlights('takeoff')" title="Takeoff">
+                    <img src="assets/up.png" class="header-icon" alt="Site">
+                </th>
+                <th class="${currentSortColumn === 'landing' ? 'active-sort' : ''}" onclick="sortFlights('landing')" title="Landing">
+                    <img src="assets/down.png" class="header-icon" alt="Site">
                 </th>
                 <th class="${currentSortColumn === 'school' ? 'active-sort' : ''}" onclick="sortFlights('school')" title="School">
                     <img src="assets/school.png" class="header-icon" alt="School">
@@ -13600,6 +13682,7 @@ function displayListView(flights) {
                 <tr onclick="showFlightDetails(${index})">
                     <td data-type="date-table">${flight.date}</td>
                     <td>${flight.site || '-'}</td>
+                    
                     <td>${flight.country || '-'}</td>
                     <td data-type="flight-type">
                         ${getFlightTypeWithColor(flight.type)}
@@ -13609,6 +13692,8 @@ function displayListView(flights) {
                     <td data-type="distance">${flight.flight_distance ? flight.flight_distance.toFixed(1) + ' km' : '-'}</td>
                     <td>${flight.rating ? '<img src="assets/rating.png" class="rating-star">'.repeat(flight.rating) : '-'}</td>
                     <td data-type="number">${flight.stressLevel !== null && flight.stressLevel !== undefined ? `${flight.stressLevel}%` : '-'}</td>
+                    <td>${flight.takeoff || '-'}</td>
+                    <td>${flight.landing || '-'}</td>
                     <td>${flight.school || '-'}</td>
                     <td>${flight.club || '-'}</td>
                 </tr>
@@ -13854,8 +13939,22 @@ async function updateGearPreview() {
     try {
         // Get pilot data from IndexedDB
         const basicProfileData = await dbOperations.getData(STORES.profile, 'basicProfile') || {};
-        
+                // Get extended profile data
+                const extendedProfileData = await dbOperations.getData(
+                    STORES.profile,
+                    'extendedProfile'
+                ) || {
+                    qualifications: [],
+                    Courses: [],
+                    documents: []
+                };
         const pilotPreviewList = document.getElementById('pilotPreviewList');
+
+        const qualificationNames = profileData.qualifications
+            .filter(qual => qual.name)
+            .map(qual => qual.name)
+            .join(', ');
+
         pilotPreviewList.innerHTML = `
             <div class="preview-item-pilot">
                 <span>Birth Date:</span>
@@ -13864,6 +13963,20 @@ async function updateGearPreview() {
             <div class="preview-item-pilot">
                 <span>Weight:</span>
                 <span class="preview-item-details-pilot">${basicProfileData.weight ? basicProfileData.weight + ' kg' : 'Not set'}</span>
+            </div>
+            <div class="preview-item-pilot">
+                <span>Blood Type:</span>
+                <span class="preview-item-details-pilot">${basicProfileData.blood ? basicProfileData.blood  : 'Not set'}</span>
+            </div>
+            <div class="preview-item-pilot">
+                <span>License number:</span>
+                <span class="preview-item-details-pilot">${basicProfileData.license ? basicProfileData.license  : 'Not set'}</span>
+            </div>
+            <div class="preview-item-pilot">
+                <span>Qualifications:</span>
+                <span class="preview-item-details-pilot">
+                    ${qualificationNames || 'Not set'}
+                </span>
             </div>
         `;
 
