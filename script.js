@@ -7475,27 +7475,36 @@ function refreshreserveInModal() {
         
         reserveItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">  <!-- Add relative positioning -->
+               <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
                     <input type="text" id="reserveBrand_${index}" class="reserveBrand" 
                            value="${reserve.brand || ''}" placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
+                </div>
+                <div class="field-group hori">
+                <span>Model :</span>
                     <input type="text" class="reserveModel" value="${reserve.model || ''}" placeholder="Model">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Serial Number :</span>
                     <input type="text" class="reserveSerial" value="${reserve.serial || ''}" placeholder="Serial Number">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
                 <input type="text" class="reserveinitial_hours" value="${reserve.initial_hours || ''}" placeholder="Initial Hours">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date Bought :</span>
                 <input type="date" class="reserveDateBought" value="${reserve.dateBought || ''}" placeholder="Date Bought">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date Bought :</span>
                 <input type="date" class="reserveDatelastcheck" value="${reserve.last_check || ''}" placeholder="Last Check">
             </div>
+            
             <div class="button-row">
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActivereserve(${index})">
                     ${isActive ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
@@ -7549,26 +7558,34 @@ function refreshHarnessesInModal() {
         
         harnessItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">  <!-- Add relative positioning -->
+            <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                 <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
                     <input type="text" id="harnessBrand_${index}" class="harnessBrand" 
                            value="${harness.brand || ''}" placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
-                    <input type="text" class="harnessModel" value="${harness.model || ''}" placeholder="Model">
                 </div>
-                <div>
-                    <input type="text" class="harnessSerial" value="${harness.serial || ''}" placeholder="Serial Number">
+                <div class="field-group hori">
+                <span>Model :</span>
+                    <input type="text" class="harnessModel" value="${harness.model || ''}" placeholder="Model...">
                 </div>
-                <div>
-                <input type="text" class="harnessinitial_hours" value="${harness.initial_hours || ''}" placeholder="Initial Hours">
+                 <div class="field-group hori">
+                <span>Serial Number :</span>
+                    <input type="text" class="harnessSerial" value="${harness.serial || ''}" placeholder="Serial Number...">
                 </div>
-                <div>
-                <input type="date" class="harnessDateBought" value="${harness.dateBought || ''}" placeholder="Date Bought">
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
+                <input type="text" class="harnessinitial_hours" value="${harness.initial_hours || ''}" placeholder="Initial Hours...">
                 </div>
-                <div>
-                <input type="date" class="harnessDatelastcheck" value="${harness.last_check || ''}" placeholder="Last Check">
+                 <div class="field-group hori">
+                <span>Date Bought :</span>
+                <input type="date" class="harnessDateBought" value="${harness.dateBought || ''}" placeholder="Date Bought...">
+                </div>
+                <div class="field-group hori">
+                <span>Date of last Check :</span>
+                <input type="date" class="harnessDatelastcheck" value="${harness.last_check || ''}" placeholder="Last Check...">
             </div>
             <div class="button-row">
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActiveHarness(${index})">
@@ -7625,29 +7642,38 @@ function refreshGlidersInModal() {
         
         gliderItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">  <!-- Add relative positioning -->
+            <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
                     <input type="text" id="gliderBrand_${index}" class="gliderBrand" 
                            value="${glider.brand || ''}" placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
-                    <input type="text" class="gliderModel" value="${glider.model || ''}" placeholder="Model">
                 </div>
-                <div>
-                    <input type="text" class="gliderSize" value="${glider.size || ''}" placeholder="Size">
+                <div class="field-group hori">
+                <span>Model :</span>
+                    <input type="text" class="gliderModel" value="${glider.model || ''}" placeholder="Model...">
                 </div>
-                <div>
-                    <input type="text" class="gliderSerial" value="${glider.serial || ''}" placeholder="Serial Number">
+                <div class="field-group hori">
+                <span>Size :</span>
+                    <input type="text" class="gliderSize" value="${glider.size || ''}" placeholder="Size...">
                 </div>
-                <div>
-                    <input type="text" class="gliderinitial_hours" value="${glider.initial_hours || ''}" placeholder="Initial Hours">
+                 <div class="field-group hori">
+                <span>Serial Number :</span>
+                    <input type="text" class="gliderSerial" value="${glider.serial || ''}" placeholder="Serial Number...">
                 </div>
-                <div>
-                    <input type="date" class="gliderDateBought" value="${glider.dateBought || ''}" placeholder="Date Bought">
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
+                    <input type="text" class="gliderinitial_hours" value="${glider.initial_hours || ''}" placeholder="Initial Hours...">
                 </div>
-                <div>
-                    <input type="date" class="gliderDatelastcheck" value="${glider.last_check || ''}" placeholder="Last Check">
+               <div class="field-group hori">
+                <span>Date Bought :</span>
+                    <input type="date" class="gliderDateBought" value="${glider.dateBought || ''}" placeholder="Date Bought...">
+                </div>
+                <div class="field-group hori">
+                <span>Date of last Check :</span>
+                    <input type="date" class="gliderDatelastcheck" value="${glider.last_check || ''}" placeholder="Last Check...">
                 </div>
             </div>
             <div class="button-row">
@@ -7672,7 +7698,12 @@ function refreshGlidersInModal() {
         });
         
         gliderList.appendChild(gliderItem);
-        setupAutocomplete(`gliderBrand_${index}`, () => GLIDER_BRANDS);
+        setupAutocomplete(
+            `gliderBrand_${index}`,
+            () => GLIDER_BRANDS,
+            'glider-autocomplete-dropdown'
+        );
+        
 
     });
 
@@ -7787,28 +7818,37 @@ async function addGlider() {
         
         gliderItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">
+            <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                <div class='autocomplete-wrapper'  style="position: relative;">
                     <input type="text" id="${uniqueId}" class="gliderBrand" 
                            placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
+                </div>
+                <div class="field-group hori">
+                <span>Model :</span>
                     <input type="text" class="gliderModel" placeholder="Model">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Size :</span>
                     <input type="text" class="gliderSize" placeholder="Size">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Serial Number :</span>
                     <input type="text" class="gliderSerial" placeholder="Serial Number">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
                     <input type="text" class="gliderinitial_hours" placeholder="Initial flight hours">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date Bought :</span>
                     <input type="date" class="gliderDateBought" placeholder="Date Bought">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" placeholder="Last Check">
                 </div>
             </div>
@@ -7825,7 +7865,12 @@ async function addGlider() {
         gliderList.appendChild(gliderItem);
         
         // Now setup autocomplete with the unique ID
-        setupAutocomplete(uniqueId, () => GLIDER_BRANDS);
+        setupAutocomplete(
+            `gliderBrand_${index}`,
+            () => GLIDER_BRANDS,
+            'glider-autocomplete-dropdown'
+        );
+        
         
         // Add input listeners with automatic saving
         gliderItem.querySelectorAll('input').forEach(input => {
@@ -7910,31 +7955,37 @@ async function addreserve() {
         
         reserveItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">
+            <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
                     <input type="text" id="${uniqueId}" class="reserveBrand" 
                            placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
+                </div>
+                <div class="field-group hori">
+                <span>Model :</span>
                     <input type="text" class="reserveModel" placeholder="Model">
                 </div>
-                <div>
+                 <div class="field-group hori">
+                <span>Serial Number :</span>
                     <input type="text" class="reserveSerial" placeholder="Serial Number">
                 </div>
-                <div>
-                    <input type="text" class="reserveSize" placeholder="Size">
-                </div>
-                <div>
+               
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
                     <input type="text" class="reserveinitial_hours" placeholder="Initial flight hours">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date Bought :</span>
                     <input type="date" class="reserveDateBought" placeholder="Date Bought">
                 </div>
-                <div>
+                <div class="field-group hori">
+                <span>Date Bought :</span>
                     <input type="date" class="reserveDatelastcheck" placeholder="Last Check">
                 </div>
-            </div>
+            
             <div class="button-row">
                 <button type="button" class="secondary-button ${isFirstreserve ? 'active-gear' : ''}" onclick="setActivereserve(${newIndex})">
                     ${isFirstreserve ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
@@ -8032,26 +8083,34 @@ async function addHarness() {
         
         harnessItem.innerHTML = `
         <div class="full-group">
-            <div class="form-group">
-                <div style="position: relative;">
+            <div class="field-group h">
+            <div class="field-group hori">
+            <span>Brand :</span>
+                 <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
                     <input type="text" id="${uniqueId}" class="harnessBrand" 
                            placeholder="Brand" autocomplete="off">
                     <!-- Dropdown will be inserted here -->
                 </div>
-                <div>
-                    <input type="text" class="harnessModel" placeholder="Model">
                 </div>
-                <div>
-                    <input type="text" class="harnessSerial" placeholder="Serial Number">
+                <div class="field-group hori">
+                <span>Model :</span>
+                    <input type="text" class="harnessModel" placeholder="Model...">
                 </div>
-                <div>
-                    <input type="text" class="harnessinitial_hours" placeholder="Initial flight hours">
+                 <div class="field-group hori">
+                <span>Serial Number :</span>
+                    <input type="text" class="harnessSerial" placeholder="Serial Number...">
                 </div>
-                <div>
-                    <input type="date" class="harnessDateBought" placeholder="Date Bought">
+                <div class="field-group hori">
+                <span>Flight hours when bought (if known) :</span>
+                    <input type="text" class="harnessinitial_hours" placeholder="Initial flight hours...">
                 </div>
-                <div>
-                    <input type="date" class="harnessDatelastcheck" placeholder="Last Check">
+                <div class="field-group hori">
+                <span>Date Bought :</span>
+                    <input type="date" class="harnessDateBought" placeholder="Date Bought...">
+                </div>
+                <div class="field-group hori">
+                <span>Date of last Check :</span>
+                    <input type="date" class="harnessDatelastcheck" placeholder="Last Check...">
                 </div>
             </div>
             <div class="button-row">
@@ -9526,7 +9585,8 @@ function showSuggestions(input, suggestions) {
 
 
 
-function setupAutocomplete(inputId, getOptions) {
+function setupAutocomplete(inputId, getOptions, customClass = '') {
+
     const input = document.getElementById(inputId);
     if (!input) return;
 
@@ -9557,10 +9617,10 @@ function setupAutocomplete(inputId, getOptions) {
     if (!dropdown) {
         dropdown = document.createElement('div');
         dropdown.id = dropdownId;
-        dropdown.className = 'autocomplete-dropdown';
-
+        dropdown.className = `autocomplete-dropdown ${customClass}`;
         wrapper.appendChild(dropdown);
     }
+    
 
     dropdown.innerHTML = '';
     dropdown.style.display = 'none';
@@ -10381,28 +10441,31 @@ function refreshQualificationsInModal() {
         const qualificationItem = document.createElement('div');
         qualificationItem.className = 'qualification-item-edit';
         qualificationItem.innerHTML = `
-            <div class="form-group">
-                <div>
-                    <label>Qualification Name</label>
+            <div class="full-group">
+            <div class="field-group h">
+                <div class="field-group hori">
+            <span>Qualification Name :</span>
                     <input type="text" class="qualificationName" value="${qual.name}" placeholder="Enter qualification name">
                 </div>
-                <div>
-                    <label>School</label>
+                 <div class="field-group hori">
+            <span>School :</span>
                     <input type="text" class="qualificationSchool" value="${qual.school}" placeholder="Enter school name">
                 </div>
-                <div>
-                    <label>Date</label>
+                <div class="field-group hori">
+            <span>Date :</span>
                     <input type="date" class="qualificationDate" value="${qual.date}">
                 </div>
                 <div class="completed-checkbox">
-                    <label>
+                <span class='completed-text'>Completed</span>    
+                <label>
                         <input type="checkbox" class="qualificationCompleted" ${qual.completed ? 'checked' : ''}>
-                        Completed
+                        
                     </label>
                 </div>
             </div>
             <button type="button" class="secondary-button delete-button" onclick="deleteQualification(${index})">Delete</button>
-        `;
+        </div>
+            `;
         
         // Add input listeners to all inputs including checkbox
         qualificationItem.querySelectorAll('input').forEach(input => {
@@ -12898,23 +12961,25 @@ function addQualification() {
     const newIndex = profileData.qualifications.length;
     
     qualificationItem.innerHTML = `
-        <div class="form-group">
-            <div>
-                <label>Qualification Name</label>
+        <div class="full-group">
+            <div class="field-group h">
+                <div class="field-group hori">
+            <span>Qualification Name :</span>
                 <input type="text" class="qualificationName" placeholder="Enter qualification name">
             </div>
-            <div>
-                <label>School</label>
+            <div class="field-group hori">
+            <span>School :</span>
                 <input type="text" class="qualificationSchool" placeholder="Enter school name">
             </div>
-            <div>
-                <label>Date</label>
+            <div class="field-group hori">
+            <span>Date :</span>
                 <input type="date" class="qualificationDate">
             </div>
             <div class="completed-checkbox">
+            <span class='completed-text'>Completed</span> 
                 <label>
                     <input type="checkbox" class="qualificationCompleted">
-                    Completed
+                  
                 </label>
             </div>
         </div>
@@ -13985,7 +14050,18 @@ async function updateGearPreview() {
         `;
 
         if (gearData.gliders.length > 0) {
-            const gliderElements = await Promise.all(gearData.gliders.map(async (glider, index) => {
+            // const gliderElements = await Promise.all(gearData.gliders.map(async (glider, index) => {
+                const glidersToDisplay = gearData.gliders
+                    .map((glider, index) => ({ glider, index }))
+                    .sort((a, b) => {
+                        if (a.index === gearData.activeGliderIndex) return -1;
+                        if (b.index === gearData.activeGliderIndex) return 1;
+                        return 0;
+                    });
+
+                const gliderElements = await Promise.all(
+                    glidersToDisplay.map(async ({ glider, index }) => {
+
                 const totalHours = await calculateGliderHours(glider);
                 const brandImage = brandImages[glider.brand.toLowerCase()];
                 const daysSinceCheck = daysSinceDate(glider.last_check);
@@ -14057,7 +14133,18 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
         }
         
         if (gearData.reserve.length > 0) {
-            const reserveElements = await Promise.all(gearData.reserve.map(async (reserve, index) => {
+            // const reserveElements = await Promise.all(gearData.reserve.map(async (reserve, index) => {
+                const reservesToDisplay = gearData.reserve
+    .map((reserve, index) => ({ reserve, index }))
+    .sort((a, b) => {
+        if (a.index === gearData.activereserveIndex) return -1;
+        if (b.index === gearData.activereserveIndex) return 1;
+        return 0;
+    });
+
+const reserveElements = await Promise.all(
+    reservesToDisplay.map(async ({ reserve, index }) => {
+
                 const totalHours = await calculatereserveHours(reserve);
                 const brandImage = brandImages[reserve.brand.toLowerCase()];
                 const daysSinceCheck = daysSinceDate(reserve.last_check);
@@ -14125,7 +14212,19 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
         }
 // Then in the harness preview, use it exactly like the glider preview:
 if (gearData.harnesses.length > 0) {
-    const harnessElements = await Promise.all(gearData.harnesses.map(async (harness, index) => {
+    // const harnessElements = await Promise.all(gearData.harnesses.map(async (harness, index) => {
+        const harnessesToDisplay = gearData.harnesses
+    .map((harness, index) => ({ harness, index }))
+    .sort((a, b) => {
+        if (a.index === gearData.activeHarnessIndex) return -1;
+        if (b.index === gearData.activeHarnessIndex) return 1;
+        return 0;
+    });
+
+const harnessElements = await Promise.all(
+    harnessesToDisplay.map(async ({ harness, index }) => {
+
+        
         const totalHours = await calculateharnessHours(harness);
         const brandImage = brandImages[harness.brand.toLowerCase()];
         const daysSinceCheck = daysSinceDate(harness.last_check);
