@@ -7672,6 +7672,10 @@ function refreshGlidersInModal() {
                     <input type="date" class="gliderDateBought" value="${glider.dateBought || ''}" placeholder="Date Bought...">
                 </div>
                 <div class="field-group hori">
+                <span>Price Bought :</span>
+                    <input type="text" class="gliderPriceBought" value="${glider.priceBought || ''}" placeholder="Price Bought...">
+                </div>
+                <div class="field-group hori">
                 <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" value="${glider.last_check || ''}" placeholder="Last Check...">
                 </div>
@@ -7848,6 +7852,10 @@ async function addGlider() {
                     <input type="date" class="gliderDateBought" placeholder="Date Bought">
                 </div>
                 <div class="field-group hori">
+                <span>Price Bought :</span>
+                    <input type="text" class="gliderPriceBought" placeholder="Price Bought">
+                </div>
+                <div class="field-group hori">
                 <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" placeholder="Last Check">
                 </div>
@@ -7883,7 +7891,8 @@ async function addGlider() {
                     serial: inputs[3].value,
                     initial_hours: inputs[4].value,
                     dateBought: inputs[5].value,
-                    last_check: inputs[6].value
+                    last_check: inputs[6].value,
+                    priceBought: inputs[7].value
                 };
                 gearData.gliders[newIndex] = updatedGlider;
                 gearChanged = true;
@@ -7899,7 +7908,8 @@ async function addGlider() {
             serial: '',
             initial_hours: '0',
             dateBought: '',
-            last_check: ''
+            last_check: '',
+            priceBought: ''
         });
 
         if (isFirstGlider) {
@@ -13168,32 +13178,33 @@ function loadCoursesToForm() {
 
         CoursesItem.innerHTML = `
             <div class="form-group">
-                <div>
-                    <label>Course Name</label>
+                <div class="field-group hori">
+                <span>Course Name :</span>
                     <input type="text" class="CoursesName" value="${course.name || ''}" placeholder="Enter course name">
                 </div>
-                <div>
-                    <label>School</label>
+                <div class="field-group hori">
+                <span>School :</span>
                     <input type="text" class="Courseschool" value="${course.school || ''}" placeholder="Enter school name">
                 </div>
-                <div>
-                    <label>Start Date</label>
+                <div class="field-group hori">
+                <span>Start Date :</span>
                     <input type="date" class="CoursesStartDate" value="${course.startDate || ''}">
                 </div>
-                <div>
-                    <label>End Date</label>
+                <div class="field-group hori">
+                <span>End Date :</span>
                     <input type="date" class="CoursesEndDate" value="${course.endDate || ''}">
                 </div>
-                <div>
-                    <label>Number of Flights</label>
+                <div class="field-group hori">
+                <span>Number of Flights :</span>
                     <input type="number" class="CoursesFlights" value="${course.flights || 0}" min="0">
                 </div>
-                <div>
-                    <label>Comments (Optional)</label>
+                <div class="field-group">
+                <span>Comments :</span>
                     <textarea class="CoursesComments" placeholder="Add any comments here">${course.comments || ''}</textarea>
                 </div>
             </div>
             <button type="button" class="secondary-button delete-button" onclick="deleteCourses(${index})">Delete</button>
+            
         `;
 
         CoursesList.appendChild(CoursesItem);
@@ -13502,7 +13513,8 @@ async function saveProfileGearDetails() {
             serial: item.querySelector('.gliderSerial').value,
             initial_hours: item.querySelector('.gliderinitial_hours').value,
             dateBought: item.querySelector('.gliderDateBought').value,
-            last_check: item.querySelector('.gliderDatelastcheck').value
+            last_check: item.querySelector('.gliderDatelastcheck').value,
+            priceBought: item.querySelector('.gliderPriceBought').value
         }));
 
         const harnessItems = document.querySelectorAll('#harnessList .gear-item');
@@ -14089,6 +14101,7 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
 </div>
 <div class="glider-item-dates">
     <span class="purchase-date">Bought: ${formatDate(glider.dateBought)}</span>
+    ${glider.priceBought ? `<span class="purchase-price">Price Bought: ${glider.priceBought}</span>` : ''}
     <span class="check-date">Last Check: ${formatDate(glider.last_check)}</span>
 </div>
 
@@ -14170,6 +14183,7 @@ const reserveElements = await Promise.all(
         </div>
         <div class="glider-item-dates">
         <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}</span>
+        
         <span class="check-date">Last Check: ${formatDate(reserve.last_check)}</span>
         </div>
         </div>
@@ -14301,7 +14315,7 @@ const harnessElements = await Promise.all(
                     <span>${qual.name || 'Untitled'}</span>
                     <span class="preview-item-details">
                         ${qual.school ? qual.school + ' - ' : ''}${formatDate(qual.date)}
-                        ${qual.completed ? '<span class="completed-check"><img src="assets/active.png" alt="Wind"></span>' : ''}
+                        ${qual.completed ? '<span class="completed-check"><img src="assets/checked.png" alt="Wind"></span>' : ''}
                     </span>
                 </div>
             `).join('')

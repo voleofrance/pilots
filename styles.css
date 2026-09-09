@@ -1578,7 +1578,10 @@ cursor: pointer;
 .fields-box-qualif h3, .fields-box-gear h3, .fields-box-courses h3 {
     margin-top: 15px;
     margin-bottom: 0px;
-    color: #4295ff;
+    color: #626263;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     
 }
 .fields-box-courses h3,
@@ -2941,7 +2944,7 @@ cursor: pointer;
 
 /* Document and Qualification Items */
 .document-item-edit .form-group,
-.qualification-item-edit .form-group {
+.qualification-item-edit .form-group, .Courses-item-edit {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -2967,7 +2970,8 @@ cursor: pointer;
 
     .gear-item,
     .document-item-edit,
-    .qualification-item-edit {
+    .qualification-item-edit,
+    .Courses-item-edit {
         padding: 8px;
     }
 
@@ -3009,7 +3013,10 @@ cursor: pointer;
     }
 }
 
-
+.CoursesComments {
+    height: min-content;
+    min-height: 100px;
+}
 .document-icon {
     width: 16px;
     height: 16px;
@@ -5178,6 +5185,7 @@ input[type="date"] {
         margin-top: 5px;
         width: max-content;
         margin-bottom: 5px;
+        width: 100%;
 }
 
 
@@ -5219,11 +5227,12 @@ input[type="date"] {
 }
 }
 .preview-item.completed {
-    background: #f0f9f0;
-    border: 1px solid #e0f2e0;
+    background: #f9f9f9;
+    border: 1px solid #f5f5f5;
+    width: max-content;
 }
 .preview-item.completed img {
-    height: 15px;
+    height: 19px;
     width: auto;
     margin-left: 15px;
 }
@@ -8792,7 +8801,16 @@ input:checked ~ .view-label:last-of-type {
     animation: heartbeat2 1.5s ease infinite;
 } */
 
-
+.fields-box-gear h3::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: #ff7575;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: heartbeat2 1.5s ease infinite;
+}
 .profile-tab {
     padding: 10px 18px;
     user-select: none;
