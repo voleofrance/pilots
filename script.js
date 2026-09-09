@@ -13956,6 +13956,10 @@ async function updateGearPreview() {
             .join(', ');
 
         pilotPreviewList.innerHTML = `
+        <div class="preview-item-pilot">
+                <span>Name</span>
+                <span class="preview-item-details-pilot">${basicProfileData.name ? basicProfileData.name : 'Not set'}</span>
+            </div>
             <div class="preview-item-pilot">
                 <span>Birth Date:</span>
                 <span class="preview-item-details-pilot">${formatDate(basicProfileData.birthDate) || 'Not set'}</span>
