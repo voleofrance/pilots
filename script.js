@@ -7659,6 +7659,10 @@ function refreshGlidersInModal() {
                 <span>Size :</span>
                     <input type="text" class="gliderSize" value="${glider.size || ''}" placeholder="Size...">
                 </div>
+                <div class="field-group hori">
+                <span>Ready to Fly Total weight :</span>
+                    <input type="text" class="gliderptv" value="${glider.ptv || ''}" placeholder="PTV...">
+                </div>
                  <div class="field-group hori">
                 <span>Serial Number :</span>
                     <input type="text" class="gliderSerial" value="${glider.serial || ''}" placeholder="Serial Number...">
@@ -7679,6 +7683,16 @@ function refreshGlidersInModal() {
                 <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" value="${glider.last_check || ''}" placeholder="Last Check...">
                 </div>
+                <div class="field-group hori">
+                    <span>Status :</span>
+                    <select class="gliderStatus">
+                        <option value="" ${!glider.status ? 'selected' : ''}>Select status...</option>
+                        <option value="sold" ${glider.status === 'sold' ? 'selected' : ''}>Sold</option>
+                        <option value="broken" ${glider.status === 'broken' ? 'selected' : ''}>Broken</option>
+                        <option value="lost" ${glider.status === 'lost' ? 'selected' : ''}>Lost</option>
+                    </select>
+                </div>
+
             </div>
             <div class="button-row">
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActiveGlider(${index})">
@@ -7700,7 +7714,18 @@ function refreshGlidersInModal() {
                 showSaveChangesButton();
             });
         });
-        
+       
+       
+        const statusSelect = gliderItem.querySelector('.gliderStatus');
+
+            statusSelect.addEventListener('change', (event) => {
+                gearData.gliders[index].status = event.target.value;
+
+                gearChanged = true;
+                showSaveChangesButton();
+            });
+
+
         gliderList.appendChild(gliderItem);
         setupAutocomplete(
             `gliderBrand_${index}`,
@@ -7840,6 +7865,10 @@ async function addGlider() {
                     <input type="text" class="gliderSize" placeholder="Size">
                 </div>
                 <div class="field-group hori">
+                <span>Ready to Fly Total weight :</span>
+                    <input type="text" class="gliderptv" placeholder="Ready to Fly Total weight">
+                </div>
+                <div class="field-group hori">
                 <span>Serial Number :</span>
                     <input type="text" class="gliderSerial" placeholder="Serial Number">
                 </div>
@@ -7859,6 +7888,15 @@ async function addGlider() {
                 <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" placeholder="Last Check">
                 </div>
+                <div class="field-group hori">
+                        <span>Status :</span>
+                        <select class="gliderStatus">
+                            <option value="">Select status...</option>
+                            <option value="sold">Sold</option>
+                            <option value="broken">Broken</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
             </div>
             <div class="button-row">
             <button type="button" class="secondary-button ${isFirstGlider ? 'active-gear' : ''}" onclick="setActiveGlider(${newIndex})">
@@ -7892,7 +7930,9 @@ async function addGlider() {
                     initial_hours: inputs[4].value,
                     dateBought: inputs[5].value,
                     last_check: inputs[6].value,
-                    priceBought: inputs[7].value
+                    priceBought: inputs[7].value,
+                    ptv: inputs[8].value,
+                    status: inputs[9].value
                 };
                 gearData.gliders[newIndex] = updatedGlider;
                 gearChanged = true;
@@ -7909,7 +7949,9 @@ async function addGlider() {
             initial_hours: '0',
             dateBought: '',
             last_check: '',
-            priceBought: ''
+            priceBought: '',
+            ptv: '',
+            status: ''
         });
 
         if (isFirstGlider) {
@@ -13514,7 +13556,9 @@ async function saveProfileGearDetails() {
             initial_hours: item.querySelector('.gliderinitial_hours').value,
             dateBought: item.querySelector('.gliderDateBought').value,
             last_check: item.querySelector('.gliderDatelastcheck').value,
-            priceBought: item.querySelector('.gliderPriceBought').value
+            priceBought: item.querySelector('.gliderPriceBought').value,
+            ptv: item.querySelector('.gliderptv').value,
+            status: item.querySelector('.gliderStatus').value
         }));
 
         const harnessItems = document.querySelectorAll('#harnessList .gear-item');
@@ -14081,6 +14125,11 @@ async function updateGearPreview() {
                 
                 return `
 <div class="glider-item ${index === gearData.activeGliderIndex ? 'active' : ''}">
+${glider.status ? `
+    <div class='gear-status'>
+        <span class="gear-status-text">${glider.status}</span>
+    </div>
+    ` : ''}
 ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''}
 <div class="glider-item-main">
  ${brandImage ? `<img src="assets/brands/${brandImage}" alt="${glider.brand}" class="brand-image">` : ''}
@@ -14093,19 +14142,30 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
             ${glider.serial}
         </div>
     ` : ''}
+    <div class='ptv'>
+    ${glider.ptv ? `<span class="ptv-text">PTV: ${glider.ptv}</span>` : ''}
     </div>
+    </div>
+    
 </div>
 <div class="glider-item-details">
 <div class="glider-item-icon">
-<img src="assets/calendar.png" alt="Wind">
+
 </div>
+
+
+
+
 <div class="glider-item-dates">
-    <span class="purchase-date">Bought: ${formatDate(glider.dateBought)}</span>
-    ${glider.priceBought ? `<span class="purchase-price">Price Bought: ${glider.priceBought}</span>` : ''}
+    <span class="purchase-date">Bought: ${formatDate(glider.dateBought)} - ${glider.priceBought ? `<span class="purchase-price">${glider.priceBought}</span>` : ''}</span>
+   
     <span class="check-date">Last Check: ${formatDate(glider.last_check)}</span>
 </div>
 
 </div>
+
+
+
  ${glider.last_check ? `
 <div class="since-check-stats">
     <div class="stat-item mini">
@@ -14122,6 +14182,10 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
     </div>
 </div>
 ` : ''}
+
+
+
+
 <div class="glider-stats">
     <div class="stat-item">
         <span class="stat-value total">${totalHours}h</span>
@@ -14178,9 +14242,7 @@ const reserveElements = await Promise.all(
         </div>
         </div>
         <div class="glider-item-details">
-        <div class="glider-item-icon">
-        <img src="assets/calendar.png" alt="Wind">
-        </div>
+        
         <div class="glider-item-dates">
         <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}</span>
         
@@ -14261,9 +14323,7 @@ const harnessElements = await Promise.all(
             </div>
             </div>
             <div class="glider-item-details">
-                <div class="glider-item-icon">
-                    <img src="assets/calendar.png" alt="Calendar">
-                </div>
+                
                 <div class="glider-item-dates">
                     <span class="purchase-date">Bought: ${formatDate(harness.dateBought)}</span>
                     <span class="check-date">Last Check: ${formatDate(harness.last_check)}</span>

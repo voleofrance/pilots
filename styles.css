@@ -5007,7 +5007,15 @@ input[type="date"] {
 .made-with-love {
     margin-bottom: 8px;
 }
-
+.purchase-date::before, .check-date::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: #858585;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
 .heart {
     color: #ff4081;
     animation: heartbeat 1.5s ease infinite;
@@ -5232,6 +5240,11 @@ input[type="date"] {
     width: max-content;
     padding: 5px 10px;
 }
+.ptv {
+    font-size: 11px;
+    margin-left: 2px;
+    color: #4f4f4f;
+}
 .preview-item.completed img {
     height: 19px;
     width: auto;
@@ -5403,7 +5416,7 @@ input[type="date"] {
 .glider-brand-model {
     font-weight: 500;
     color: #2c3e50;
-    font-size: 1.1em;
+    font-size: 15px;
     text-transform: capitalize;
 }
 .serial-number {
@@ -5439,7 +5452,40 @@ input[type="date"] {
     font-size: 0.9em;
     font-weight: 600;
 }
+.glider-item {
+    position: relative;
+    overflow: hidden;
+}
 
+.gear-status {
+    position: absolute;
+
+    top: 18px;
+    right: -42px;
+
+    width: 150px;
+
+    padding: 5px 0;
+
+    background: #b7b7b7;
+    color: #2d2929;
+
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+
+    text-transform: uppercase;
+
+    transform: rotate(45deg);
+
+    z-index: 10;
+
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.gear-status-text {
+    display: block;
+}
 
 
 .glider-item-details {
@@ -5456,7 +5502,7 @@ input[type="date"] {
     width: 25px;
     height: auto;
 }
-.purchase-date {
+.purchase-date, .check-date {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -6041,7 +6087,10 @@ input[type="date"] {
 .custom-alert-button:hover {
     opacity: 0.9;
 }
-
+.purchase-price {
+    color: #535353;
+    font-weight: 600;
+}
 /* Add to your existing styles */
 .custom-confirm-buttons {
     display: flex;
