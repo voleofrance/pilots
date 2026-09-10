@@ -786,6 +786,8 @@ h1 {
     text-transform: uppercase;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .secondary-button {
@@ -795,6 +797,8 @@ h1 {
     padding: 10px 20px;
     border-radius: 6px;
     cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .select-with-add {
@@ -3174,6 +3178,8 @@ cursor: pointer;
     transition: background-color 0.2s;
     margin-bottom: 0px !important;
     margin-left: 0 !important;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -9030,7 +9036,7 @@ input:checked ~ .view-label:last-of-type {
     font-family: inherit;
     cursor: pointer;
     outline: none;
-
+    height: 40px;
     /* Supprime l'apparence native */
     appearance: none;
     -webkit-appearance: none;
