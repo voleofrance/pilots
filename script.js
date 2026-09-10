@@ -2834,7 +2834,6 @@ function editGearCheck(
                         type="text"
                         id="editCheckDate"
                         class="check-input"
-                        
                         placeholder="Date..."
                     >
                 </div>
