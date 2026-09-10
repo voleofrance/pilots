@@ -7664,6 +7664,10 @@ function refreshGlidersInModal() {
                     <input type="text" class="gliderptv" value="${glider.ptv || ''}" placeholder="PTV...">
                 </div>
                  <div class="field-group hori">
+                <span>Manufactured Year :</span>
+                    <input type="text" class="gliderMyear" value="${glider.myear || ''}" placeholder="Manufactured Year...">
+                </div>
+                 <div class="field-group hori">
                 <span>Serial Number :</span>
                     <input type="text" class="gliderSerial" value="${glider.serial || ''}" placeholder="Serial Number...">
                 </div>
@@ -7869,6 +7873,10 @@ async function addGlider() {
                     <input type="text" class="gliderptv" placeholder="Ready to Fly Total weight">
                 </div>
                 <div class="field-group hori">
+                <span>Manufactured Year :</span>
+                    <input type="text" class="gliderMyear" placeholder="Manufactured Year">
+                </div>
+                <div class="field-group hori">
                 <span>Serial Number :</span>
                     <input type="text" class="gliderSerial" placeholder="Serial Number">
                 </div>
@@ -7932,7 +7940,8 @@ async function addGlider() {
                     last_check: inputs[6].value,
                     priceBought: inputs[7].value,
                     ptv: inputs[8].value,
-                    status: inputs[9].value
+                    status: inputs[9].value,
+                    myear: inputs[10].value,
                 };
                 gearData.gliders[newIndex] = updatedGlider;
                 gearChanged = true;
@@ -7951,7 +7960,8 @@ async function addGlider() {
             last_check: '',
             priceBought: '',
             ptv: '',
-            status: ''
+            status: '',
+            myear: ''
         });
 
         if (isFirstGlider) {
@@ -13557,6 +13567,7 @@ async function saveProfileGearDetails() {
             dateBought: item.querySelector('.gliderDateBought').value,
             last_check: item.querySelector('.gliderDatelastcheck').value,
             priceBought: item.querySelector('.gliderPriceBought').value,
+            myear: item.querySelector('.gliderMyear').value,
             ptv: item.querySelector('.gliderptv').value,
             status: item.querySelector('.gliderStatus').value
         }));
@@ -14049,6 +14060,57 @@ const brandImages = {
     'yaesu': 'yaesu.jpg'
 };
 
+function getNextGliderCheckInfo(glider, statsFromCheck) {
+    const status = (glider.status || '').toLowerCase();
+
+    if (['sold', 'broken', 'lost'].includes(status)) {
+        return null;
+    }
+
+    if (!glider.last_check) {
+        return null;
+    }
+
+    const lastCheck = new Date(glider.last_check);
+
+    if (isNaN(lastCheck.getTime())) {
+        return null;
+    }
+
+    // Prochain check = 2 ans après le dernier check
+    const nextDate = new Date(lastCheck);
+    nextDate.setFullYear(nextDate.getFullYear() + 2);
+
+    // Heures depuis le dernier check
+    const flightHoursSinceCheck = Number(statsFromCheck?.hours) || 0;
+
+    const remainingHours = Math.max(
+        0,
+        100 - flightHoursSinceCheck
+    );
+
+    // Jours jusqu'au prochain check
+    const now = new Date();
+    const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+    const remainingDays = Math.max(
+        0,
+        Math.ceil((nextDate.getTime() - now.getTime()) / millisecondsPerDay)
+    );
+
+    const overdue =
+        remainingDays <= 0 ||
+        remainingHours <= 0;
+
+    return {
+        overdue,
+        remainingDays,
+        remainingHours
+    };
+}
+
+
+
 async function updateGearPreview() {
     const gliderList = document.getElementById('gliderPreviewList');
     const harnessList = document.getElementById('harnessPreviewList');
@@ -14122,6 +14184,8 @@ async function updateGearPreview() {
                 const brandImage = brandImages[glider.brand.toLowerCase()];
                 const daysSinceCheck = daysSinceDate(glider.last_check);
                 const statsFromCheck = await getStatsFromLastCheck(glider, 'glider');
+                const nextCheck = getNextGliderCheckInfo(glider, statsFromCheck);
+
                 
                 return `
 <div class="glider-item ${index === gearData.activeGliderIndex ? 'active' : ''}">
@@ -14137,17 +14201,37 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
      <div class="brand-model">
         ${glider.brand} ${glider.model} ${glider.size ? `<span class="glider-size">${glider.size}</span>` : ''}
     </div>
+    
+    
     ${glider.serial ? `
         <div class="serial-number">
             ${glider.serial}
         </div>
     ` : ''}
-    <div class='ptv'>
-    ${glider.ptv ? `<span class="ptv-text">PTV: ${glider.ptv}</span>` : ''}
-    </div>
+
+    
+    ${(glider.myear || glider.ptv) ? `
+        <div class='glider-data'>
+            ${glider.myear ? `
+                <div class='glider-data-child'>
+                    <span class="ptv-text">YEAR: <strong>${glider.myear}</strong></span>
+                </div>
+            ` : ''}
+    
+            ${glider.ptv ? `
+                <div class='glider-data-child'>
+                    <span class="ptv-text">PTV: <strong>${glider.ptv}</strong></span>
+                </div>
+            ` : ''}
+        </div>
+    ` : ''}
     </div>
     
 </div>
+
+
+
+
 <div class="glider-item-details">
 <div class="glider-item-icon">
 
@@ -14157,7 +14241,7 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
 
 
 <div class="glider-item-dates">
-    <span class="purchase-date">Bought: ${formatDate(glider.dateBought)} - ${glider.priceBought ? `<span class="purchase-price">${glider.priceBought}</span>` : ''}</span>
+    <span class="purchase-date">Bought: ${formatDate(glider.dateBought)}  ${glider.priceBought ? `<span class="purchase-price">- ${glider.priceBought}</span>` : ''}</span>
    
     <span class="check-date">Last Check: ${formatDate(glider.last_check)}</span>
 </div>
@@ -14181,6 +14265,21 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
         <span class="stat-label mini">Flights since check</span>
     </div>
 </div>
+` : ''}
+
+${nextCheck ? `
+    <div class="next-check">
+        <span class="next-check-label">
+            Next recommended check before:
+        </span>
+
+        <span class="next-check-value ${nextCheck.overdue ? 'overdue' : ''}">
+            ${nextCheck.overdue
+                ? 'CHECK DUE'
+                : `${nextCheck.remainingDays} days or ${nextCheck.remainingHours.toFixed(1)} hours of flight`
+            }
+        </span>
+    </div>
 ` : ''}
 
 
