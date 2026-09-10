@@ -15376,17 +15376,23 @@ function renderGliderCheckList(glider) {
         <div class="glider-check-list">
 
             <h4>
-                Check History
+                Check History :
             </h4>
 
             ${
                 checks.length
                 ? checks.map(check => `
                     <div class="glider-check-row">
+                    <div class="glider-check-row-date">
                         <span>${formatDate(check.date)}</span>
+                        
+                        
                         <span>${check.workshop || '—'}</span>
+                        </div>
+                        <div class="glider-check-row-data">
                         <span>Condition: <strong>${check.condition || '—'}</strong></span>
                         <span>Cost: <strong>${check.price || '—'}</strong></span>
+                        </div>
                         </div>
                 `).join('')
                 : `
@@ -17159,8 +17165,7 @@ const reserveElements = await Promise.all(
         
         <div class="glider-item-dates">
         <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}</span>
-        
-        <span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>
+        ${lastCheckDate ? `<span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>` : ''}
         </div>
         </div>
                     ${lastCheckDate ? `
@@ -17261,7 +17266,7 @@ const harnessElements = await Promise.all(
                 
                 <div class="glider-item-dates">
                     <span class="purchase-date">Bought: ${formatDate(harness.dateBought)}</span>
-                    <span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>
+                    ${lastCheckDate ? `<span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>` : ''}
                 </div>
             </div>
                         ${lastCheckDate ? `
