@@ -2179,6 +2179,866 @@ async function createHeatMap(containerId, specificFlights = null) {
 //     }
 // }
 
+// ============================================================
+// CHECK HISTORY - GENERAL FUNCTIONS
+// ============================================================
+
+function ensureChecksArray(gear) {
+    if (!gear) {
+        return [];
+    }
+
+    if (!Array.isArray(gear.checks)) {
+        gear.checks = [];
+    }
+
+    return gear.checks;
+}
+
+
+// ============================================================
+// GET MOST RECENT CHECK
+// ============================================================
+
+function getLatestCheck(gear) {
+
+    if (!gear) {
+        return null;
+    }
+
+    const checks = ensureChecksArray(gear);
+
+    const validChecks = checks.filter(check => {
+        return check && check.date;
+    });
+
+    if (validChecks.length === 0) {
+        return null;
+    }
+
+    validChecks.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    return validChecks[0];
+}
+
+
+// ============================================================
+// UPDATE last_check AUTOMATICALLY
+// ============================================================
+
+function updateLastCheck(gear) {
+
+    if (!gear) {
+        return '';
+    }
+
+    const latestCheck = getLatestCheck(gear);
+
+    gear.last_check = latestCheck
+        ? latestCheck.date
+        : '';
+
+    return gear.last_check;
+}
+
+
+// ============================================================
+// ADD CHECK
+// ============================================================
+
+function addGearCheck(gear, checkData) {
+
+    if (!gear) {
+        return;
+    }
+
+    ensureChecksArray(gear);
+
+    gear.checks.push({
+        date: checkData.date || '',
+        workshop: checkData.workshop || '',
+        price: checkData.price || '',
+        condition: checkData.condition || ''
+    });
+
+    updateLastCheck(gear);
+
+    gearChanged = true;
+    showSaveChangesButton();
+}
+
+
+// ============================================================
+// DELETE CHECK
+// ============================================================
+
+function deleteGearCheck(gear, checkIndex) {
+
+    if (!gear) {
+        return;
+    }
+
+    ensureChecksArray(gear);
+
+    if (
+        checkIndex < 0 ||
+        checkIndex >= gear.checks.length
+    ) {
+        return;
+    }
+
+    gear.checks.splice(checkIndex, 1);
+
+    updateLastCheck(gear);
+
+    gearChanged = true;
+    showSaveChangesButton();
+}
+
+
+// ============================================================
+// UPDATE CHECK
+// ============================================================
+
+function updateGearCheck(gear, checkIndex, checkData) {
+
+    if (!gear) {
+        return;
+    }
+
+    ensureChecksArray(gear);
+
+    if (
+        checkIndex < 0 ||
+        checkIndex >= gear.checks.length
+    ) {
+        return;
+    }
+
+    gear.checks[checkIndex] = {
+        date: checkData.date || '',
+        workshop: checkData.workshop || '',
+        price: checkData.price || '',
+        condition: checkData.condition || ''
+    };
+
+    updateLastCheck(gear);
+
+    gearChanged = true;
+    showSaveChangesButton();
+}
+
+
+
+
+
+
+function renderCheckHistory(gear, type, index) {
+
+    ensureChecksArray(gear);
+
+    const checks = [...gear.checks].sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    const latestCheck = getLatestCheck(gear);
+
+    const lastCheck = latestCheck
+        ? latestCheck.date
+        : '—';
+
+
+
+    let html = `
+        <div class="check-history">
+
+            <div class="check-history-header">
+                <div class="check-title-header">
+                    <strong>Check History</strong>
+                </div>
+
+                <button
+                    type="button"
+                    class="secondary-button add-check-button"
+                    onclick="openAddCheckModal('${type}', ${index})"
+                >
+                    + Add Check
+                </button>
+            </div>
+
+            <div class="check-summary">
+
+               
+
+               
+
+            </div>
+    `;
+
+    if (checks.length === 0) {
+
+        html += `
+            <div class="no-checks">
+                No checks recorded yet.
+            </div>
+        `;
+
+    } else {
+
+        html += `
+            <div class="check-list">
+        `;
+
+        checks.forEach((check) => {
+
+            const originalIndex =
+                gear.checks.indexOf(check);
+
+            html += `
+                <div class="check-item">
+
+                    <div class="check-info">
+
+                        <div class="check-field">
+                            <span>Date:</span>
+                            <strong>
+                                ${check.date ? formatDate(check.date) : '—'}
+                            </strong>
+                        </div>
+
+
+                        <div class="check-field">
+                            <span>Workshop:</span>
+                            <strong>
+                                ${check.workshop || '—'}
+                            </strong>
+                        </div>
+
+                        <div class="check-field">
+                            <span>Price:</span>
+                            <strong>
+                                ${check.price || '—'}
+                            </strong>
+                        </div>
+
+                        <div class="check-field">
+                            <span>Condition:</span>
+                            <strong>
+                                ${check.condition || '—'}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="check-actions">
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            onclick="editGearCheck(
+                                '${type}',
+                                ${index},
+                                ${originalIndex}
+                            )"
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            type="button"
+                            class="delete-button"
+                            onclick="removeGearCheck(
+                                '${type}',
+                                ${index},
+                                ${originalIndex}
+                            )"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+        });
+
+        html += `
+            </div>
+        `;
+    }
+
+    html += `
+        </div>
+    `;
+
+    return html;
+}
+
+
+
+function getGearCollection(type) {
+
+    switch (type) {
+
+        case 'glider':
+            return gearData.gliders;
+
+        case 'harness':
+            return gearData.harnesses;
+
+        case 'reserve':
+            return gearData.reserve;
+
+        default:
+            return null;
+    }
+}
+
+
+
+
+
+
+// function removeGearCheck(type, gearIndex, checkIndex) {
+
+//     const collection = getGearCollection(type);
+
+//     if (!collection || !collection[gearIndex]) {
+//         return;
+//     }
+
+//     const gear = collection[gearIndex];
+
+//     if (
+//         !confirm(
+//             'Are you sure you want to delete this check?'
+//         )
+//     ) {
+//         return;
+//     }
+
+//     deleteGearCheck(
+//         gear,
+//         checkIndex
+//     );
+
+
+//     // Refresh
+
+//     if (type === 'glider') {
+//         refreshGlidersInModal();
+//     }
+
+//     if (type === 'harness') {
+//         refreshHarnessesInModal();
+//     }
+
+//     if (type === 'reserve') {
+//         refreshreserveInModal();
+//     }
+// }
+
+function openAddCheckModal(type, gearIndex) {
+
+    const collection = getGearCollection(type);
+
+    if (!collection || !collection[gearIndex]) {
+        console.error('Gear not found:', type, gearIndex);
+        return;
+    }
+
+    const gear = collection[gearIndex];
+
+    const modal = document.createElement('div');
+
+    modal.className = 'check-modal-overlay';
+
+    modal.innerHTML = `
+        <div class="check-modal">
+
+            <div class="check-modal-header">
+                <h3>Add Check</h3>
+
+                <button
+                    type="button"
+                    class="close-check-modal"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div class="check-modal-body">
+
+                <div class="field-group hori">
+                    <span class='nomore'>Date :</span>
+
+                    <input
+                        type="date"
+                        id="newCheckDate"
+                        max="today"
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span class='nomore'>Workshop :</span>
+
+                    <input
+                        type="text"
+                        id="newCheckWorkshop"
+                        placeholder="Workshop"
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span class='nomore'>Price :</span>
+
+                    <input
+                        type="text"
+                        id="newCheckPrice"
+                        placeholder="Price"
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span class='nomore'>Condition :</span>
+
+                    <select id="newCheckCondition">
+
+                        <option value="">
+                            Select condition...
+                        </option>
+
+                        <option value="Excellent">
+                            Excellent
+                        </option>
+
+                        <option value="Good">
+                            Good
+                        </option>
+
+                        <option value="Fair">
+                            Fair
+                        </option>
+
+                        <option value="Poor">
+                            Poor
+                        </option>
+
+                        <option value="Needs repair">
+                            Needs repair
+                        </option>
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="check-modal-footer">
+
+                <button
+                    type="button"
+                    class="secondary-button cancel-check-button"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button save-check-button"
+                >
+                    Save Check
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const checkDateInput = modal.querySelector('#newCheckDate');
+
+    flatpickr(checkDateInput, {
+        dateFormat: "Y-m-d",
+        maxDate: "today",
+        minDate: "2000-01-01",
+        defaultDate: new Date()
+    });
+
+    // CLOSE
+
+    modal
+        .querySelector('.close-check-modal')
+        .addEventListener('click', () => {
+            modal.remove();
+        });
+
+
+    modal
+        .querySelector('.cancel-check-button')
+        .addEventListener('click', () => {
+            modal.remove();
+        });
+
+
+    // SAVE
+
+    modal
+        .querySelector('.save-check-button')
+        .addEventListener('click', () => {
+
+            const date =
+                modal.querySelector('#newCheckDate').value;
+
+            const workshop =
+                modal.querySelector('#newCheckWorkshop').value;
+
+            const price =
+                modal.querySelector('#newCheckPrice').value;
+
+            const condition =
+                modal.querySelector('#newCheckCondition').value;
+
+
+            if (!date) {
+                showCustomAlert(
+                    'Please enter the check date.'
+                );
+                return;
+            }
+
+
+            addGearCheck(
+                gear,
+                {
+                    date,
+                    workshop,
+                    price,
+                    condition
+                }
+            );
+
+
+            modal.remove();
+
+
+            // Refresh correct modal
+
+            if (type === 'glider') {
+                refreshGlidersInModal();
+            }
+
+            if (type === 'harness') {
+                refreshHarnessesInModal();
+            }
+
+            if (type === 'reserve') {
+                refreshreserveInModal();
+            }
+        });
+}
+async function removeGearCheck(type, gearIndex, checkIndex) {
+
+    const collection = getGearCollection(type);
+
+    if (!collection || !collection[gearIndex]) {
+        return;
+    }
+
+    const gear = collection[gearIndex];
+
+    // Utilise ton custom confirm
+    const confirmed = await showCustomConfirm(
+        'Are you sure you want to delete this check?',
+        false
+    );
+
+    // L'utilisateur a choisi Cancel
+    if (!confirmed) {
+        return;
+    }
+
+    // L'utilisateur a choisi Delete
+    deleteGearCheck(
+        gear,
+        checkIndex
+    );
+
+    // Refresh du bon formulaire
+
+    if (type === 'glider') {
+        refreshGlidersInModal();
+    }
+
+    if (type === 'harness') {
+        refreshHarnessesInModal();
+    }
+
+    if (type === 'reserve') {
+        refreshreserveInModal();
+    }
+}
+
+
+
+function editGearCheck(
+    type,
+    gearIndex,
+    checkIndex
+) {
+
+    const collection = getGearCollection(type);
+
+    if (!collection || !collection[gearIndex]) {
+        return;
+    }
+
+    const gear = collection[gearIndex];
+
+    ensureChecksArray(gear);
+
+    const check =
+        gear.checks[checkIndex];
+
+    if (!check) {
+        return;
+    }
+
+
+    const modal = document.createElement('div');
+
+    modal.className = 'check-modal-overlay';
+    modal.innerHTML = `
+    <div class="check-modal">
+
+        <div class="check-modal-header">
+            <h3>Edit Check</h3>
+
+            <button
+                type="button"
+                class="close-check-modal"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="check-modal-body">
+
+            <div class="field-group h">
+
+                <div class="field-group hori">
+                    <span>Date :</span>
+
+                    <input
+                        type="text"
+                        id="editCheckDate"
+                        class="check-input"
+                        
+                        placeholder="Date..."
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span>Workshop :</span>
+
+                    <input
+                        type="text"
+                        id="editCheckWorkshop"
+                        class="check-input"
+                        value="${check.workshop || ''}"
+                        placeholder="Workshop"
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span>Price :</span>
+
+                    <input
+                        type="text"
+                        id="editCheckPrice"
+                        class="check-input"
+                        value="${check.price || ''}"
+                        placeholder="Price"
+                    >
+                </div>
+
+                <div class="field-group hori">
+                    <span>Condition :</span>
+
+                    <select
+                        id="editCheckCondition"
+                        class="check-input"
+                    >
+                        <option value="">
+                            Select condition...
+                        </option>
+
+                        <option value="Excellent"
+                            ${check.condition === 'Excellent' ? 'selected' : ''}>
+                            Excellent
+                        </option>
+
+                        <option value="Good"
+                            ${check.condition === 'Good' ? 'selected' : ''}>
+                            Good
+                        </option>
+
+                        <option value="Fair"
+                            ${check.condition === 'Fair' ? 'selected' : ''}>
+                            Fair
+                        </option>
+
+                        <option value="Poor"
+                            ${check.condition === 'Poor' ? 'selected' : ''}>
+                            Poor
+                        </option>
+
+                        <option value="Needs repair"
+                            ${check.condition === 'Needs repair' ? 'selected' : ''}>
+                            Needs repair
+                        </option>
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="check-modal-footer">
+            
+            <button
+                type="button"
+                class="secondary-button cancel-check-button"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="primary-button save-check-button"
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
+`;
+
+
+    document.body.appendChild(modal);
+    // const editCheckDateInput = modal.querySelector('#editCheckDate');
+
+    // flatpickr(editCheckDateInput, {
+    //     dateFormat: "Y-m-d",
+    //     maxDate: "today",
+    //     minDate: "2000-01-01",
+    //     defaultDate: check.date || null
+    // });
+
+    const editCheckDateInput = modal.querySelector('#editCheckDate');
+
+flatpickr(editCheckDateInput, {
+    dateFormat: "Y-m-d",
+    maxDate: "today",
+    minDate: "2000-01-01",
+    defaultDate: check.date ? new Date(check.date + 'T00:00:00') : null
+});
+
+
+    modal
+        .querySelector('.close-check-modal')
+        .addEventListener('click', () => {
+            modal.remove();
+        });
+
+
+    modal
+        .querySelector('.cancel-check-button')
+        .addEventListener('click', () => {
+            modal.remove();
+        });
+
+
+    modal
+        .querySelector('.save-check-button')
+        .addEventListener('click', () => {
+
+            const date =
+                modal.querySelector('#editCheckDate').value;
+
+            const workshop =
+                modal.querySelector('#editCheckWorkshop').value;
+
+            const price =
+                modal.querySelector('#editCheckPrice').value;
+
+            const condition =
+                modal.querySelector('#editCheckCondition').value;
+
+
+            if (!date) {
+                showCustomAlert(
+                    'Please enter the check date.'
+                );
+                return;
+            }
+
+
+            updateGearCheck(
+                gear,
+                checkIndex,
+                {
+                    date,
+                    workshop,
+                    price,
+                    condition
+                }
+            );
+
+
+            modal.remove();
+
+
+            if (type === 'glider') {
+                refreshGlidersInModal();
+            }
+
+            if (type === 'harness') {
+                refreshHarnessesInModal();
+            }
+
+            if (type === 'reserve') {
+                refreshreserveInModal();
+            }
+        });
+}
+
+
+
+// ============================================================
+// NEXT CHECK
+// ============================================================
+
+// function getNextCheckDate(gear, intervalMonths = 12) {
+
+//     const latestCheck = getLatestCheck(gear);
+
+//     if (!latestCheck || !latestCheck.date) {
+//         return '';
+//     }
+
+//     const nextDate = new Date(latestCheck.date);
+
+//     nextDate.setMonth(
+//         nextDate.getMonth() + intervalMonths
+//     );
+
+//     return nextDate.toISOString().split('T')[0];
+// }
+
 
 //STATS
 function daysSinceDate(dateString) {
@@ -6226,6 +7086,9 @@ function initializeDatePickers() {
         });
     }
 
+
+    
+
     const flightTimeInput = document.getElementById('flightTimeOfDay');
     if (flightTimeInput) {
         flatpickr(flightTimeInput, {
@@ -7464,88 +8327,460 @@ async function initGearData() {
 }
 
 
+// function refreshreserveInModal() {
+//     const reserveList = document.getElementById('reserveList');
+//     reserveList.innerHTML = '';
+
+//     gearData.reserve.forEach((reserve, index) => {
+//         const reserveItem = document.createElement('div');
+//         reserveItem.className = 'gear-item';
+//         const isActive = index === gearData.activereserveIndex;
+        
+//         reserveItem.innerHTML = `
+//         <div class="full-group">
+//                <div class="field-group h">
+//             <div class="field-group hori">
+//             <span>Brand :</span>
+//                 <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
+//                     <input type="text" id="reserveBrand_${index}" class="reserveBrand" 
+//                            value="${reserve.brand || ''}" placeholder="Brand" autocomplete="off">
+//                     <!-- Dropdown will be inserted here -->
+//                 </div>
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Model :</span>
+//                     <input type="text" class="reserveModel" value="${reserve.model || ''}" placeholder="Model">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Serial Number :</span>
+//                     <input type="text" class="reserveSerial" value="${reserve.serial || ''}" placeholder="Serial Number">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Flight hours when bought (if known) :</span>
+//                 <input type="text" class="reserveinitial_hours" value="${reserve.initial_hours || ''}" placeholder="Initial Hours">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                 <input type="date" class="reserveDateBought" value="${reserve.dateBought || ''}" placeholder="Date Bought">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                 <input type="date" class="reserveDatelastcheck" value="${reserve.last_check || ''}" placeholder="Last Check">
+//             </div>
+            
+//             <div class="button-row">
+//                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActivereserve(${index})">
+//                     ${isActive ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
+//                 </button>
+//                 <button type="button" class="delete-button" onclick="deletereserve(${index})">Delete</button>
+//             </div>
+//             </div>
+//         `;
+        
+//         if (isActive) {
+//             reserveItem.classList.add('active');
+//         }
+//         reserveItem.querySelectorAll('input').forEach(input => {
+//             input.addEventListener('input', () => {
+//                 gearChanged = true;
+//                 showSaveChangesButton();
+//             });
+//         });
+        
+//         reserveList.appendChild(reserveItem);
+//         setupAutocomplete(`reserveBrand_${index}`, () => RESERVE_BRANDS);
+
+//     });
+
+//     const dateInputs = document.querySelectorAll('#reserveList .reserveDateBought');
+//     dateInputs.forEach(input => {
+//         flatpickr(input, {
+//             dateFormat: "Y-m-d",
+//             maxDate: "today",
+//             minDate: "2000-01-01"
+//         });
+//     });
+//     const dateInputscheck = document.querySelectorAll('#reserveList .reserveDatelastcheck');
+//     dateInputscheck.forEach(input => {
+//         flatpickr(input, {
+//             dateFormat: "Y-m-d",
+//             maxDate: "today",
+//             minDate: "2000-01-01"
+//         });
+//     });
+// }
+
+
 function refreshreserveInModal() {
     const reserveList = document.getElementById('reserveList');
+
+    if (!reserveList) {
+        console.error('reserveList not found');
+        return;
+    }
+
     reserveList.innerHTML = '';
 
     gearData.reserve.forEach((reserve, index) => {
+
         const reserveItem = document.createElement('div');
         reserveItem.className = 'gear-item';
-        const isActive = index === gearData.activereserveIndex;
-        
+
+        const isActive =
+            index === gearData.activereserveIndex;
+
+        // Unique ID for autocomplete
+        const uniqueId = `reserveBrand_${Date.now()}_${index}`;
+
         reserveItem.innerHTML = `
-        <div class="full-group">
-               <div class="field-group h">
-            <div class="field-group hori">
-            <span>Brand :</span>
-                <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
-                    <input type="text" id="reserveBrand_${index}" class="reserveBrand" 
-                           value="${reserve.brand || ''}" placeholder="Brand" autocomplete="off">
-                    <!-- Dropdown will be inserted here -->
+            <div class="full-group">
+
+                <div class="field-group h">
+
+                    <!-- BRAND -->
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+                        <div
+                            class="autocomplete-wrapper"
+                            style="position: relative;"
+                        >
+                            <input
+                                type="text"
+                                id="${uniqueId}"
+                                class="reserveBrand"
+                                value="${reserve.brand || ''}"
+                                placeholder="Brand"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- MODEL -->
+                    <div class="field-group hori">
+                        <span>Model :</span>
+                        <input
+                            type="text"
+                            class="reserveModel"
+                            value="${reserve.model || ''}"
+                            placeholder="Model"
+                        >
+                    </div>
+
+                    <!-- SERIAL NUMBER -->
+                    <div class="field-group hori">
+                        <span>Serial Number :</span>
+                        <input
+                            type="text"
+                            class="reserveSerial"
+                            value="${reserve.serial || ''}"
+                            placeholder="Serial Number"
+                        >
+                    </div>
+
+                    <!-- FLIGHT HOURS -->
+                    <div class="field-group hori">
+                        <span>Flight hours when bought (if known) :</span>
+                        <input
+                            type="text"
+                            class="reserveinitial_hours"
+                            value="${reserve.initial_hours || ''}"
+                            placeholder="Initial Hours"
+                        >
+                    </div>
+
+                    <!-- DATE BOUGHT -->
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+                        <input
+                            type="date"
+                            class="reserveDateBought"
+                            value="${reserve.dateBought || ''}"
+                        >
+                    </div>
+
+                    <!-- LAST CHECK -->
+                    <div class="field-group hori">
+                        <span>Date of last Check :</span>
+                        <input
+                            type="date"
+                            class="reserveDatelastcheck"
+                            value="${reserve.last_check || ''}"
+                        >
+                    </div>
+
+                    <!-- SIZE -->
+                    <div class="field-group hori">
+                        <span>Size :</span>
+                        <input
+                            type="text"
+                            class="reserveSize"
+                            value="${reserve.size || ''}"
+                            placeholder="Size"
+                        >
+                    </div>
+
+                    <!-- PRICE BOUGHT -->
+                    <div class="field-group hori">
+                        <span>Price Bought :</span>
+                        <input
+                            type="text"
+                            class="reservePriceBought"
+                            value="${reserve.priceBought || ''}"
+                            placeholder="Price Bought"
+                        >
+                    </div>
+
+                    <!-- MANUFACTURED YEAR -->
+                    <div class="field-group hori">
+                        <span>Manufactured Year :</span>
+                        <input
+                            type="text"
+                            class="reserveMyear"
+                            value="${reserve.myear || ''}"
+                            placeholder="Manufactured Year"
+                        >
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="field-group hori">
+                        <span>Status :</span>
+                        <select class="reserveStatus">
+
+                            <option
+                                value=""
+                                ${!reserve.status ? 'selected' : ''}
+                            >
+                                Select status...
+                            </option>
+
+                            <option
+                                value="sold"
+                                ${reserve.status === 'sold' ? 'selected' : ''}
+                            >
+                                Sold
+                            </option>
+
+                            <option
+                                value="broken"
+                                ${reserve.status === 'broken' ? 'selected' : ''}
+                            >
+                                Broken
+                            </option>
+
+                            <option
+                                value="lost"
+                                ${reserve.status === 'lost' ? 'selected' : ''}
+                            >
+                                Lost
+                            </option>
+
+                        </select>
+                    </div>
+
                 </div>
+                ${renderCheckHistory(
+                    reserve,
+                    'reserve',
+                    index
+                )}
+                <!-- BUTTONS -->
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="secondary-button ${isActive ? 'active-gear' : ''}"
+                        onclick="setActivereserve(${index})"
+                    >
+                        ${
+                            isActive
+                                ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve`
+                                : 'Set as Profile Reserve'
+                        }
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deletereserve(${index})"
+                    >
+                        Delete
+                    </button>
+
                 </div>
-                <div class="field-group hori">
-                <span>Model :</span>
-                    <input type="text" class="reserveModel" value="${reserve.model || ''}" placeholder="Model">
-                </div>
-                <div class="field-group hori">
-                <span>Serial Number :</span>
-                    <input type="text" class="reserveSerial" value="${reserve.serial || ''}" placeholder="Serial Number">
-                </div>
-                <div class="field-group hori">
-                <span>Flight hours when bought (if known) :</span>
-                <input type="text" class="reserveinitial_hours" value="${reserve.initial_hours || ''}" placeholder="Initial Hours">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                <input type="date" class="reserveDateBought" value="${reserve.dateBought || ''}" placeholder="Date Bought">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                <input type="date" class="reserveDatelastcheck" value="${reserve.last_check || ''}" placeholder="Last Check">
-            </div>
-            
-            <div class="button-row">
-                <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActivereserve(${index})">
-                    ${isActive ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
-                </button>
-                <button type="button" class="delete-button" onclick="deletereserve(${index})">Delete</button>
-            </div>
+
             </div>
         `;
-        
+
+        // ---------------------------------------------------------
+        // ACTIVE RESERVE
+        // ---------------------------------------------------------
+
         if (isActive) {
             reserveItem.classList.add('active');
         }
-        reserveItem.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
+
+        // ---------------------------------------------------------
+        // GET VALUE
+        // ---------------------------------------------------------
+
+        const getValue = (selector) => {
+            const element = reserveItem.querySelector(selector);
+
+            if (!element) {
+                console.error(
+                    `Reserve field not found: ${selector}`
+                );
+                return '';
+            }
+
+            return element.value;
+        };
+
+        // ---------------------------------------------------------
+        // UPDATE DATA
+        // ---------------------------------------------------------
+
+        const updateReserveData = () => {
+
+            gearData.reserve[index] = {
+                brand: getValue('.reserveBrand'),
+                model: getValue('.reserveModel'),
+                serial: getValue('.reserveSerial'),
+                size: getValue('.reserveSize'),
+                initial_hours:
+                    getValue('.reserveinitial_hours'),
+                dateBought:
+                    getValue('.reserveDateBought'),
+                last_check:
+                    getValue('.reserveDatelastcheck'),
+                priceBought:
+                    getValue('.reservePriceBought'),
+                myear:
+                    getValue('.reserveMyear'),
+                status:
+                    getValue('.reserveStatus')
+            };
+
+            gearChanged = true;
+            showSaveChangesButton();
+        };
+
+        // ---------------------------------------------------------
+        // INPUT + SELECT EVENTS
+        // ---------------------------------------------------------
+
+        reserveItem
+            .querySelectorAll('input, select')
+            .forEach(element => {
+
+                element.addEventListener(
+                    'input',
+                    updateReserveData
+                );
+
+                element.addEventListener(
+                    'change',
+                    updateReserveData
+                );
+            });
+
+        // ---------------------------------------------------------
+        // ADD TO DOM
+        // ---------------------------------------------------------
+
+        reserveList.appendChild(reserveItem);
+
+        // ---------------------------------------------------------
+        // AUTOCOMPLETE
+        // ---------------------------------------------------------
+
+        setupAutocomplete(
+            uniqueId,
+            () => RESERVE_BRANDS
+        );
+    });
+
+    // ---------------------------------------------------------
+    // DATE PICKER - DATE BOUGHT
+    // ---------------------------------------------------------
+
+    const dateInputs =
+        reserveList.querySelectorAll('.reserveDateBought');
+
+    dateInputs.forEach((input) => {
+
+        flatpickr(input, {
+            dateFormat: 'Y-m-d',
+            maxDate: 'today',
+            minDate: '2000-01-01',
+
+            onChange: (selectedDates, dateStr) => {
+
+                const reserveItem =
+                    input.closest('.gear-item');
+
+                if (!reserveItem) return;
+
+                const items =
+                    Array.from(
+                        reserveList.querySelectorAll('.gear-item')
+                    );
+
+                const index =
+                    items.indexOf(reserveItem);
+
+                if (index === -1) return;
+
+                gearData.reserve[index].dateBought =
+                    dateStr;
+
                 gearChanged = true;
                 showSaveChangesButton();
-            });
-        });
-        
-        reserveList.appendChild(reserveItem);
-        setupAutocomplete(`reserveBrand_${index}`, () => RESERVE_BRANDS);
-
-    });
-
-    const dateInputs = document.querySelectorAll('#reserveList .reserveDateBought');
-    dateInputs.forEach(input => {
-        flatpickr(input, {
-            dateFormat: "Y-m-d",
-            maxDate: "today",
-            minDate: "2000-01-01"
+            }
         });
     });
-    const dateInputscheck = document.querySelectorAll('#reserveList .reserveDatelastcheck');
-    dateInputscheck.forEach(input => {
+
+    // ---------------------------------------------------------
+    // DATE PICKER - LAST CHECK
+    // ---------------------------------------------------------
+
+    const dateInputscheck =
+        reserveList.querySelectorAll('.reserveDatelastcheck');
+
+    dateInputscheck.forEach((input) => {
+
         flatpickr(input, {
-            dateFormat: "Y-m-d",
-            maxDate: "today",
-            minDate: "2000-01-01"
+            dateFormat: 'Y-m-d',
+            maxDate: 'today',
+            minDate: '2000-01-01',
+
+            onChange: (selectedDates, dateStr) => {
+
+                const reserveItem =
+                    input.closest('.gear-item');
+
+                if (!reserveItem) return;
+
+                const items =
+                    Array.from(
+                        reserveList.querySelectorAll('.gear-item')
+                    );
+
+                const index =
+                    items.indexOf(reserveItem);
+
+                if (index === -1) return;
+
+                gearData.reserve[index].last_check =
+                    dateStr;
+
+                gearChanged = true;
+                showSaveChangesButton();
+            }
         });
     });
 }
+
 
 function refreshHarnessesInModal() {
     const harnessList = document.getElementById('harnessList');
@@ -7571,6 +8806,14 @@ function refreshHarnessesInModal() {
                 <span>Model :</span>
                     <input type="text" class="harnessModel" value="${harness.model || ''}" placeholder="Model...">
                 </div>
+                <div class="field-group hori">
+                <span>Size :</span>
+                    <input type="text" class="harnessSize" value="${harness.size || ''}" placeholder="Size...">
+                </div>
+                <div class="field-group hori">
+                <span>Manufactured Year :</span>
+                    <input type="text" class="harnessMyear" value="${harness.myear || ''}" placeholder="Manufactured Year...">
+                </div>
                  <div class="field-group hori">
                 <span>Serial Number :</span>
                     <input type="text" class="harnessSerial" value="${harness.serial || ''}" placeholder="Serial Number...">
@@ -7584,9 +8827,27 @@ function refreshHarnessesInModal() {
                 <input type="date" class="harnessDateBought" value="${harness.dateBought || ''}" placeholder="Date Bought...">
                 </div>
                 <div class="field-group hori">
+                <span>Price Bought :</span>
+                    <input type="text" class="harnessPriceBought" value="${harness.priceBought || ''}" placeholder="Price Bought...">
+                </div>
+                <div class="field-group hori">
                 <span>Date of last Check :</span>
                 <input type="date" class="harnessDatelastcheck" value="${harness.last_check || ''}" placeholder="Last Check...">
             </div>
+            <div class="field-group hori">
+                    <span>Status :</span>
+                    <select class="harnessStatus">
+                        <option value="" ${!harness.status ? 'selected' : ''}>Select status...</option>
+                        <option value="sold" ${harness.status === 'sold' ? 'selected' : ''}>Sold</option>
+                        <option value="broken" ${harness.status === 'broken' ? 'selected' : ''}>Broken</option>
+                        <option value="lost" ${harness.status === 'lost' ? 'selected' : ''}>Lost</option>
+                    </select>
+                </div>
+                ${renderCheckHistory(
+                    harness,
+                    'harness',
+                    index
+                )}
             <div class="button-row">
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActiveHarness(${index})">
                     ${isActive ? `<img src="assets/active.png" alt="Current Harness" class="checkmark-icon"> Current Harness` : 'Set as Profile Harness'}
@@ -7607,6 +8868,16 @@ function refreshHarnessesInModal() {
             });
         });
         
+
+        const statusSelectharness = harnessItem.querySelector('.harnessStatus');
+
+            statusSelectharness.addEventListener('change', (event) => {
+                gearData.harnesses[index].status = event.target.value;
+
+                gearChanged = true;
+                showSaveChangesButton();
+            });
+
         harnessList.appendChild(harnessItem);
         setupAutocomplete(`harnessBrand_${index}`, () => HARNESS_BRANDS);
 
@@ -7639,7 +8910,11 @@ function refreshGlidersInModal() {
         const gliderItem = document.createElement('div');
         gliderItem.className = 'gear-item';
         const isActive = index === gearData.activeGliderIndex;
-        
+        const latestCheck = getLatestCheck(glider);
+
+        const lastCheckDate = latestCheck
+            ? latestCheck.date
+            : '';
         gliderItem.innerHTML = `
         <div class="full-group">
             <div class="field-group h">
@@ -7685,7 +8960,7 @@ function refreshGlidersInModal() {
                 </div>
                 <div class="field-group hori">
                 <span>Date of last Check :</span>
-                    <input type="date" class="gliderDatelastcheck" value="${glider.last_check || ''}" placeholder="Last Check...">
+                    <input type="date" class="gliderDatelastcheck" value="${lastCheckDate}" placeholder="Last Check...">
                 </div>
                 <div class="field-group hori">
                     <span>Status :</span>
@@ -7698,6 +8973,11 @@ function refreshGlidersInModal() {
                 </div>
 
             </div>
+            ${renderCheckHistory(
+                glider,
+                'glider',
+                index
+            )}
             <div class="button-row">
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActiveGlider(${index})">
                     ${isActive ? `<img src="assets/active.png" alt="Current Wing" class="checkmark-icon"> Current Wing` : 'Set as Profile Wing'}
@@ -7837,66 +9117,289 @@ async function setActiveHarness(index) {
 }
 
 
+// async function addGlider() {
+//     try {
+//         const gliderList = document.getElementById('gliderList');
+//         const gliderItem = document.createElement('div');
+//         gliderItem.className = 'gear-item';
+
+//         const isFirstGlider = gearData.gliders.length === 0;
+//         const newIndex = gearData.gliders.length;
+        
+//         // Generate a unique ID for this glider's brand input
+//         const uniqueId = `gliderBrand_${Date.now()}_${newIndex}`;
+        
+//         gliderItem.innerHTML = `
+//         <div class="full-group">
+//             <div class="field-group h">
+//             <div class="field-group hori">
+//             <span>Brand :</span>
+//                 <div class='autocomplete-wrapper'  style="position: relative;">
+//                     <input type="text" id="${uniqueId}" class="gliderBrand" 
+//                            placeholder="Brand" autocomplete="off">
+//                     <!-- Dropdown will be inserted here -->
+//                 </div>
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Model :</span>
+//                     <input type="text" class="gliderModel" placeholder="Model">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Size :</span>
+//                     <input type="text" class="gliderSize" placeholder="Size">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Ready to Fly Total weight :</span>
+//                     <input type="text" class="gliderptv" placeholder="Ready to Fly Total weight">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Manufactured Year :</span>
+//                     <input type="text" class="gliderMyear" placeholder="Manufactured Year">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Serial Number :</span>
+//                     <input type="text" class="gliderSerial" placeholder="Serial Number">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Flight hours when bought (if known) :</span>
+//                     <input type="text" class="gliderinitial_hours" placeholder="Initial flight hours">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                     <input type="date" class="gliderDateBought" placeholder="Date Bought">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Price Bought :</span>
+//                     <input type="text" class="gliderPriceBought" placeholder="Price Bought">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date of last Check :</span>
+//                     <input type="date" class="gliderDatelastcheck" placeholder="Last Check">
+//                 </div>
+//                 <div class="field-group hori">
+//                         <span>Status :</span>
+//                         <select class="gliderStatus">
+//                             <option value="">Select status...</option>
+//                             <option value="sold">Sold</option>
+//                             <option value="broken">Broken</option>
+//                             <option value="lost">Lost</option>
+//                         </select>
+//                     </div>
+//             </div>
+//             <div class="button-row">
+//             <button type="button" class="secondary-button ${isFirstGlider ? 'active-gear' : ''}" onclick="setActiveGlider(${newIndex})">
+//                 ${isFirstGlider ? `<img src="assets/active.png" alt="Current Wing" class="checkmark-icon"> Current Wing` : 'Set as Profile Wing'}
+//             </button>
+//                 <button type="button" class="delete-button" onclick="deleteGlider(${newIndex})">Delete</button>
+//             </div>
+//             </div>
+//         `;
+
+//         // First append the item to the DOM
+//         gliderList.appendChild(gliderItem);
+        
+//         // Now setup autocomplete with the unique ID
+//         setupAutocomplete(
+//             `gliderBrand_${index}`,
+//             () => GLIDER_BRANDS,
+//             'glider-autocomplete-dropdown'
+//         );
+        
+        
+//         // Add input listeners with automatic saving
+//         gliderItem.querySelectorAll('input').forEach(input => {
+//             input.addEventListener('input', async () => {
+//                 const inputs = gliderItem.querySelectorAll('input');
+//                 const updatedGlider = {
+//                     brand: inputs[0].value,
+//                     model: inputs[1].value,
+//                     size: inputs[2].value,
+//                     serial: inputs[3].value,
+//                     initial_hours: inputs[4].value,
+//                     dateBought: inputs[5].value,
+//                     last_check: inputs[6].value,
+//                     priceBought: inputs[7].value,
+//                     ptv: inputs[8].value,
+//                     status: inputs[9].value,
+//                     myear: inputs[10].value,
+//                 };
+//                 gearData.gliders[newIndex] = updatedGlider;
+//                 gearChanged = true;
+//                 showSaveChangesButton();
+//             });
+//         });
+        
+//         // Add new glider to data
+//         gearData.gliders.push({ 
+//             brand: '', 
+//             model: '', 
+//             size: '',
+//             serial: '',
+//             initial_hours: '0',
+//             dateBought: '',
+//             last_check: '',
+//             priceBought: '',
+//             ptv: '',
+//             status: '',
+//             myear: ''
+//         });
+
+//         if (isFirstGlider) {
+//             gearData.activeGliderIndex = 0;
+//             gliderItem.classList.add('active');
+//         }
+        
+//         // Initialize date pickers
+//         const newDateInput = gliderItem.querySelector('.gliderDateBought');
+//         if (newDateInput) {
+//             flatpickr(newDateInput, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.gliders[newIndex].dateBought = selectedDates[0];
+//                 }
+//             });
+//         }
+        
+//         const newDateInputcheck = gliderItem.querySelector('.gliderDatelastcheck');
+//         if (newDateInputcheck) {
+//             flatpickr(newDateInputcheck, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.gliders[newIndex].last_check = selectedDates[0];
+//                 }
+//             });
+//         }
+        
+//         gearChanged = true;
+//         showSaveChangesButton();
+//     } catch (error) {
+//         console.error('Error adding glider:', error);
+//         showCustomAlert('Error adding glider. Please try again.');
+//     }
+// }
+
+
 async function addGlider() {
     try {
         const gliderList = document.getElementById('gliderList');
+
+        if (!gliderList) {
+            console.error('gliderList not found');
+            return;
+        }
+
         const gliderItem = document.createElement('div');
         gliderItem.className = 'gear-item';
 
         const isFirstGlider = gearData.gliders.length === 0;
         const newIndex = gearData.gliders.length;
-        
-        // Generate a unique ID for this glider's brand input
+
+        // Unique ID for autocomplete
         const uniqueId = `gliderBrand_${Date.now()}_${newIndex}`;
-        
+
         gliderItem.innerHTML = `
-        <div class="full-group">
-            <div class="field-group h">
-            <div class="field-group hori">
-            <span>Brand :</span>
-                <div class='autocomplete-wrapper'  style="position: relative;">
-                    <input type="text" id="${uniqueId}" class="gliderBrand" 
-                           placeholder="Brand" autocomplete="off">
-                    <!-- Dropdown will be inserted here -->
-                </div>
-                </div>
-                <div class="field-group hori">
-                <span>Model :</span>
-                    <input type="text" class="gliderModel" placeholder="Model">
-                </div>
-                <div class="field-group hori">
-                <span>Size :</span>
-                    <input type="text" class="gliderSize" placeholder="Size">
-                </div>
-                <div class="field-group hori">
-                <span>Ready to Fly Total weight :</span>
-                    <input type="text" class="gliderptv" placeholder="Ready to Fly Total weight">
-                </div>
-                <div class="field-group hori">
-                <span>Manufactured Year :</span>
-                    <input type="text" class="gliderMyear" placeholder="Manufactured Year">
-                </div>
-                <div class="field-group hori">
-                <span>Serial Number :</span>
-                    <input type="text" class="gliderSerial" placeholder="Serial Number">
-                </div>
-                <div class="field-group hori">
-                <span>Flight hours when bought (if known) :</span>
-                    <input type="text" class="gliderinitial_hours" placeholder="Initial flight hours">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                    <input type="date" class="gliderDateBought" placeholder="Date Bought">
-                </div>
-                <div class="field-group hori">
-                <span>Price Bought :</span>
-                    <input type="text" class="gliderPriceBought" placeholder="Price Bought">
-                </div>
-                <div class="field-group hori">
-                <span>Date of last Check :</span>
-                    <input type="date" class="gliderDatelastcheck" placeholder="Last Check">
-                </div>
-                <div class="field-group hori">
+            <div class="full-group">
+                <div class="field-group h">
+
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+                        <div class="autocomplete-wrapper" style="position: relative;">
+                            <input
+                                type="text"
+                                id="${uniqueId}"
+                                class="gliderBrand"
+                                placeholder="Brand"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Model :</span>
+                        <input
+                            type="text"
+                            class="gliderModel"
+                            placeholder="Model"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Size :</span>
+                        <input
+                            type="text"
+                            class="gliderSize"
+                            placeholder="Size"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Ready to Fly Total weight :</span>
+                        <input
+                            type="text"
+                            class="gliderptv"
+                            placeholder="Ready to Fly Total weight"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Manufactured Year :</span>
+                        <input
+                            type="text"
+                            class="gliderMyear"
+                            placeholder="Manufactured Year"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Serial Number :</span>
+                        <input
+                            type="text"
+                            class="gliderSerial"
+                            placeholder="Serial Number"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Flight hours when bought (if known) :</span>
+                        <input
+                            type="text"
+                            class="gliderinitial_hours"
+                            placeholder="Initial flight hours"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+                        <input
+                            type="date"
+                            class="gliderDateBought"
+                            placeholder="Date Bought"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Price Bought :</span>
+                        <input
+                            type="text"
+                            class="gliderPriceBought"
+                            placeholder="Price Bought"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date of last Check :</span>
+                        <input
+                            type="date"
+                            class="gliderDatelastcheck"
+                            placeholder="Last Check"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
                         <span>Status :</span>
                         <select class="gliderStatus">
                             <option value="">Select status...</option>
@@ -7905,54 +9408,42 @@ async function addGlider() {
                             <option value="lost">Lost</option>
                         </select>
                     </div>
-            </div>
-            <div class="button-row">
-            <button type="button" class="secondary-button ${isFirstGlider ? 'active-gear' : ''}" onclick="setActiveGlider(${newIndex})">
-                ${isFirstGlider ? `<img src="assets/active.png" alt="Current Wing" class="checkmark-icon"> Current Wing` : 'Set as Profile Wing'}
-            </button>
-                <button type="button" class="delete-button" onclick="deleteGlider(${newIndex})">Delete</button>
-            </div>
+
+                </div>
+
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="secondary-button ${isFirstGlider ? 'active-gear' : ''}"
+                        onclick="setActiveGlider(${newIndex})"
+                    >
+                        ${
+                            isFirstGlider
+                                ? `<img src="assets/active.png" alt="Current Wing" class="checkmark-icon"> Current Wing`
+                                : 'Set as Profile Wing'
+                        }
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deleteGlider(${newIndex})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
             </div>
         `;
 
-        // First append the item to the DOM
-        gliderList.appendChild(gliderItem);
-        
-        // Now setup autocomplete with the unique ID
-        setupAutocomplete(
-            `gliderBrand_${index}`,
-            () => GLIDER_BRANDS,
-            'glider-autocomplete-dropdown'
-        );
-        
-        
-        // Add input listeners with automatic saving
-        gliderItem.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', async () => {
-                const inputs = gliderItem.querySelectorAll('input');
-                const updatedGlider = {
-                    brand: inputs[0].value,
-                    model: inputs[1].value,
-                    size: inputs[2].value,
-                    serial: inputs[3].value,
-                    initial_hours: inputs[4].value,
-                    dateBought: inputs[5].value,
-                    last_check: inputs[6].value,
-                    priceBought: inputs[7].value,
-                    ptv: inputs[8].value,
-                    status: inputs[9].value,
-                    myear: inputs[10].value,
-                };
-                gearData.gliders[newIndex] = updatedGlider;
-                gearChanged = true;
-                showSaveChangesButton();
-            });
-        });
-        
-        // Add new glider to data
-        gearData.gliders.push({ 
-            brand: '', 
-            model: '', 
+        // ---------------------------------------------------------
+        // ADD DATA OBJECT FIRST
+        // ---------------------------------------------------------
+
+        gearData.gliders.push({
+            brand: '',
+            model: '',
             size: '',
             serial: '',
             initial_hours: '0',
@@ -7961,298 +9452,1087 @@ async function addGlider() {
             priceBought: '',
             ptv: '',
             status: '',
-            myear: ''
+            myear: '',
+            checks: []
         });
+
+        // ---------------------------------------------------------
+        // ADD TO DOM
+        // ---------------------------------------------------------
+
+        gliderList.appendChild(gliderItem);
+
+        // ---------------------------------------------------------
+        // AUTOCOMPLETE
+        // IMPORTANT: use uniqueId, NOT index
+        // ---------------------------------------------------------
+
+        setupAutocomplete(
+            uniqueId,
+            () => GLIDER_BRANDS,
+            'glider-autocomplete-dropdown'
+        );
+
+        // ---------------------------------------------------------
+        // HELPER TO GET FIELD VALUE
+        // ---------------------------------------------------------
+
+        const getValue = (selector) => {
+            const element = gliderItem.querySelector(selector);
+
+            if (!element) {
+                console.error(`Glider field not found: ${selector}`);
+                return '';
+            }
+
+            return element.value;
+        };
+
+        // ---------------------------------------------------------
+        // UPDATE GLIDER DATA
+        // ---------------------------------------------------------
+
+        const updateGliderData = () => {
+
+            gearData.gliders[newIndex] = {
+                brand: getValue('.gliderBrand'),
+                model: getValue('.gliderModel'),
+                size: getValue('.gliderSize'),
+                ptv: getValue('.gliderptv'),
+                myear: getValue('.gliderMyear'),
+                serial: getValue('.gliderSerial'),
+                initial_hours: getValue('.gliderinitial_hours'),
+                dateBought: getValue('.gliderDateBought'),
+                priceBought: getValue('.gliderPriceBought'),
+                last_check: getValue('.gliderDatelastcheck'),
+                status: getValue('.gliderStatus')
+            };
+
+            gearChanged = true;
+            showSaveChangesButton();
+        };
+
+        // ---------------------------------------------------------
+        // LISTEN TO ALL INPUTS + SELECT
+        // ---------------------------------------------------------
+
+        gliderItem
+            .querySelectorAll('input, select')
+            .forEach(element => {
+
+                element.addEventListener(
+                    'input',
+                    updateGliderData
+                );
+
+                element.addEventListener(
+                    'change',
+                    updateGliderData
+                );
+            });
+
+        // ---------------------------------------------------------
+        // FIRST GLIDER = ACTIVE GLIDER
+        // ---------------------------------------------------------
 
         if (isFirstGlider) {
             gearData.activeGliderIndex = 0;
             gliderItem.classList.add('active');
         }
-        
-        // Initialize date pickers
-        const newDateInput = gliderItem.querySelector('.gliderDateBought');
+
+        // ---------------------------------------------------------
+        // DATE BOUGHT
+        // ---------------------------------------------------------
+
+        const newDateInput =
+            gliderItem.querySelector('.gliderDateBought');
+
         if (newDateInput) {
+
             flatpickr(newDateInput, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.gliders[newIndex].dateBought = selectedDates[0];
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.gliders[newIndex].dateBought =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
-        const newDateInputcheck = gliderItem.querySelector('.gliderDatelastcheck');
+
+        // ---------------------------------------------------------
+        // LAST CHECK
+        // ---------------------------------------------------------
+
+        const newDateInputcheck =
+            gliderItem.querySelector('.gliderDatelastcheck');
+
         if (newDateInputcheck) {
+
             flatpickr(newDateInputcheck, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.gliders[newIndex].last_check = selectedDates[0];
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.gliders[newIndex].last_check =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
+
+        // ---------------------------------------------------------
+        // MARK AS CHANGED
+        // ---------------------------------------------------------
+
         gearChanged = true;
         showSaveChangesButton();
+
     } catch (error) {
+
         console.error('Error adding glider:', error);
-        showCustomAlert('Error adding glider. Please try again.');
+
+        showCustomAlert(
+            'Error adding glider. Please try again.'
+        );
     }
 }
+
+
+
+// async function addreserve() {
+//     try {
+//         const reserveList = document.getElementById('reserveList');
+//         const reserveItem = document.createElement('div');
+//         reserveItem.className = 'gear-item';
+
+//         const isFirstreserve = gearData.reserve.length === 0;
+//         const newIndex = gearData.reserve.length;
+        
+//         // Generate unique ID for autocomplete
+//         const uniqueId = `reserveBrand_${Date.now()}_${newIndex}`;
+        
+//         reserveItem.innerHTML = `
+//         <div class="full-group">
+//             <div class="field-group h">
+//             <div class="field-group hori">
+//             <span>Brand :</span>
+//                 <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
+//                     <input type="text" id="${uniqueId}" class="reserveBrand" 
+//                            placeholder="Brand" autocomplete="off">
+//                     <!-- Dropdown will be inserted here -->
+//                 </div>
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Model :</span>
+//                     <input type="text" class="reserveModel" placeholder="Model">
+//                 </div>
+//                  <div class="field-group hori">
+//                 <span>Serial Number :</span>
+//                     <input type="text" class="reserveSerial" placeholder="Serial Number">
+//                 </div>
+               
+//                 <div class="field-group hori">
+//                 <span>Flight hours when bought (if known) :</span>
+//                     <input type="text" class="reserveinitial_hours" placeholder="Initial flight hours">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                     <input type="date" class="reserveDateBought" placeholder="Date Bought">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                     <input type="date" class="reserveDatelastcheck" placeholder="Last Check">
+//                 </div>
+            
+//             <div class="button-row">
+//                 <button type="button" class="secondary-button ${isFirstreserve ? 'active-gear' : ''}" onclick="setActivereserve(${newIndex})">
+//                     ${isFirstreserve ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
+//                 </button>
+//                 <button type="button" class="delete-button" onclick="deletereserve(${newIndex})">Delete</button>
+//             </div>
+//             </div>
+//         `;
+        
+//         // Append to DOM first
+//         reserveList.appendChild(reserveItem);
+        
+//         // Setup autocomplete with unique ID
+//         setupAutocomplete(uniqueId, () => RESERVE_BRANDS);
+        
+//         // Add input listeners with automatic saving
+//         reserveItem.querySelectorAll('input').forEach(input => {
+//             input.addEventListener('input', async () => {
+//                 const inputs = reserveItem.querySelectorAll('input');
+//                 const updatedreserve = {
+//                     brand: inputs[0].value,
+//                     model: inputs[1].value,
+//                     serial: inputs[2].value,
+//                     size: inputs[3].value,
+//                     initial_hours: inputs[4].value,
+//                     dateBought: inputs[5].value,
+//                     last_check: inputs[6].value
+//                 };
+//                 gearData.reserve[newIndex] = updatedreserve;
+//                 gearChanged = true;
+//                 showSaveChangesButton();
+//             });
+//         });
+        
+//         // Add new reserve to data
+//         gearData.reserve.push({ 
+//             brand: '', 
+//             model: '',
+//             serial: '',
+//             size: '', 
+//             initial_hours: '0',
+//             dateBought: '',
+//             last_check: ''
+//         });
+
+//         if (isFirstreserve) {
+//             gearData.activereserveIndex = 0;
+//             reserveItem.classList.add('active');
+//         }
+        
+//         // Initialize date pickers
+//         const newDateInput = reserveItem.querySelector('.reserveDateBought');
+//         if (newDateInput) {
+//             flatpickr(newDateInput, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.reserve[newIndex].dateBought = selectedDates[0];
+//                 }
+//             });
+//         }
+        
+//         const newDateInputcheck = reserveItem.querySelector('.reserveDatelastcheck');
+//         if (newDateInputcheck) {
+//             flatpickr(newDateInputcheck, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.reserve[newIndex].last_check = selectedDates[0]; // Fixed property
+//                 }
+//             });
+//         }
+        
+//         gearChanged = true;
+//         showSaveChangesButton();
+//     } catch (error) {
+//         console.error('Error adding reserve:', error);
+//         showCustomAlert('Error adding reserve. Please try again.');
+//     }
+// }
+
 
 
 async function addreserve() {
     try {
         const reserveList = document.getElementById('reserveList');
+
+        if (!reserveList) {
+            console.error('reserveList not found');
+            return;
+        }
+
         const reserveItem = document.createElement('div');
         reserveItem.className = 'gear-item';
 
         const isFirstreserve = gearData.reserve.length === 0;
         const newIndex = gearData.reserve.length;
-        
-        // Generate unique ID for autocomplete
+
+        // Unique ID for autocomplete
         const uniqueId = `reserveBrand_${Date.now()}_${newIndex}`;
-        
+
         reserveItem.innerHTML = `
-        <div class="full-group">
-            <div class="field-group h">
-            <div class="field-group hori">
-            <span>Brand :</span>
-                <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
-                    <input type="text" id="${uniqueId}" class="reserveBrand" 
-                           placeholder="Brand" autocomplete="off">
-                    <!-- Dropdown will be inserted here -->
+            <div class="full-group">
+
+                <div class="field-group h">
+
+                    <!-- BRAND -->
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+                        <div class="autocomplete-wrapper" style="position: relative;">
+                            <input
+                                type="text"
+                                id="${uniqueId}"
+                                class="reserveBrand"
+                                placeholder="Brand"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- MODEL -->
+                    <div class="field-group hori">
+                        <span>Model :</span>
+                        <input
+                            type="text"
+                            class="reserveModel"
+                            placeholder="Model"
+                        >
+                    </div>
+
+                    <!-- SERIAL -->
+                    <div class="field-group hori">
+                        <span>Serial Number :</span>
+                        <input
+                            type="text"
+                            class="reserveSerial"
+                            placeholder="Serial Number"
+                        >
+                    </div>
+
+                    <!-- FLIGHT HOURS -->
+                    <div class="field-group hori">
+                        <span>Flight hours when bought (if known) :</span>
+                        <input
+                            type="text"
+                            class="reserveinitial_hours"
+                            placeholder="Initial flight hours"
+                        >
+                    </div>
+
+                    <!-- DATE BOUGHT -->
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+                        <input
+                            type="date"
+                            class="reserveDateBought"
+                        >
+                    </div>
+
+                    <!-- LAST CHECK -->
+                    <div class="field-group hori">
+                        <span>Date of last Check :</span>
+                        <input
+                            type="date"
+                            class="reserveDatelastcheck"
+                        >
+                    </div>
+
+                    <!-- SIZE -->
+                    <div class="field-group hori">
+                        <span>Size :</span>
+                        <input
+                            type="text"
+                            class="reserveSize"
+                            placeholder="Size"
+                        >
+                    </div>
+
+                    <!-- PRICE -->
+                    <div class="field-group hori">
+                        <span>Price Bought :</span>
+                        <input
+                            type="text"
+                            class="reservePriceBought"
+                            placeholder="Price Bought"
+                        >
+                    </div>
+
+                    <!-- MANUFACTURED YEAR -->
+                    <div class="field-group hori">
+                        <span>Manufactured Year :</span>
+                        <input
+                            type="text"
+                            class="reserveMyear"
+                            placeholder="Manufactured Year"
+                        >
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="field-group hori">
+                        <span>Status :</span>
+                        <select class="reserveStatus">
+                            <option value="">Select status...</option>
+                            <option value="sold">Sold</option>
+                            <option value="broken">Broken</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
+
                 </div>
+
+                <!-- BUTTONS -->
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="secondary-button ${isFirstreserve ? 'active-gear' : ''}"
+                        onclick="setActivereserve(${newIndex})"
+                    >
+                        ${
+                            isFirstreserve
+                                ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve`
+                                : 'Set as Profile Reserve'
+                        }
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deletereserve(${newIndex})"
+                    >
+                        Delete
+                    </button>
+
                 </div>
-                <div class="field-group hori">
-                <span>Model :</span>
-                    <input type="text" class="reserveModel" placeholder="Model">
-                </div>
-                 <div class="field-group hori">
-                <span>Serial Number :</span>
-                    <input type="text" class="reserveSerial" placeholder="Serial Number">
-                </div>
-               
-                <div class="field-group hori">
-                <span>Flight hours when bought (if known) :</span>
-                    <input type="text" class="reserveinitial_hours" placeholder="Initial flight hours">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                    <input type="date" class="reserveDateBought" placeholder="Date Bought">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                    <input type="date" class="reserveDatelastcheck" placeholder="Last Check">
-                </div>
-            
-            <div class="button-row">
-                <button type="button" class="secondary-button ${isFirstreserve ? 'active-gear' : ''}" onclick="setActivereserve(${newIndex})">
-                    ${isFirstreserve ? `<img src="assets/active.png" alt="Current Reserve" class="checkmark-icon"> Current Reserve` : 'Set as Profile Reserve'}
-                </button>
-                <button type="button" class="delete-button" onclick="deletereserve(${newIndex})">Delete</button>
-            </div>
+
             </div>
         `;
-        
-        // Append to DOM first
-        reserveList.appendChild(reserveItem);
-        
-        // Setup autocomplete with unique ID
-        setupAutocomplete(uniqueId, () => RESERVE_BRANDS);
-        
-        // Add input listeners with automatic saving
-        reserveItem.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', async () => {
-                const inputs = reserveItem.querySelectorAll('input');
-                const updatedreserve = {
-                    brand: inputs[0].value,
-                    model: inputs[1].value,
-                    serial: inputs[2].value,
-                    size: inputs[3].value,
-                    initial_hours: inputs[4].value,
-                    dateBought: inputs[5].value,
-                    last_check: inputs[6].value
-                };
-                gearData.reserve[newIndex] = updatedreserve;
-                gearChanged = true;
-                showSaveChangesButton();
-            });
-        });
-        
-        // Add new reserve to data
-        gearData.reserve.push({ 
-            brand: '', 
+
+        // ---------------------------------------------------------
+        // ADD DATA OBJECT FIRST
+        // ---------------------------------------------------------
+
+        gearData.reserve.push({
+            brand: '',
             model: '',
             serial: '',
-            size: '', 
+            size: '',
             initial_hours: '0',
             dateBought: '',
-            last_check: ''
+            last_check: '',
+            priceBought: '',
+            myear: '',
+            status: '',
+            checks: []
         });
+
+        // ---------------------------------------------------------
+        // ADD TO DOM
+        // ---------------------------------------------------------
+
+        reserveList.appendChild(reserveItem);
+
+        // ---------------------------------------------------------
+        // AUTOCOMPLETE
+        // ---------------------------------------------------------
+
+        setupAutocomplete(
+            uniqueId,
+            () => RESERVE_BRANDS,
+            'reserve-autocomplete-dropdown'
+        );
+
+        // ---------------------------------------------------------
+        // GET FIELD VALUE SAFELY
+        // ---------------------------------------------------------
+
+        const getValue = (selector) => {
+            const element = reserveItem.querySelector(selector);
+
+            if (!element) {
+                console.error(`Reserve field not found: ${selector}`);
+                return '';
+            }
+
+            return element.value;
+        };
+
+        // ---------------------------------------------------------
+        // UPDATE RESERVE DATA
+        // ---------------------------------------------------------
+
+        const updateReserveData = () => {
+
+            gearData.reserve[newIndex] = {
+                brand: getValue('.reserveBrand'),
+                model: getValue('.reserveModel'),
+                serial: getValue('.reserveSerial'),
+                size: getValue('.reserveSize'),
+                initial_hours: getValue('.reserveinitial_hours'),
+                dateBought: getValue('.reserveDateBought'),
+                last_check: getValue('.reserveDatelastcheck'),
+                priceBought: getValue('.reservePriceBought'),
+                myear: getValue('.reserveMyear'),
+                status: getValue('.reserveStatus')
+            };
+
+            gearChanged = true;
+            showSaveChangesButton();
+        };
+
+        // ---------------------------------------------------------
+        // INPUT + SELECT LISTENERS
+        // ---------------------------------------------------------
+
+        reserveItem
+            .querySelectorAll('input, select')
+            .forEach(element => {
+
+                element.addEventListener(
+                    'input',
+                    updateReserveData
+                );
+
+                element.addEventListener(
+                    'change',
+                    updateReserveData
+                );
+            });
+
+        // ---------------------------------------------------------
+        // FIRST RESERVE = ACTIVE
+        // ---------------------------------------------------------
 
         if (isFirstreserve) {
             gearData.activereserveIndex = 0;
             reserveItem.classList.add('active');
         }
-        
-        // Initialize date pickers
-        const newDateInput = reserveItem.querySelector('.reserveDateBought');
+
+        // ---------------------------------------------------------
+        // DATE BOUGHT
+        // ---------------------------------------------------------
+
+        const newDateInput =
+            reserveItem.querySelector('.reserveDateBought');
+
         if (newDateInput) {
+
             flatpickr(newDateInput, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.reserve[newIndex].dateBought = selectedDates[0];
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.reserve[newIndex].dateBought =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
-        const newDateInputcheck = reserveItem.querySelector('.reserveDatelastcheck');
+
+        // ---------------------------------------------------------
+        // LAST CHECK
+        // ---------------------------------------------------------
+
+        const newDateInputcheck =
+            reserveItem.querySelector('.reserveDatelastcheck');
+
         if (newDateInputcheck) {
+
             flatpickr(newDateInputcheck, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.reserve[newIndex].last_check = selectedDates[0]; // Fixed property
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.reserve[newIndex].last_check =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
+
+        // ---------------------------------------------------------
+        // MARK AS CHANGED
+        // ---------------------------------------------------------
+
         gearChanged = true;
         showSaveChangesButton();
+
     } catch (error) {
+
         console.error('Error adding reserve:', error);
-        showCustomAlert('Error adding reserve. Please try again.');
+
+        showCustomAlert(
+            'Error adding reserve. Please try again.'
+        );
     }
 }
+
+
+
+// async function addHarness() {
+//     try {
+//         const harnessList = document.getElementById('harnessList');
+//         const harnessItem = document.createElement('div');
+//         harnessItem.className = 'gear-item';
+        
+//         const isFirstHarness = gearData.harnesses.length === 0;
+//         const newIndex = gearData.harnesses.length;
+        
+//         // Generate unique ID for autocomplete
+//         const uniqueId = `harnessBrand_${Date.now()}_${newIndex}`;
+        
+//         harnessItem.innerHTML = `
+//         <div class="full-group">
+//             <div class="field-group h">
+//             <div class="field-group hori">
+//             <span>Brand :</span>
+//                  <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
+//                     <input type="text" id="${uniqueId}" class="harnessBrand" 
+//                            placeholder="Brand" autocomplete="off">
+//                     <!-- Dropdown will be inserted here -->
+//                 </div>
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Model :</span>
+//                     <input type="text" class="harnessModel" placeholder="Model...">
+//                 </div>
+//                   <div class="field-group hori">
+//                 <span>Serial Number :</span>
+//                     <input type="text" class="harnessSerial" placeholder="Serial Number...">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Flight hours when bought (if known) :</span>
+//                     <input type="text" class="harnessinitial_hours" placeholder="Initial flight hours...">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date Bought :</span>
+//                     <input type="date" class="harnessDateBought" placeholder="Date Bought...">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Date of last Check :</span>
+//                     <input type="date" class="harnessDatelastcheck" placeholder="Last Check...">
+//                 </div>
+//                 <div class="field-group hori">
+//                 <span>Size :</span>
+//                     <input type="text" class="harnessSize" placeholder="Size">
+//                 </div>
+//                  <div class="field-group hori">
+//                 <span>Price Bought :</span>
+//                     <input type="text" class="harnessPriceBought" placeholder="Price Bought">
+//                 </div>
+//                 <div class="field-group hori">
+//                         <span>Status :</span>
+//                         <select class="harnessStatus">
+//                             <option value="">Select status...</option>
+//                             <option value="sold">Sold</option>
+//                             <option value="broken">Broken</option>
+//                             <option value="lost">Lost</option>
+//                         </select>
+//                     </div>
+//                 <div class="field-group hori">
+//                 <span>Manufactured Year :</span>
+//                     <input type="text" class="harnessMyear" placeholder="Manufactured Year">
+//                 </div>
+               
+                
+                
+               
+                
+                
+//             </div>
+//             <div class="button-row">
+//                 <button type="button" class="secondary-button ${isFirstHarness ? 'active-gear' : ''}" onclick="setActiveHarness(${newIndex})">
+//                     ${isFirstHarness ? `<img src="assets/active.png" alt="Current Harness" class="checkmark-icon"> Current Harness` : 'Set as Profile Harness'}
+//                 </button>
+//                 <button type="button" class="delete-button" onclick="deleteHarness(${newIndex})">Delete</button>
+//             </div>
+//             </div>
+//         `;
+        
+//         // Append to DOM first
+//         harnessList.appendChild(harnessItem);
+        
+//         // Setup autocomplete with unique ID
+//         setupAutocomplete(uniqueId, () => HARNESS_BRANDS);
+
+//         // Add input listeners with immediate UI feedback
+//         harnessItem.querySelectorAll('input').forEach(input => {
+//             input.addEventListener('input', async () => {
+//                 const inputs = harnessItem.querySelectorAll('input');
+//                 const updatedHarness = {
+//                     brand: inputs[0].value,
+//                     model: inputs[1].value,
+//                     serial: inputs[2].value,
+//                     initial_hours: inputs[3].value,
+//                     dateBought: inputs[4].value,
+//                     last_check: inputs[5].value,
+//                     size: inputs[6].value,
+//                     priceBought: inputs[7].value,
+//                     status: inputs[8].value,
+//                     myear: inputs[9].value,
+//                 };
+//                 gearData.harnesses[newIndex] = updatedHarness;
+//                 gearChanged = true;
+//                 showSaveChangesButton();
+//             });
+//         });
+        
+//         // Add new harness to data
+//         gearData.harnesses.push({ 
+//             brand: '', 
+//             model: '', 
+//             serial: '',
+//             initial_hours: '0', 
+//             dateBought: '',
+//             last_check: '',
+//             size: '',
+//             priceBought: '',
+//             status: '',
+//             myear: ''
+//         });
+        
+//         if (isFirstHarness) {
+//             gearData.activeHarnessIndex = 0;
+//             harnessItem.classList.add('active');
+//         }
+        
+//         // Initialize date pickers
+//         const newDateInput = harnessItem.querySelector('.harnessDateBought');
+//         if (newDateInput) {
+//             flatpickr(newDateInput, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.harnesses[newIndex].dateBought = selectedDates[0];
+//                 }
+//             });
+//         }
+        
+//         const newDateInputcheck = harnessItem.querySelector('.harnessDatelastcheck');
+//         if (newDateInputcheck) {
+//             flatpickr(newDateInputcheck, {
+//                 dateFormat: "Y-m-d",
+//                 maxDate: "today",
+//                 minDate: "2000-01-01",
+//                 onChange: async (selectedDates) => {
+//                     gearData.harnesses[newIndex].last_check = selectedDates[0]; // Fixed property
+//                 }
+//             });
+//         }
+        
+//         gearChanged = true;
+//         showSaveChangesButton();
+//     } catch (error) {
+//         console.error('Error adding harness:', error);
+//         showCustomAlert('Error adding harness. Please try again.');
+//     }
+// }
+
 
 async function addHarness() {
     try {
         const harnessList = document.getElementById('harnessList');
+
+        if (!harnessList) {
+            console.error('harnessList not found');
+            return;
+        }
+
         const harnessItem = document.createElement('div');
         harnessItem.className = 'gear-item';
-        
+
         const isFirstHarness = gearData.harnesses.length === 0;
         const newIndex = gearData.harnesses.length;
-        
-        // Generate unique ID for autocomplete
+
+        // Unique ID for autocomplete
         const uniqueId = `harnessBrand_${Date.now()}_${newIndex}`;
-        
+
         harnessItem.innerHTML = `
-        <div class="full-group">
-            <div class="field-group h">
-            <div class="field-group hori">
-            <span>Brand :</span>
-                 <div class='autocomplete-wrapper' style="position: relative;">  <!-- Add relative positioning -->
-                    <input type="text" id="${uniqueId}" class="harnessBrand" 
-                           placeholder="Brand" autocomplete="off">
-                    <!-- Dropdown will be inserted here -->
+            <div class="full-group">
+                <div class="field-group h">
+
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+                        <div class="autocomplete-wrapper" style="position: relative;">
+                            <input
+                                type="text"
+                                id="${uniqueId}"
+                                class="harnessBrand"
+                                placeholder="Brand"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Model :</span>
+                        <input
+                            type="text"
+                            class="harnessModel"
+                            placeholder="Model..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Serial Number :</span>
+                        <input
+                            type="text"
+                            class="harnessSerial"
+                            placeholder="Serial Number..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Flight hours when bought (if known) :</span>
+                        <input
+                            type="text"
+                            class="harnessinitial_hours"
+                            placeholder="Initial flight hours..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+                        <input
+                            type="date"
+                            class="harnessDateBought"
+                            placeholder="Date Bought..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date of last Check :</span>
+                        <input
+                            type="date"
+                            class="harnessDatelastcheck"
+                            placeholder="Last Check..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Size :</span>
+                        <input
+                            type="text"
+                            class="harnessSize"
+                            placeholder="Size"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Price Bought :</span>
+                        <input
+                            type="text"
+                            class="harnessPriceBought"
+                            placeholder="Price Bought"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Status :</span>
+                        <select class="harnessStatus">
+                            <option value="">Select status...</option>
+                            <option value="sold">Sold</option>
+                            <option value="broken">Broken</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Manufactured Year :</span>
+                        <input
+                            type="text"
+                            class="harnessMyear"
+                            placeholder="Manufactured Year"
+                        >
+                    </div>
+
                 </div>
+
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="secondary-button ${isFirstHarness ? 'active-gear' : ''}"
+                        onclick="setActiveHarness(${newIndex})"
+                    >
+                        ${
+                            isFirstHarness
+                                ? `<img src="assets/active.png" alt="Current Harness" class="checkmark-icon"> Current Harness`
+                                : 'Set as Profile Harness'
+                        }
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deleteHarness(${newIndex})"
+                    >
+                        Delete
+                    </button>
+
                 </div>
-                <div class="field-group hori">
-                <span>Model :</span>
-                    <input type="text" class="harnessModel" placeholder="Model...">
-                </div>
-                 <div class="field-group hori">
-                <span>Serial Number :</span>
-                    <input type="text" class="harnessSerial" placeholder="Serial Number...">
-                </div>
-                <div class="field-group hori">
-                <span>Flight hours when bought (if known) :</span>
-                    <input type="text" class="harnessinitial_hours" placeholder="Initial flight hours...">
-                </div>
-                <div class="field-group hori">
-                <span>Date Bought :</span>
-                    <input type="date" class="harnessDateBought" placeholder="Date Bought...">
-                </div>
-                <div class="field-group hori">
-                <span>Date of last Check :</span>
-                    <input type="date" class="harnessDatelastcheck" placeholder="Last Check...">
-                </div>
-            </div>
-            <div class="button-row">
-                <button type="button" class="secondary-button ${isFirstHarness ? 'active-gear' : ''}" onclick="setActiveHarness(${newIndex})">
-                    ${isFirstHarness ? `<img src="assets/active.png" alt="Current Harness" class="checkmark-icon"> Current Harness` : 'Set as Profile Harness'}
-                </button>
-                <button type="button" class="delete-button" onclick="deleteHarness(${newIndex})">Delete</button>
-            </div>
             </div>
         `;
-        
-        // Append to DOM first
-        harnessList.appendChild(harnessItem);
-        
-        // Setup autocomplete with unique ID
-        setupAutocomplete(uniqueId, () => HARNESS_BRANDS);
 
-        // Add input listeners with immediate UI feedback
-        harnessItem.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', async () => {
-                const inputs = harnessItem.querySelectorAll('input');
-                const updatedHarness = {
-                    brand: inputs[0].value,
-                    model: inputs[1].value,
-                    serial: inputs[2].value,
-                    initial_hours: inputs[3].value,
-                    dateBought: inputs[4].value,
-                    last_check: inputs[5].value
-                };
-                gearData.harnesses[newIndex] = updatedHarness;
-                gearChanged = true;
-                showSaveChangesButton();
-            });
-        });
-        
-        // Add new harness to data
-        gearData.harnesses.push({ 
-            brand: '', 
-            model: '', 
+        // ---------------------------------------------------------
+        // ADD DATA OBJECT FIRST
+        // ---------------------------------------------------------
+
+        gearData.harnesses.push({
+            brand: '',
+            model: '',
             serial: '',
-            initial_hours: '0', 
+            initial_hours: '0',
             dateBought: '',
-            last_check: ''
+            last_check: '',
+            size: '',
+            priceBought: '',
+            status: '',
+            checks: []
         });
-        
+
+        // ---------------------------------------------------------
+        // ADD TO DOM
+        // ---------------------------------------------------------
+
+        harnessList.appendChild(harnessItem);
+
+        // ---------------------------------------------------------
+        // AUTOCOMPLETE
+        // ---------------------------------------------------------
+
+        setupAutocomplete(
+            uniqueId,
+            () => HARNESS_BRANDS,
+            'harness-autocomplete-dropdown'
+        );
+
+        // ---------------------------------------------------------
+        // HELPER TO GET FIELD VALUE
+        // ---------------------------------------------------------
+
+        const getValue = (selector) => {
+            const element = harnessItem.querySelector(selector);
+
+            if (!element) {
+                console.error(`Harness field not found: ${selector}`);
+                return '';
+            }
+
+            return element.value;
+        };
+
+        // ---------------------------------------------------------
+        // UPDATE HARNESS DATA
+        // ---------------------------------------------------------
+
+        const updateHarnessData = () => {
+
+            gearData.harnesses[newIndex] = {
+                brand: getValue('.harnessBrand'),
+                model: getValue('.harnessModel'),
+                serial: getValue('.harnessSerial'),
+                initial_hours: getValue('.harnessinitial_hours'),
+                dateBought: getValue('.harnessDateBought'),
+                last_check: getValue('.harnessDatelastcheck'),
+                size: getValue('.harnessSize'),
+                priceBought: getValue('.harnessPriceBought'),
+                status: getValue('.harnessStatus'),
+                myear: getValue('.harnessMyear')
+            };
+
+            gearChanged = true;
+            showSaveChangesButton();
+        };
+
+        // ---------------------------------------------------------
+        // LISTEN TO ALL INPUTS + SELECT
+        // ---------------------------------------------------------
+
+        harnessItem
+            .querySelectorAll('input, select')
+            .forEach(element => {
+
+                element.addEventListener(
+                    'input',
+                    updateHarnessData
+                );
+
+                element.addEventListener(
+                    'change',
+                    updateHarnessData
+                );
+            });
+
+        // ---------------------------------------------------------
+        // FIRST HARNESS = ACTIVE HARNESS
+        // ---------------------------------------------------------
+
         if (isFirstHarness) {
             gearData.activeHarnessIndex = 0;
             harnessItem.classList.add('active');
         }
-        
-        // Initialize date pickers
-        const newDateInput = harnessItem.querySelector('.harnessDateBought');
+
+        // ---------------------------------------------------------
+        // DATE BOUGHT
+        // ---------------------------------------------------------
+
+        const newDateInput =
+            harnessItem.querySelector('.harnessDateBought');
+
         if (newDateInput) {
+
             flatpickr(newDateInput, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.harnesses[newIndex].dateBought = selectedDates[0];
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.harnesses[newIndex].dateBought =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
-        const newDateInputcheck = harnessItem.querySelector('.harnessDatelastcheck');
+
+        // ---------------------------------------------------------
+        // LAST CHECK
+        // ---------------------------------------------------------
+
+        const newDateInputcheck =
+            harnessItem.querySelector('.harnessDatelastcheck');
+
         if (newDateInputcheck) {
+
             flatpickr(newDateInputcheck, {
-                dateFormat: "Y-m-d",
-                maxDate: "today",
-                minDate: "2000-01-01",
-                onChange: async (selectedDates) => {
-                    gearData.harnesses[newIndex].last_check = selectedDates[0]; // Fixed property
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: (selectedDates, dateStr) => {
+
+                    gearData.harnesses[newIndex].last_check =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
                 }
             });
         }
-        
+
+        // ---------------------------------------------------------
+        // MARK AS CHANGED
+        // ---------------------------------------------------------
+
         gearChanged = true;
         showSaveChangesButton();
+
     } catch (error) {
+
         console.error('Error adding harness:', error);
-        showCustomAlert('Error adding harness. Please try again.');
+
+        showCustomAlert(
+            'Error adding harness. Please try again.'
+        );
     }
 }
 
@@ -13078,6 +15358,132 @@ function addQualification() {
         });
     }
 }
+function renderGliderCheckList(glider) {
+
+    if (!glider) {
+        return '';
+    }
+
+    const checks = Array.isArray(glider.checks)
+        ? [...glider.checks]
+        : [];
+
+    checks.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    return `
+        <div class="glider-check-list">
+
+            <h4>
+                Check History
+            </h4>
+
+            ${
+                checks.length
+                ? checks.map(check => `
+                    <div class="glider-check-row">
+                        <span>${formatDate(check.date)}</span>
+                        <span>${check.workshop || '—'}</span>
+                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
+                        <span>Cost: <strong>${check.price || '—'}</strong></span>
+                        </div>
+                `).join('')
+                : `
+                    <div class="no-checks">
+                        No checks recorded.
+                    </div>
+                `
+            }
+
+        </div>
+    `;
+}
+
+
+function renderHarnessCheckList(harness) {
+
+    if (!harness) {
+        return '';
+    }
+
+    const checks = Array.isArray(harness.checks)
+        ? [...harness.checks]
+        : [];
+
+    checks.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    return `
+        <div class="glider-check-list">
+
+            <h4>
+                Check History
+            </h4>
+
+            ${
+                checks.length
+                ? checks.map(check => `
+                    <div class="glider-check-row">
+                        <span>${formatDate(check.date)}</span>
+                        <span>${check.workshop || '—'}</span>
+                        <span>${check.price || '—'}</span>
+                        <span>${check.condition || '—'}</span>
+                    </div>
+                `).join('')
+                : `
+                    <div class="no-checks">
+                        No checks recorded.
+                    </div>
+                `
+            }
+
+        </div>
+    `;
+}
+
+function renderReserveCheckList(reserve) {
+
+    if (!reserve) {
+        return '';
+    }
+
+    const checks = Array.isArray(reserve.checks)
+        ? [...reserve.checks]
+        : [];
+
+    checks.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    return `
+        <div class="glider-check-list">
+
+            <h4>
+                Check History
+            </h4>
+
+            ${
+                checks.length
+                ? checks.map(check => `
+                    <div class="glider-check-row">
+                        <span>${formatDate(check.date)}</span>
+                        <span>${check.workshop || '—'}</span>
+                        <span>${check.price || '—'}</span>
+                        <span>${check.condition || '—'}</span>
+                    </div>
+                `).join('')
+                : `
+                    <div class="no-checks">
+                        No checks recorded.
+                    </div>
+                `
+            }
+
+        </div>
+    `;
+}
 
 function addCourses() {
     profileData.Courses.push({
@@ -13229,6 +15635,7 @@ function loadCoursesToForm() {
         CoursesItem.className = 'Courses-item-edit';
 
         CoursesItem.innerHTML = `
+        <div class="form-group-courses">
             <div class="form-group">
                 <div class="field-group hori">
                 <span>Course Name :</span>
@@ -13254,6 +15661,7 @@ function loadCoursesToForm() {
                 <span>Comments :</span>
                     <textarea class="CoursesComments" placeholder="Add any comments here">${course.comments || ''}</textarea>
                 </div>
+            </div>
             </div>
             <button type="button" class="secondary-button delete-button" onclick="deleteCourses(${index})">Delete</button>
             
@@ -13556,40 +15964,194 @@ async function saveProfileGearDetails() {
         const currentActiveGlider = gearData.activeGliderIndex;
         const currentActiveHarness = gearData.activeHarnessIndex;
         
-        // Update gear data
-        const gliderItems = document.querySelectorAll('#gliderList .gear-item');
-        gearData.gliders = Array.from(gliderItems).map(item => ({
-            brand: item.querySelector('.gliderBrand').value,
-            model: item.querySelector('.gliderModel').value,
-            size: item.querySelector('.gliderSize').value,
-            serial: item.querySelector('.gliderSerial').value,
-            initial_hours: item.querySelector('.gliderinitial_hours').value,
-            dateBought: item.querySelector('.gliderDateBought').value,
-            last_check: item.querySelector('.gliderDatelastcheck').value,
-            priceBought: item.querySelector('.gliderPriceBought').value,
-            myear: item.querySelector('.gliderMyear').value,
-            ptv: item.querySelector('.gliderptv').value,
-            status: item.querySelector('.gliderStatus').value
-        }));
+        // ============================================================
+// SAVE GLIDERS
+// ============================================================
 
-        const harnessItems = document.querySelectorAll('#harnessList .gear-item');
-        gearData.harnesses = Array.from(harnessItems).map(item => ({
-            brand: item.querySelector('.harnessBrand').value,
-            model: item.querySelector('.harnessModel').value,
-            serial: item.querySelector('.harnessSerial').value,
-            initial_hours: item.querySelector('.harnessinitial_hours').value,
-            dateBought: item.querySelector('.harnessDateBought').value,
-            last_check: item.querySelector('.harnessDatelastcheck').value
-        }));
-        const reserveItems = document.querySelectorAll('#reserveList .gear-item');
-        gearData.reserve = Array.from(reserveItems).map(item => ({
-            brand: item.querySelector('.reserveBrand').value,
-            model: item.querySelector('.reserveModel').value,
-            serial: item.querySelector('.reserveSerial').value,
-            initial_hours: item.querySelector('.reserveinitial_hours').value,
-            dateBought: item.querySelector('.reserveDateBought').value,
-            last_check: item.querySelector('.reserveDatelastcheck').value
-        }));
+const gliderItems = document.querySelectorAll(
+    '#gliderList .gear-item'
+);
+
+gearData.gliders = Array.from(gliderItems).map((item, index) => {
+
+    // IMPORTANT :
+    // On récupère l'objet existant AVANT de le remplacer
+    const existingGear = gearData.gliders[index] || {};
+
+    // On conserve l'historique des checks existant
+    const checks = Array.isArray(existingGear.checks)
+        ? existingGear.checks
+        : [];
+
+    // Dernier check = check le plus récent
+    const latestCheck = getLatestCheck({
+        ...existingGear,
+        checks
+    });
+
+    return {
+
+        brand:
+            item.querySelector('.gliderBrand')?.value || '',
+
+        model:
+            item.querySelector('.gliderModel')?.value || '',
+
+        size:
+            item.querySelector('.gliderSize')?.value || '',
+
+        ptv:
+            item.querySelector('.gliderptv')?.value || '',
+
+        myear:
+            item.querySelector('.gliderMyear')?.value || '',
+
+        serial:
+            item.querySelector('.gliderSerial')?.value || '',
+
+        initial_hours:
+            item.querySelector('.gliderinitial_hours')?.value || '0',
+
+        dateBought:
+            item.querySelector('.gliderDateBought')?.value || '',
+
+        priceBought:
+            item.querySelector('.gliderPriceBought')?.value || '',
+
+        status:
+            item.querySelector('.gliderStatus')?.value || '',
+
+        // IMPORTANT :
+        // last_check vient maintenant de l'historique
+        last_check:
+            latestCheck ? latestCheck.date : '',
+
+        // IMPORTANT :
+        // on conserve tous les checks
+        checks: checks
+    };
+});
+
+
+// ============================================================
+// SAVE HARNESSES
+// ============================================================
+
+const harnessItems = document.querySelectorAll(
+    '#harnessList .gear-item'
+);
+
+gearData.harnesses = Array.from(harnessItems).map((item, index) => {
+
+    const existingGear = gearData.harnesses[index] || {};
+
+    const checks = Array.isArray(existingGear.checks)
+        ? existingGear.checks
+        : [];
+
+    const latestCheck = getLatestCheck({
+        ...existingGear,
+        checks
+    });
+
+    return {
+
+        brand:
+            item.querySelector('.harnessBrand')?.value || '',
+
+        model:
+            item.querySelector('.harnessModel')?.value || '',
+
+        size:
+            item.querySelector('.harnessSize')?.value || '',
+
+        myear:
+            item.querySelector('.harnessMyear')?.value || '',
+
+        serial:
+            item.querySelector('.harnessSerial')?.value || '',
+
+        initial_hours:
+            item.querySelector('.harnessinitial_hours')?.value || '0',
+
+        dateBought:
+            item.querySelector('.harnessDateBought')?.value || '',
+
+        priceBought:
+            item.querySelector('.harnessPriceBought')?.value || '',
+
+        status:
+            item.querySelector('.harnessStatus')?.value || '',
+
+        // Dernier check calculé automatiquement
+        last_check:
+            latestCheck ? latestCheck.date : '',
+
+        // Conservation de l'historique
+        checks: checks
+    };
+});
+
+
+// ============================================================
+// SAVE RESERVES
+// ============================================================
+
+const reserveItems = document.querySelectorAll(
+    '#reserveList .gear-item'
+);
+
+gearData.reserve = Array.from(reserveItems).map((item, index) => {
+
+    const existingGear = gearData.reserve[index] || {};
+
+    const checks = Array.isArray(existingGear.checks)
+        ? existingGear.checks
+        : [];
+
+    const latestCheck = getLatestCheck({
+        ...existingGear,
+        checks
+    });
+
+    return {
+
+        brand:
+            item.querySelector('.reserveBrand')?.value || '',
+
+        model:
+            item.querySelector('.reserveModel')?.value || '',
+
+        serial:
+            item.querySelector('.reserveSerial')?.value || '',
+
+        size:
+            item.querySelector('.reserveSize')?.value || '',
+
+        initial_hours:
+            item.querySelector('.reserveinitial_hours')?.value || '0',
+
+        dateBought:
+            item.querySelector('.reserveDateBought')?.value || '',
+
+        priceBought:
+            item.querySelector('.reservePriceBought')?.value || '',
+
+        myear:
+            item.querySelector('.reserveMyear')?.value || '',
+
+        status:
+            item.querySelector('.reserveStatus')?.value || '',
+
+        // Dernier check calculé automatiquement
+        last_check:
+            latestCheck ? latestCheck.date : '',
+
+        // Conservation de l'historique
+        checks: checks
+    };
+});
+
 
         
         // Update qualifications and documents
@@ -14060,43 +16622,76 @@ const brandImages = {
     'yaesu': 'yaesu.jpg'
 };
 
-function getNextGliderCheckInfo(glider, statsFromCheck) {
-    const status = (glider.status || '').toLowerCase();
 
+function getNextReserveCheckInfo(reserve, statsFromCheck) {
+    const status = (reserve.status || '').toLowerCase();
+
+    // Pas de prochain check si l'équipement n'est plus utilisable
     if (['sold', 'broken', 'lost'].includes(status)) {
         return null;
     }
 
-    if (!glider.last_check) {
+    // ============================================================
+    // GET MOST RECENT CHECK
+    // ============================================================
+
+    const latestCheck = getLatestCheck(reserve);
+
+    // Nouveau système : checks[]
+    // Ancien système : last_check
+    const lastCheckDate = latestCheck
+        ? latestCheck.date
+        : reserve.last_check || '';
+
+    if (!lastCheckDate) {
         return null;
     }
 
-    const lastCheck = new Date(glider.last_check);
+    const lastCheck = new Date(lastCheckDate);
 
     if (isNaN(lastCheck.getTime())) {
         return null;
     }
 
-    // Prochain check = 2 ans après le dernier check
+    // ============================================================
+    // NEXT CHECK = 2 YEARS AFTER THE MOST RECENT CHECK
+    // ============================================================
+
     const nextDate = new Date(lastCheck);
     nextDate.setFullYear(nextDate.getFullYear() + 2);
 
-    // Heures depuis le dernier check
-    const flightHoursSinceCheck = Number(statsFromCheck?.hours) || 0;
+    // ============================================================
+    // FLIGHT HOURS SINCE THE MOST RECENT CHECK
+    // ============================================================
+
+    const flightHoursSinceCheck =
+        Number(statsFromCheck?.hours) || 0;
 
     const remainingHours = Math.max(
         0,
         100 - flightHoursSinceCheck
     );
 
-    // Jours jusqu'au prochain check
+    // ============================================================
+    // DAYS UNTIL NEXT CHECK
+    // ============================================================
+
     const now = new Date();
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+    const millisecondsPerDay =
+        1000 * 60 * 60 * 24;
 
     const remainingDays = Math.max(
         0,
-        Math.ceil((nextDate.getTime() - now.getTime()) / millisecondsPerDay)
+        Math.ceil(
+            (nextDate.getTime() - now.getTime()) /
+            millisecondsPerDay
+        )
     );
+
+    // ============================================================
+    // CHECK OVERDUE
+    // ============================================================
 
     const overdue =
         remainingDays <= 0 ||
@@ -14105,9 +16700,192 @@ function getNextGliderCheckInfo(glider, statsFromCheck) {
     return {
         overdue,
         remainingDays,
-        remainingHours
+        remainingHours,
+
+        // Très utile si tu veux afficher la date exacte
+        lastCheckDate: lastCheckDate,
+        nextCheckDate: nextDate
     };
 }
+
+
+
+
+
+
+function getNextGliderCheckInfo(glider, statsFromCheck) {
+    const status = (glider.status || '').toLowerCase();
+
+    // Pas de prochain check si l'équipement n'est plus utilisable
+    if (['sold', 'broken', 'lost'].includes(status)) {
+        return null;
+    }
+
+    // ============================================================
+    // GET MOST RECENT CHECK
+    // ============================================================
+
+    const latestCheck = getLatestCheck(glider);
+
+    // Nouveau système : checks[]
+    // Ancien système : last_check
+    const lastCheckDate = latestCheck
+        ? latestCheck.date
+        : glider.last_check || '';
+
+    if (!lastCheckDate) {
+        return null;
+    }
+
+    const lastCheck = new Date(lastCheckDate);
+
+    if (isNaN(lastCheck.getTime())) {
+        return null;
+    }
+
+    // ============================================================
+    // NEXT CHECK = 2 YEARS AFTER THE MOST RECENT CHECK
+    // ============================================================
+
+    const nextDate = new Date(lastCheck);
+    nextDate.setFullYear(nextDate.getFullYear() + 2);
+
+    // ============================================================
+    // FLIGHT HOURS SINCE THE MOST RECENT CHECK
+    // ============================================================
+
+    const flightHoursSinceCheck =
+        Number(statsFromCheck?.hours) || 0;
+
+    const remainingHours = Math.max(
+        0,
+        100 - flightHoursSinceCheck
+    );
+
+    // ============================================================
+    // DAYS UNTIL NEXT CHECK
+    // ============================================================
+
+    const now = new Date();
+
+    const millisecondsPerDay =
+        1000 * 60 * 60 * 24;
+
+    const remainingDays = Math.max(
+        0,
+        Math.ceil(
+            (nextDate.getTime() - now.getTime()) /
+            millisecondsPerDay
+        )
+    );
+
+    // ============================================================
+    // CHECK OVERDUE
+    // ============================================================
+
+    const overdue =
+        remainingDays <= 0 ||
+        remainingHours <= 0;
+
+    return {
+        overdue,
+        remainingDays,
+        remainingHours,
+
+        // Très utile si tu veux afficher la date exacte
+        lastCheckDate: lastCheckDate,
+        nextCheckDate: nextDate
+    };
+}
+
+
+function getNextHarnessCheckInfo(harness, statsFromCheck) {
+    const status = (harness.status || '').toLowerCase();
+
+    // Pas de prochain check si l'équipement n'est plus utilisable
+    if (['sold', 'broken', 'lost'].includes(status)) {
+        return null;
+    }
+
+    // ============================================================
+    // GET MOST RECENT CHECK
+    // ============================================================
+
+    const latestCheck = getLatestCheck(harness);
+
+    // Nouveau système : checks[]
+    // Ancien système : last_check
+    const lastCheckDate = latestCheck
+        ? latestCheck.date
+        : harness.last_check || '';
+
+    if (!lastCheckDate) {
+        return null;
+    }
+
+    const lastCheck = new Date(lastCheckDate);
+
+    if (isNaN(lastCheck.getTime())) {
+        return null;
+    }
+
+    // ============================================================
+    // NEXT CHECK = 2 YEARS AFTER THE MOST RECENT CHECK
+    // ============================================================
+
+    const nextDate = new Date(lastCheck);
+    nextDate.setFullYear(nextDate.getFullYear() + 2);
+
+    // ============================================================
+    // FLIGHT HOURS SINCE THE MOST RECENT CHECK
+    // ============================================================
+
+    const flightHoursSinceCheck =
+        Number(statsFromCheck?.hours) || 0;
+
+    const remainingHours = Math.max(
+        0,
+        100 - flightHoursSinceCheck
+    );
+
+    // ============================================================
+    // DAYS UNTIL NEXT CHECK
+    // ============================================================
+
+    const now = new Date();
+
+    const millisecondsPerDay =
+        1000 * 60 * 60 * 24;
+
+    const remainingDays = Math.max(
+        0,
+        Math.ceil(
+            (nextDate.getTime() - now.getTime()) /
+            millisecondsPerDay
+        )
+    );
+
+    // ============================================================
+    // CHECK OVERDUE
+    // ============================================================
+
+    const overdue =
+        remainingDays <= 0 ||
+        remainingHours <= 0;
+
+    return {
+        overdue,
+        remainingDays,
+        remainingHours,
+
+        // Très utile si tu veux afficher la date exacte
+        lastCheckDate: lastCheckDate,
+        nextCheckDate: nextDate
+    };
+}
+
+
+
 
 
 
@@ -14182,7 +16960,11 @@ async function updateGearPreview() {
 
                 const totalHours = await calculateGliderHours(glider);
                 const brandImage = brandImages[glider.brand.toLowerCase()];
-                const daysSinceCheck = daysSinceDate(glider.last_check);
+                // Dernier check = check le plus récent dans l'historique
+                const latestCheck = getLatestCheck(glider);
+                const lastCheckDate = latestCheck ? latestCheck.date : '';
+
+                const daysSinceCheck = daysSinceDate(lastCheckDate);
                 const statsFromCheck = await getStatsFromLastCheck(glider, 'glider');
                 const nextCheck = getNextGliderCheckInfo(glider, statsFromCheck);
 
@@ -14243,17 +17025,19 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
 <div class="glider-item-dates">
     <span class="purchase-date">Bought: ${formatDate(glider.dateBought)}  ${glider.priceBought ? `<span class="purchase-price">- ${glider.priceBought}</span>` : ''}</span>
    
-    <span class="check-date">Last Check: ${formatDate(glider.last_check)}</span>
+     ${lastCheckDate ? `<span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>` : ''}
 </div>
 
 </div>
 
 
 
- ${glider.last_check ? `
+ ${lastCheckDate
+ ? `
 <div class="since-check-stats">
     <div class="stat-item mini">
-        <span class="stat-value mini">${daysSinceDate(glider.last_check)}</span>
+        <span class="stat-value mini">${daysSinceDate(lastCheckDate
+        )}</span>
         <span class="stat-label mini">Since check</span>
     </div>
 <div class="stat-item mini">
@@ -14290,7 +17074,7 @@ ${nextCheck ? `
 ` : ''}
 
 
-
+${lastCheckDate ? ` ${renderGliderCheckList(glider)} ` : ''}
 
 <div class="glider-stats">
     <div class="stat-item">
@@ -14330,8 +17114,13 @@ const reserveElements = await Promise.all(
 
                 const totalHours = await calculatereserveHours(reserve);
                 const brandImage = brandImages[reserve.brand.toLowerCase()];
+
+                const latestCheck = getLatestCheck(reserve);
+                const lastCheckDate = latestCheck ? latestCheck.date : '';
+
                 const daysSinceCheck = daysSinceDate(reserve.last_check);
                 const statsFromCheck = await getStatsFromLastCheck(reserve, 'reserve');
+                const nextCheck = getNextReserveCheckInfo(reserve, statsFromCheck);
             
                 return `
         <div class="glider-item ${index === gearData.activereserveIndex ? 'active' : ''}">
@@ -14340,11 +17129,30 @@ const reserveElements = await Promise.all(
         ${brandImage ? `<img src="assets/brands/${brandImage}" alt="${reserve.brand}" class="brand-image">` : ''}
         <div class="glider-brand-model">
         <div class="brand-model">
-        ${reserve.brand} ${reserve.model} 
+        ${reserve.brand} ${reserve.model} ${reserve.size ? `<span class="glider-size">${reserve.size}</span>` : ''}
         </div>
-        <div class="serial-number">
-        ${reserve.serial}
-        </div>
+      
+
+
+        ${reserve.serial ? `
+            <div class="serial-number">
+                ${reserve.serial}
+            </div>
+        ` : ''}
+
+        ${reserve.myear  ? `
+            <div class='glider-data'>
+                ${reserve.myear ? `
+                    <div class='glider-data-child'>
+                        <span class="ptv-text">YEAR: <strong>${reserve.myear}</strong></span>
+                    </div>
+                ` : ''}
+    
+            </div>
+        ` : ''}
+
+
+
         </div>
         </div>
         <div class="glider-item-details">
@@ -14352,13 +17160,13 @@ const reserveElements = await Promise.all(
         <div class="glider-item-dates">
         <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}</span>
         
-        <span class="check-date">Last Check: ${formatDate(reserve.last_check)}</span>
+        <span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>
         </div>
         </div>
-                    ${reserve.last_check ? `
+                    ${lastCheckDate ? `
                 <div class="since-check-stats">
                     <div class="stat-item mini">
-                        <span class="stat-value mini">${daysSinceDate(reserve.last_check)}</span>
+                        <span class="stat-value mini">${daysSinceDate(lastCheckDate)}</span>
                         <span class="stat-label mini">Since check</span>
                     </div>
                     <div class="stat-item mini">
@@ -14371,6 +17179,10 @@ const reserveElements = await Promise.all(
                     </div>
                 </div>
             ` : ''}
+
+           ${lastCheckDate ? ` ${renderReserveCheckList(reserve)} ` : ''}
+
+
         <div class="glider-stats">
         <div class="stat-item">
         <span class="stat-value total">${totalHours}h</span>
@@ -14409,8 +17221,13 @@ const harnessElements = await Promise.all(
         
         const totalHours = await calculateharnessHours(harness);
         const brandImage = brandImages[harness.brand.toLowerCase()];
-        const daysSinceCheck = daysSinceDate(harness.last_check);
+
+        const latestCheck = getLatestCheck(harness);
+        const lastCheckDate = latestCheck ? latestCheck.date : '';
+
+        const daysSinceCheck = daysSinceDate(lastCheckDate);
         const statsFromCheck = await getStatsFromLastCheck(harness, 'harness');
+        const nextCheck = getNextHarnessCheckInfo(harness, statsFromCheck);
     
         return `
         <div class="glider-item ${index === gearData.activeHarnessIndex ? 'active' : ''}">
@@ -14419,26 +17236,38 @@ const harnessElements = await Promise.all(
             ${brandImage ? `<img src="assets/brands/${brandImage}" alt="${harness.brand}" class="brand-image">` : ''}
             <div class="glider-brand-model">
             <div class="brand-model">
-            ${harness.brand} ${harness.model}
+            ${harness.brand} ${harness.model} ${harness.size ? `<span class="glider-size">${harness.size}</span>` : ''}
             </div>
                     ${harness.serial ? `
                         <div class="serial-number">
                             ${harness.serial}
                         </div>
                     ` : ''}
+
+    ${harness.myear  ? `
+        <div class='glider-data'>
+            ${harness.myear ? `
+                <div class='glider-data-child'>
+                    <span class="ptv-text">YEAR: <strong>${harness.myear}</strong></span>
+                </div>
+            ` : ''}
+
+        </div>
+    ` : ''}
+
             </div>
             </div>
             <div class="glider-item-details">
                 
                 <div class="glider-item-dates">
                     <span class="purchase-date">Bought: ${formatDate(harness.dateBought)}</span>
-                    <span class="check-date">Last Check: ${formatDate(harness.last_check)}</span>
+                    <span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>
                 </div>
             </div>
-                        ${harness.last_check ? `
+                        ${lastCheckDate ? `
                 <div class="since-check-stats">
                     <div class="stat-item mini">
-                        <span class="stat-value mini">${daysSinceDate(harness.last_check)}</span>
+                        <span class="stat-value mini">${daysSinceDate(lastCheckDate)}</span>
                         <span class="stat-label mini">Since check</span>
                     </div>
                     <div class="stat-item mini">
@@ -14451,6 +17280,14 @@ const harnessElements = await Promise.all(
                     </div>
                 </div>
             ` : ''}
+
+
+
+
+            
+            ${lastCheckDate ? ` ${renderHarnessCheckList(harness)} ` : ''}
+
+            
             <div class="glider-stats">
                 <div class="stat-item">
                     <span class="stat-value total">${totalHours}h</span>
