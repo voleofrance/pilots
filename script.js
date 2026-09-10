@@ -14269,7 +14269,12 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
 
 ${nextCheck ? `
     <div class="next-check">
-        <span class="next-check-label">
+
+    <div class="next-check-tr">
+    <img src="assets/info.png" class="spacer-img-info" alt="UV Index">
+        
+    <div class="next-check-in">
+    <span class="next-check-label">
             Next recommended check before:
         </span>
 
@@ -14279,6 +14284,8 @@ ${nextCheck ? `
                 : `${nextCheck.remainingDays} days or ${nextCheck.remainingHours.toFixed(1)} hours of flight`
             }
         </span>
+        </div>
+    </div>
     </div>
 ` : ''}
 
