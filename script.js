@@ -2636,7 +2636,7 @@ async function handleAddFlight(event) {
     const newFlight = {
         date: formattedDate,
         timeOfDay: document.getElementById('flightTimeOfDay').value || null,
-        altitude_gain: parseInt(document.getElementById('flightAltGain').value) || null,
+        // altitude_gain: parseInt(document.getElementById('flightAltGain').value) || null,
         type: document.getElementById('flightType').value,
         type2: document.getElementById('flightType2').value,
         rating: parseInt(document.querySelector('input[name="flightRating"]:checked')?.value) || 0,
@@ -3681,7 +3681,7 @@ function processTrackData(points, takeoffAlt, apiLandingAlt, flightTimeMinutes, 
     document.getElementById('flightAvgSpeed').value = avgSpeed.toFixed(1);
     document.getElementById('flightMaxClimb').value = maxClimbRate.toFixed(1);
     document.getElementById('flightMaxSink').value = maxSinkRate.toFixed(1);
-    document.getElementById('flightAltGain').value = Math.round(altitudeGain); // Add this line
+    // document.getElementById('flightAltGain').value = Math.round(altitudeGain); // Add this line
     window.lastUploadedCoordinates = {
         coords: coordinates,
         speeds: speeds,
