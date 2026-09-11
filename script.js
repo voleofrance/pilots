@@ -7797,9 +7797,14 @@ function createMonthChart(flightData) {
 
     const now = new Date();
 
-    const last6Months = [];
+    // const last6Months = [];
 
-    for (let i = 5; i >= 0; i--) {
+    // for (let i = 5; i >= 0; i--) {
+
+
+    const last12Months = [];
+
+    for (let i = 11; i >= 0; i--) {
 
         const monthDate = new Date(
             now.getFullYear(),
@@ -7813,7 +7818,7 @@ function createMonthChart(flightData) {
         const month =
             monthDate.getMonth() + 1;
 
-        last6Months.push({
+            last12Months.push({
 
             year: year,
 
@@ -7831,19 +7836,30 @@ function createMonthChart(flightData) {
     // Statistiques
     // -----------------------------------------
 
+    // const monthStats = {};
+
+    // last6Months.forEach(month => {
+
+    //     monthStats[month.key] = {
+
+    //         flights: 0,
+
+    //         minutes: 0
+
+    //     };
+
+    // });
+
+
     const monthStats = {};
 
-    last6Months.forEach(month => {
+        last12Months.forEach(month => {
+            monthStats[month.key] = {
+                flights: 0,
+                minutes: 0
+            };
+        });
 
-        monthStats[month.key] = {
-
-            flights: 0,
-
-            minutes: 0
-
-        };
-
-    });
 
 
     flightData.forEach(flight => {
@@ -7923,7 +7939,11 @@ function createMonthChart(flightData) {
 // Valeurs
 // -----------------------------------------
 
-const realValues = last6Months.map(
+// const realValues = last6Months.map(
+//     month => monthStats[month.key].flights
+// );
+
+const realValues = last12Months.map(
     month => monthStats[month.key].flights
 );
 
@@ -7944,13 +7964,18 @@ const values = realValues.map(flights => {
     // Labels
     // -----------------------------------------
 
-    const labels =
-        last6Months.map(
-            month =>
-                monthNames[
-                    month.month - 1
-                ]
-        );
+    // const labels =
+    //     last6Months.map(
+    //         month =>
+    //             monthNames[
+    //                 month.month - 1
+    //             ]
+    //     );
+
+    const labels = last12Months.map(
+        month => monthNames[month.month - 1]
+    );
+    
 
 
     // -----------------------------------------
@@ -7989,8 +8014,10 @@ const values = realValues.map(flights => {
             ctx.save();
 
 
-            last6Months.forEach(
-                (month, index) => {
+            // last6Months.forEach(
+            //     (month, index) => {
+                last12Months.forEach((month, index) => {
+
 
                     const bar =
                         meta.data[index];
@@ -8034,7 +8061,7 @@ const values = realValues.map(flights => {
                         ctx.fillText(
                             `${flights}`,
                             bar.x,
-                            bar.y + 12
+                            bar.y + 9
                         );
 
                     }
@@ -8106,7 +8133,8 @@ const values = realValues.map(flights => {
     // -----------------------------------------
     // Chart
     // -----------------------------------------
-
+    canvas.width = 900;
+    canvas.height = 220;
     monthChart = new Chart(canvas, {
 
         type: 'bar',
@@ -8144,7 +8172,7 @@ const values = realValues.map(flights => {
 
         options: {
 
-            responsive: true,
+            responsive: false,
 
             maintainAspectRatio: false,
 
@@ -8264,6 +8292,15 @@ const values = realValues.map(flights => {
 
     });
 
+    const scrollContainer =
+    document.querySelector('.month-chart-scroll');
+
+if (scrollContainer) {
+    setTimeout(() => {
+        scrollContainer.scrollLeft =
+            scrollContainer.scrollWidth;
+    }, 100);
+}
 
 }
 
@@ -14965,6 +15002,33 @@ function closeModal() {
 
     return mostFrequent;
 }
+function getMostFrequentWithCount(data, field) {
+    const counts = {};
+
+    data.forEach(flight => {
+        const value = (flight[field] || '').toString().trim();
+
+        if (!value) return;
+
+        counts[value] = (counts[value] || 0) + 1;
+    });
+
+    let mostFrequent = '-';
+    let maxCount = 0;
+
+    Object.entries(counts).forEach(([value, count]) => {
+        if (count > maxCount) {
+            maxCount = count;
+            mostFrequent = value;
+        }
+    });
+
+    return {
+        value: mostFrequent,
+        count: maxCount
+    };
+}
+
 
   
 function updateSummaryStats(data) {
@@ -14979,6 +15043,8 @@ const averageFlightMinutes =
     totalFlights > 0 ? totalMinutes / totalFlights : 0;
     const mostUsedTakeoff = getMostFrequent(data, 'takeoff');
     const mostUsedSite = getMostFrequent(data, 'site');
+    // const mostUsedTakeoff = getMostFrequentWithCount(data, 'takeoff');
+    // const mostUsedSite = getMostFrequentWithCount(data, 'site');
     const mostUsedCountry = getMostFrequent(data, 'country');
 const averageFlightHours = Math.floor(averageFlightMinutes / 60);
 const averageFlightRemainingMinutes =
@@ -15162,6 +15228,16 @@ averageFlightsMonth =
     );
     setText('mostUsedTakeoff', mostUsedTakeoff);
 setText('mostUsedSite', mostUsedSite);
+
+
+// document.getElementById('mostUsedSite').innerHTML =
+//     `${mostUsedSite.value} <span class="flight-count">(${mostUsedSite.count})</span>`;
+
+
+//     document.getElementById('mostUsedTakeoff').innerHTML =
+//     `${mostUsedTakeoff.value} <span class="flight-count">(${mostUsedTakeoff.count})</span>`;
+
+
 setText('mostUsedCountry', mostUsedCountry);
     setText(
         'averageFlightsMonth',
@@ -15382,17 +15458,20 @@ function renderGliderCheckList(glider) {
                 checks.length
                 ? checks.map(check => `
                     <div class="glider-check-row">
-                    <div class="glider-check-row-date">
+                    <div class="glider-check-row-data">
                         <span>${formatDate(check.date)}</span>
-                        
-                        
+                    </div>
+                    <div class="glider-check-row-data">
                         <span>${check.workshop || '—'}</span>
-                        </div>
-                        <div class="glider-check-row-data">
+                    </div>
+                    <div class="glider-check-row-data">
                         <span>Condition: <strong>${check.condition || '—'}</strong></span>
+                    </div>
+                    <div class="glider-check-row-data">
                         <span>Cost: <strong>${check.price || '—'}</strong></span>
-                        </div>
-                        </div>
+                    </div>
+                    </div>
+                    
                 `).join('')
                 : `
                     <div class="no-checks">
@@ -15431,11 +15510,20 @@ function renderHarnessCheckList(harness) {
                 checks.length
                 ? checks.map(check => `
                     <div class="glider-check-row">
+                    <div class="glider-check-row-data">
                         <span>${formatDate(check.date)}</span>
-                        <span>${check.workshop || '—'}</span>
-                        <span>${check.price || '—'}</span>
-                        <span>${check.condition || '—'}</span>
                     </div>
+                    <div class="glider-check-row-data">
+                        <span>${check.workshop || '—'}</span>
+                    </div>
+                    <div class="glider-check-row-data">
+                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
+                    </div>
+                    <div class="glider-check-row-data">
+                        <span>Cost: <strong>${check.price || '—'}</strong></span>
+                    </div>
+                    </div>
+                    
                 `).join('')
                 : `
                     <div class="no-checks">
@@ -15472,11 +15560,19 @@ function renderReserveCheckList(reserve) {
             ${
                 checks.length
                 ? checks.map(check => `
-                    <div class="glider-check-row">
+                   <div class="glider-check-row">
+                    <div class="glider-check-row-data">
                         <span>${formatDate(check.date)}</span>
+                    </div>
+                    <div class="glider-check-row-data">
                         <span>${check.workshop || '—'}</span>
-                        <span>${check.price || '—'}</span>
-                        <span>${check.condition || '—'}</span>
+                    </div>
+                    <div class="glider-check-row-data">
+                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
+                    </div>
+                    <div class="glider-check-row-data">
+                        <span>Cost: <strong>${check.price || '—'}</strong></span>
+                    </div>
                     </div>
                 `).join('')
                 : `
@@ -17163,7 +17259,7 @@ const reserveElements = await Promise.all(
         <div class="glider-item-details">
         
         <div class="glider-item-dates">
-        <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}</span>
+        <span class="purchase-date">Bought: ${formatDate(reserve.dateBought)}  ${reserve.priceBought ? `<span class="purchase-price">- ${reserve.priceBought}</span>` : ''}</span>
         ${lastCheckDate ? `<span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>` : ''}
         </div>
         </div>
@@ -17264,7 +17360,7 @@ const harnessElements = await Promise.all(
             <div class="glider-item-details">
                 
                 <div class="glider-item-dates">
-                    <span class="purchase-date">Bought: ${formatDate(harness.dateBought)}</span>
+                    <span class="purchase-date">Bought: ${formatDate(harness.dateBought)}  ${harness.priceBought ? `<span class="purchase-price">- ${harness.priceBought}</span>` : ''}</span>
                     ${lastCheckDate ? `<span class="check-date">Last Check: ${formatDate(lastCheckDate)}</span>` : ''}
                 </div>
             </div>
