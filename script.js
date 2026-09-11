@@ -7123,263 +7123,867 @@ function initializeDatePickers() {
 
 //CHARTS
 
-function createFlightDistanceDistribution(flights) {
-    // Define distance ranges in kilometers
+// function createFlightDistanceDistribution(flights) {
+//     // Define distance ranges in kilometers
 
-    const flightsWithFullTrack = flights.filter(flight => {
-        if (!flight.coordinates) return false;
+//     const flightsWithFullTrack = flights.filter(flight => {
+//         if (!flight.coordinates) return false;
         
-        try {
-            const trackData = JSON.parse(flight.coordinates);
-            // Check if it has more than 2 coordinate points
-            return trackData.coords && trackData.coords.length > 2;
-        } catch (e) {
-            return false;
-        }
-    });
+//         try {
+//             const trackData = JSON.parse(flight.coordinates);
+//             // Check if it has more than 2 coordinate points
+//             return trackData.coords && trackData.coords.length > 2;
+//         } catch (e) {
+//             return false;
+//         }
+//     });
 
 
-    const distanceRanges = [
-        { min: 0, max: 1, label: '0-1km' },
-        { min: 1, max: 3, label: '1-3km' },
-        { min: 3, max: 5, label: '3-5km' },
-        { min: 5, max: 10, label: '5-10km' },
-        { min: 10, max: 20, label: '10-20km' },
-        { min: 20, max: Infinity, label: '20km+' }
-    ];
+//     const distanceRanges = [
+//         { min: 0, max: 1, label: '0-1km' },
+//         { min: 1, max: 3, label: '1-3km' },
+//         { min: 3, max: 5, label: '3-5km' },
+//         { min: 5, max: 10, label: '5-10km' },
+//         { min: 10, max: 20, label: '10-20km' },
+//         { min: 20, max: Infinity, label: '20km+' }
+//     ];
 
-    // Define a nice color palette (different from time distribution)
-    const colors = [
-        'rgba(255, 99, 132, 0.7)',   // Pink
-        'rgba(255, 159, 64, 0.7)',   // Orange
-        'rgba(255, 205, 86, 0.7)',   // Yellow
-        'rgba(75, 192, 192, 0.7)',   // Teal
-        'rgba(54, 162, 235, 0.7)',   // Blue
-        'rgba(153, 102, 255, 0.7)'   // Purple
-    ];
+//     // Define a nice color palette (different from time distribution)
+//     const colors = [
+//         'rgba(255, 99, 132, 0.7)',   // Pink
+//         'rgba(255, 159, 64, 0.7)',   // Orange
+//         'rgba(255, 205, 86, 0.7)',   // Yellow
+//         'rgba(75, 192, 192, 0.7)',   // Teal
+//         'rgba(54, 162, 235, 0.7)',   // Blue
+//         'rgba(153, 102, 255, 0.7)'   // Purple
+//     ];
 
-    const borderColors = colors.map(color => color.replace('0.7', '1'));
+//     const borderColors = colors.map(color => color.replace('0.7', '1'));
 
 
 
-    let distribution = distanceRanges.map(range => {
-        const count = flightsWithFullTrack.filter(flight => {
-            const distance = flight.flight_distance || 0;
-            return distance > range.min && distance <= range.max;
-        }).length;
+//     let distribution = distanceRanges.map(range => {
+//         const count = flightsWithFullTrack.filter(flight => {
+//             const distance = flight.flight_distance || 0;
+//             return distance > range.min && distance <= range.max;
+//         }).length;
         
-        const percentage = (count / flightsWithFullTrack.length * 100).toFixed(1);
+//         const percentage = (count / flightsWithFullTrack.length * 100).toFixed(1);
         
-        return {
-            range: range.label,
-            count: count,
-            percentage: percentage
-        };
-    }).filter(d => d.count > 0);
+//         return {
+//             range: range.label,
+//             count: count,
+//             percentage: percentage
+//         };
+//     }).filter(d => d.count > 0);
 
 
-    // Create the chart
-    const ctx = document.getElementById('flightDistanceDistribution').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: distribution.map(d => d.range),
-            datasets: [{
-                label: 'Flight Distance Distribution',
-                data: distribution.map(d => d.percentage),
-                backgroundColor: colors.slice(0, distribution.length),
-                borderColor: borderColors.slice(0, distribution.length),
-                borderWidth: 1,
-                borderRadius: 8,
-                borderSkipped: false,
-                barPercentage: 1.5,
-                categoryPercentage: 0.2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: !isMobileDevice(),
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw}% of flights (${distribution[context.dataIndex].count} flights)`;
-                        }
-                    }
-                }
-            },
-            layout: {
+//     // Create the chart
+//     const ctx = document.getElementById('flightDistanceDistribution').getContext('2d');
+//     new Chart(ctx, {
+//         type: 'bar',
+//         data: {
+//             labels: distribution.map(d => d.range),
+//             datasets: [{
+//                 label: 'Flight Distance Distribution',
+//                 data: distribution.map(d => d.percentage),
+//                 backgroundColor: colors.slice(0, distribution.length),
+//                 borderColor: borderColors.slice(0, distribution.length),
+//                 borderWidth: 1,
+//                 borderRadius: 8,
+//                 borderSkipped: false,
+//                 barPercentage: 1.5,
+//                 categoryPercentage: 0.2
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             maintainAspectRatio: false,
+//             plugins: {
+//                 legend: {
+//                     display: false
+//                 },
+//                 tooltip: {
+//                     enabled: !isMobileDevice(),
+//                     callbacks: {
+//                         label: function(context) {
+//                             return `${context.raw}% of flights (${distribution[context.dataIndex].count} flights)`;
+//                         }
+//                     }
+//                 }
+//             },
+//             layout: {
 
-                padding: {
+//                 padding: {
             
-                    top: 25,
+//                     top: 25,
             
-                    right: 10,
+//                     right: 10,
             
-                    bottom: 10,
+//                     bottom: 10,
             
-                    left: 5
+//                     left: 5
             
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
+//                 }
+//             },
+//             scales: {
+//                 y: {
+//                     beginAtZero: true,
                     
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        },
-                        font: {
-                            size: 11
-                        }
-                    },
-                    grid: {
-                        display: true,
-                        drawBorder: false,
-                        color: 'rgba(200, 200, 200, 0.2)'
-                    }
-                },
-                x: {
+//                     ticks: {
+//                         callback: function(value) {
+//                             return value + '%';
+//                         },
+//                         font: {
+//                             size: 11
+//                         }
+//                     },
+//                     grid: {
+//                         display: true,
+//                         drawBorder: false,
+//                         color: 'rgba(200, 200, 200, 0.2)'
+//                     }
+//                 },
+//                 x: {
                    
-                    ticks: {
-                        font: {
-                            size: 11
-                        }
-                    },
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-}
+//                     ticks: {
+//                         font: {
+//                             size: 11
+//                         }
+//                     },
+//                     grid: {
+//                         display: false
+//                     }
+//                 }
+//             }
+//         }
+//     });
+// }
+
+
+
+// function createFlightTimeDistribution(flights) {
+//     // Define time ranges in minutes
+//     const timeRanges = [
+//         { min: 0, max: 4, label: '0-4m' },
+//         { min: 4, max: 15, label: '4-15m' },
+//         { min: 15, max: 30, label: '15-30m' },
+//         { min: 30, max: 60, label: '30-60m' },
+//         { min: 60, max: 120, label: '1-2h' },
+//         { min: 120, max: Infinity, label: '2h+' }
+//     ];
+
+//     // Define a nice color palette
+//     const colors = [
+//         'rgba(54, 162, 235, 0.7)',   // Blue
+//         'rgba(75, 192, 192, 0.7)',   // Teal
+//         'rgba(153, 102, 255, 0.7)',  // Purple
+//         'rgba(255, 159, 64, 0.7)',   // Orange
+//         'rgba(255, 99, 132, 0.7)',   // Pink
+//         'rgba(65, 184, 131, 0.7)'    // Green
+//     ];
+
+//     const borderColors = colors.map(color => color.replace('0.7', '1'));
+
+//     // Convert and filter distribution data
+//     let distribution = timeRanges.map(range => {
+//         const count = flights.filter(flight => {
+//             const timeInMinutes = flight.time || 0;
+//             return timeInMinutes > range.min && timeInMinutes <= range.max;
+//         }).length;
+        
+//         const percentage = (count / flights.length * 100).toFixed(1);
+        
+//         return {
+//             range: range.label,
+//             count: count,
+//             percentage: percentage
+//         };
+//     }).filter(d => d.count > 0);
+
+//     // Create the chart
+//     const ctx = document.getElementById('flightTimeDistribution').getContext('2d');
+//     new Chart(ctx, {
+//         type: 'bar',
+//         data: {
+//             labels: distribution.map(d => d.range),
+//             datasets: [{
+//                 label: 'Flight Time Distribution',
+//                 data: distribution.map(d => d.percentage),
+//                 backgroundColor: colors.slice(0, distribution.length),
+//                 borderColor: borderColors.slice(0, distribution.length),
+//                 borderWidth: 1,
+//                 borderRadius: 8,
+//                 borderSkipped: false,
+//                 barPercentage: 1.5,  // Makes bars thinner
+//                 categoryPercentage: 0.2
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             maintainAspectRatio: false,
+//             plugins: {
+//                 legend: {
+//                     display: false
+//                 },
+//                 tooltip: {
+//                     enabled: !isMobileDevice(),
+//                     callbacks: {
+//                         label: function(context) {
+//                             return `${context.raw}% of flights (${distribution[context.dataIndex].count} flights)`;
+//                         }
+//                     }
+//                 }
+//             },
+//             layout: {
+
+//                 padding: {
+            
+//                     top: 25,
+            
+//                     right: 10,
+            
+//                     bottom: 10,
+            
+//                     left: 5
+            
+//                 }
+//             },
+//             scales: {
+//                 y: {
+//                     beginAtZero: true,
+                    
+//                     ticks: {
+//                         callback: function(value) {
+//                             return value + '%';
+//                         },
+//                         font: {
+//                             size: 11
+//                         }
+//                     },
+//                     grid: {
+//                         display: true,
+//                         drawBorder: false,
+//                         color: 'rgba(200, 200, 200, 0.2)'
+//                     }
+//                 },
+//                 x: {
+                  
+//                     ticks: {
+//                         font: {
+//                             size: 11
+//                         }
+//                     },
+//                     grid: {
+//                         display: false
+//                     }
+//                 }
+//             }
+//         }
+//     });
+// }
+
+
 
 function createFlightTimeDistribution(flights) {
-    // Define time ranges in minutes
+
+    const container =
+        document.getElementById(
+            'flightTimeDistribution'
+        );
+
+    if (!container) return;
+
+
+    // -----------------------------------------
+    // Reset
+    // -----------------------------------------
+
+    container.innerHTML = '';
+
+
+    // -----------------------------------------
+    // Catégories
+    // -----------------------------------------
+
     const timeRanges = [
-        { min: 0, max: 4, label: '0-4m' },
-        { min: 4, max: 15, label: '4-15m' },
-        { min: 15, max: 30, label: '15-30m' },
-        { min: 30, max: 60, label: '30-60m' },
-        { min: 60, max: 120, label: '1-2h' },
-        { min: 120, max: Infinity, label: '2h+' }
-    ];
 
-    // Define a nice color palette
-    const colors = [
-        'rgba(54, 162, 235, 0.7)',   // Blue
-        'rgba(75, 192, 192, 0.7)',   // Teal
-        'rgba(153, 102, 255, 0.7)',  // Purple
-        'rgba(255, 159, 64, 0.7)',   // Orange
-        'rgba(255, 99, 132, 0.7)',   // Pink
-        'rgba(65, 184, 131, 0.7)'    // Green
-    ];
-
-    const borderColors = colors.map(color => color.replace('0.7', '1'));
-
-    // Convert and filter distribution data
-    let distribution = timeRanges.map(range => {
-        const count = flights.filter(flight => {
-            const timeInMinutes = flight.time || 0;
-            return timeInMinutes > range.min && timeInMinutes <= range.max;
-        }).length;
-        
-        const percentage = (count / flights.length * 100).toFixed(1);
-        
-        return {
-            range: range.label,
-            count: count,
-            percentage: percentage
-        };
-    }).filter(d => d.count > 0);
-
-    // Create the chart
-    const ctx = document.getElementById('flightTimeDistribution').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: distribution.map(d => d.range),
-            datasets: [{
-                label: 'Flight Time Distribution',
-                data: distribution.map(d => d.percentage),
-                backgroundColor: colors.slice(0, distribution.length),
-                borderColor: borderColors.slice(0, distribution.length),
-                borderWidth: 1,
-                borderRadius: 8,
-                borderSkipped: false,
-                barPercentage: 1.5,  // Makes bars thinner
-                categoryPercentage: 0.2
-            }]
+        {
+            min: 0,
+            max: 4,
+            label: '0-4m'
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: !isMobileDevice(),
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw}% of flights (${distribution[context.dataIndex].count} flights)`;
-                        }
-                    }
-                }
-            },
-            layout: {
 
-                padding: {
-            
-                    top: 25,
-            
-                    right: 10,
-            
-                    bottom: 10,
-            
-                    left: 5
-            
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        },
-                        font: {
-                            size: 11
-                        }
-                    },
-                    grid: {
-                        display: true,
-                        drawBorder: false,
-                        color: 'rgba(200, 200, 200, 0.2)'
-                    }
-                },
-                x: {
-                  
-                    ticks: {
-                        font: {
-                            size: 11
-                        }
-                    },
-                    grid: {
-                        display: false
-                    }
-                }
-            }
+        {
+            min: 4,
+            max: 15,
+            label: '4-15m'
+        },
+
+        {
+            min: 15,
+            max: 30,
+            label: '15-30m'
+        },
+
+        {
+            min: 30,
+            max: 60,
+            label: '30-60m'
+        },
+
+        {
+            min: 60,
+            max: 120,
+            label: '1-2h'
+        },
+
+        {
+            min: 120,
+            max: Infinity,
+            label: '2h+'
         }
-    });
+
+    ];
+
+
+    // -----------------------------------------
+    // Couleurs
+    // -----------------------------------------
+
+    const colors = [
+
+        'rgba(54, 162, 235, 0.7)',
+
+        'rgba(75, 192, 192, 0.7)',
+
+        'rgba(153, 102, 255, 0.7)',
+
+        'rgba(255, 159, 64, 0.7)',
+
+        'rgba(255, 99, 132, 0.7)',
+
+        'rgba(65, 184, 131, 0.7)'
+
+    ];
+
+
+    // -----------------------------------------
+    // Distribution
+    // -----------------------------------------
+
+    const distribution =
+        timeRanges.map(range => {
+
+            const count =
+                flights.filter(flight => {
+
+                    const time =
+                        Number(flight.time) || 0;
+
+                    return (
+                        time > range.min &&
+                        time <= range.max
+                    );
+
+                }).length;
+
+
+            const percentage =
+                flights.length
+                    ? (count / flights.length) * 100
+                    : 0;
+
+
+            return {
+
+                label: range.label,
+
+                count: count,
+
+                percentage: percentage
+
+            };
+
+        });
+
+
+    // -----------------------------------------
+    // Maximum
+    // -----------------------------------------
+
+    const maxPercentage =
+        Math.max(
+            ...distribution.map(
+                d => d.percentage
+            ),
+            1
+        );
+
+
+    // -----------------------------------------
+    // Création
+    // -----------------------------------------
+
+    distribution.forEach(
+        (data, index) => {
+
+            const item =
+                document.createElement('div');
+
+            item.className =
+                'distribution-item';
+
+
+            // ---------------------------------
+            // Zone barre
+            // ---------------------------------
+
+            const barArea =
+                document.createElement('div');
+
+            barArea.className =
+                'distribution-bar-area';
+
+
+            // ---------------------------------
+            // Barre
+            // ---------------------------------
+
+            const bar =
+                document.createElement('div');
+
+            bar.className =
+                'distribution-bar';
+
+
+            // Hauteur proportionnelle
+            const maxCount = Math.max(
+                ...distribution.map(d => d.count),
+                1
+            );
+            
+            let height;
+            
+            if (data.count === 0) {
+            
+                height = 5;
+            
+            } else {
+            
+                // Échelle logarithmique
+                height =
+                    (Math.log(data.count + 1) /
+                     Math.log(maxCount + 1)) * 165;
+            
+                // Minimum visuel
+                height = Math.max(height, 18);
+            }
+            
+            bar.style.height = `${height}px`;
+            
+
+
+            bar.style.background =
+                colors[
+                    index % colors.length
+                ];
+
+
+            // ---------------------------------
+            // Nombre de vols
+            // ---------------------------------
+
+            if (data.count > 0) {
+
+                const flightLabel =
+                    document.createElement('div');
+
+                flightLabel.className =
+                    'distribution-flights';
+
+                flightLabel.textContent =
+                    data.count;
+
+
+                bar.appendChild(
+                    flightLabel
+                );
+
+            }
+
+
+            barArea.appendChild(bar);
+
+            item.appendChild(barArea);
+
+
+            // ---------------------------------
+            // Pourcentage
+            // ---------------------------------
+
+            const percentage =
+                document.createElement('div');
+
+            percentage.className =
+                'distribution-percentage';
+
+            percentage.textContent =
+                `${data.percentage.toFixed(1)}%`;
+
+
+            item.appendChild(
+                percentage
+            );
+
+
+            // ---------------------------------
+            // Label
+            // ---------------------------------
+
+            const label =
+                document.createElement('div');
+
+            label.className =
+                'distribution-label';
+
+            label.textContent =
+                data.label;
+
+
+            item.appendChild(
+                label
+            );
+
+
+            container.appendChild(
+                item
+            );
+
+        }
+    );
+
 }
+
+
+function createFlightDistanceDistribution(flights) {
+
+    const container =
+        document.getElementById(
+            'flightDistanceDistribution'
+        );
+
+    if (!container) return;
+
+
+    // -----------------------------------------
+    // Reset
+    // -----------------------------------------
+
+    container.innerHTML = '';
+
+
+    // -----------------------------------------
+    // Vols avec trace complète
+    // -----------------------------------------
+
+    const flightsWithFullTrack =
+        flights.filter(flight => {
+
+            if (!flight.coordinates)
+                return false;
+
+            try {
+
+                const trackData =
+                    JSON.parse(
+                        flight.coordinates
+                    );
+
+                return (
+                    trackData.coords &&
+                    trackData.coords.length > 2
+                );
+
+            } catch (e) {
+
+                return false;
+
+            }
+
+        });
+
+
+    // -----------------------------------------
+    // Catégories
+    // -----------------------------------------
+
+    const distanceRanges = [
+
+        {
+            min: 0,
+            max: 1,
+            label: '0-1km'
+        },
+
+        {
+            min: 1,
+            max: 3,
+            label: '1-3km'
+        },
+
+        {
+            min: 3,
+            max: 5,
+            label: '3-5km'
+        },
+
+        {
+            min: 5,
+            max: 10,
+            label: '5-10km'
+        },
+
+        {
+            min: 10,
+            max: 20,
+            label: '10-20km'
+        },
+
+        {
+            min: 20,
+            max: Infinity,
+            label: '20km+'
+        }
+
+    ];
+
+
+    // -----------------------------------------
+    // Couleurs
+    // -----------------------------------------
+
+    const colors = [
+
+        'rgba(255, 99, 132, 0.7)',
+
+        'rgba(255, 159, 64, 0.7)',
+
+        'rgba(255, 205, 86, 0.7)',
+
+        'rgba(75, 192, 192, 0.7)',
+
+        'rgba(54, 162, 235, 0.7)',
+
+        'rgba(153, 102, 255, 0.7)'
+
+    ];
+
+
+    // -----------------------------------------
+    // Distribution
+    // -----------------------------------------
+
+    const distribution =
+        distanceRanges.map(range => {
+
+            const count =
+                flightsWithFullTrack.filter(
+                    flight => {
+
+                        const distance =
+                            Number(
+                                flight.flight_distance
+                            ) || 0;
+
+
+                        return (
+                            distance > range.min &&
+                            distance <= range.max
+                        );
+
+                    }
+                ).length;
+
+
+            const percentage =
+                flightsWithFullTrack.length
+                    ? (
+                        count /
+                        flightsWithFullTrack.length
+                    ) * 100
+                    : 0;
+
+
+            return {
+
+                label: range.label,
+
+                count: count,
+
+                percentage: percentage
+
+            };
+
+        });
+
+
+    // -----------------------------------------
+    // Maximum
+    // -----------------------------------------
+
+    const maxPercentage =
+        Math.max(
+            ...distribution.map(
+                d => d.percentage
+            ),
+            1
+        );
+
+
+    // -----------------------------------------
+    // Création
+    // -----------------------------------------
+
+    distribution.forEach(
+        (data, index) => {
+
+            const item =
+                document.createElement('div');
+
+            item.className =
+                'distribution-item';
+
+
+            // ---------------------------------
+            // Zone barre
+            // ---------------------------------
+
+            const barArea =
+                document.createElement('div');
+
+            barArea.className =
+                'distribution-bar-area';
+
+
+            // ---------------------------------
+            // Barre
+            // ---------------------------------
+
+            const bar =
+                document.createElement('div');
+
+            bar.className =
+                'distribution-bar';
+
+
+                const maxCount = Math.max(
+                    ...distribution.map(d => d.count),
+                    1
+                );
+                
+                let height;
+                
+                if (data.count === 0) {
+                
+                    height = 5;
+                
+                } else {
+                
+                    // Échelle logarithmique
+                    height =
+                        (Math.log(data.count + 1) /
+                         Math.log(maxCount + 1)) * 165;
+                
+                    // Minimum visuel
+                    height = Math.max(height, 18);
+                }
+                
+                bar.style.height = `${height}px`;
+                
+
+
+            bar.style.background =
+                colors[
+                    index % colors.length
+                ];
+
+
+            // ---------------------------------
+            // Nombre de vols
+            // ---------------------------------
+
+            if (data.count > 0) {
+
+                const flightLabel =
+                    document.createElement('div');
+
+                flightLabel.className =
+                    'distribution-flights';
+
+                flightLabel.textContent =
+                    data.count;
+
+
+                bar.appendChild(
+                    flightLabel
+                );
+
+            }
+
+
+            barArea.appendChild(bar);
+
+            item.appendChild(barArea);
+
+
+            // ---------------------------------
+            // Pourcentage
+            // ---------------------------------
+
+            const percentage =
+                document.createElement('div');
+
+            percentage.className =
+                'distribution-percentage';
+
+            percentage.textContent =
+                `${data.percentage.toFixed(1)}%`;
+
+
+            item.appendChild(
+                percentage
+            );
+
+
+            // ---------------------------------
+            // Label
+            // ---------------------------------
+
+            const label =
+                document.createElement('div');
+
+            label.className =
+                'distribution-label';
+
+            label.textContent =
+                data.label;
+
+
+            item.appendChild(
+                label
+            );
+
+
+            container.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
 
 
 // function createYearChart(flightData) {
