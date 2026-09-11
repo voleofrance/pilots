@@ -7382,27 +7382,392 @@ function createFlightTimeDistribution(flights) {
 }
 
 
+// function createYearChart(flightData) {
+
+
+//     const canvas = document.getElementById('flightsPerYear');
+
+//     if (!canvas) {
+//         return;
+//     }
+
+//     if (typeof Chart === 'undefined') {
+//         return;
+//     }
+
+//     // -----------------------------------------
+//     // Détruire l'ancien graphique
+//     // -----------------------------------------
+
+//     if (yearChart) {
+//         yearChart.destroy();
+//         yearChart = null;
+//     }
+
+
+//     // -----------------------------------------
+//     // Statistiques
+//     // -----------------------------------------
+
+//     const yearStats = {};
+
+//     flightData.forEach(flight => {
+
+//         if (!flight.date) return;
+
+//         const parts = flight.date.split('/');
+
+//         if (parts.length !== 3) return;
+
+//         const yearValue = parseInt(parts[2], 10);
+
+//         if (isNaN(yearValue)) return;
+
+//         const fullYear =
+//             yearValue < 100
+//                 ? 2000 + yearValue
+//                 : yearValue;
+
+
+//         if (!yearStats[fullYear]) {
+
+//             yearStats[fullYear] = {
+//                 flights: 0,
+//                 minutes: 0
+//             };
+
+//         }
+
+
+//         yearStats[fullYear].flights++;
+
+//         yearStats[fullYear].minutes +=
+//             Number(flight.time) || 0;
+
+//     });
+
+
+//     const sortedYears = Object.keys(yearStats)
+//     .map(Number)
+//     .sort((a, b) => a - b)
+//     .slice(-6);
+        
+
+
+
+//     if (!sortedYears.length) {
+//         console.warn('⚠️ Aucune année');
+//         return;
+//     }
+
+//     function formatDuration(minutes) {
+
+//         minutes = Number(minutes) || 0;
+
+//         const h = Math.floor(minutes / 60);
+//         const m = minutes % 60;
+
+//         if (h === 0) return `${m} min`;
+//         if (m === 0) return `${h} h`;
+
+//         return `${h}h${m}min`;
+//     }
+
+//     const values = sortedYears.map(year => {
+
+//         const flights = yearStats[year].flights;
+    
+//         if (flights === 0) return 0;
+//         if (flights === 1) return 1.5;
+//         if (flights === 2) return 2.2;
+    
+//         return flights;
+    
+//     });
+
+
+//     // -----------------------------------------
+//     // Couleurs
+//     // -----------------------------------------
+
+//     const colors = [
+//         'rgba(255, 123, 152, 0.9)',
+//         'rgba(121, 191, 238, 0.9)',
+//         'rgba(238, 204, 117, 0.9)',
+//         'rgba(119, 216, 216, 0.9)',
+//         'rgba(162, 131, 223, 0.9)',
+//         'rgba(236, 170, 103, 0.9)'
+//     ];
+
+
+//     // -----------------------------------------
+//     // Plugin texte
+//     // -----------------------------------------
+
+//     const yearInfoPlugin = {
+
+//         id: 'yearInfoPlugin',
+    
+//         afterDatasetsDraw(chart) {
+    
+//             const ctx = chart.ctx;
+//             const meta = chart.getDatasetMeta(0);
+//             const xScale = chart.scales.x;
+    
+//             ctx.save();
+    
+//             sortedYears.forEach((year, index) => {
+    
+//                 const bar = meta.data[index];
+    
+//                 if (!bar) return;
+    
+//                 const flights =
+//                     yearStats[year].flights;
+    
+//                 const duration =
+//                     formatDuration(
+//                         yearStats[year].minutes
+//                     );
+    
+    
+//                 // =================================
+//                 // NOMBRE DE VOLS DANS LA BARRE
+//                 // =================================
+    
+//                 ctx.textAlign = 'center';
+//                 ctx.textBaseline = 'middle';
+    
+//                 ctx.fillStyle = '#ffffff';
+    
+//                 ctx.font =
+//                     'bold 12px Arial';
+    
+    
+//                     ctx.fillText(
+//                         `${flights}`,
+//                         bar.x,
+//                         bar.y + Math.min(10, bar.height / 2)
+//                     );
+    
+    
+//                 // =================================
+//                 // DURÉE SOUS L'ANNÉE
+//                 // =================================
+    
+//                 const x =
+//                     xScale.getPixelForTick(index);
+    
+//                 ctx.fillStyle =
+//                     'rgba(143, 150, 163, 0.95)';
+    
+//                 ctx.font =
+//                     '9px Arial';
+    
+//                 ctx.textBaseline = 'top';
+    
+//                 ctx.fillText(
+//                     duration,
+//                     x,
+//                     xScale.bottom + 2
+//                 );
+    
+//             });
+    
+//             ctx.restore();
+//         }
+//     };
+
+
+//     // -----------------------------------------
+//     // Chart
+//     // -----------------------------------------
+
+//     yearChart = new Chart(canvas, {
+
+//         type: 'bar',
+
+//         data: {
+
+//             labels: sortedYears,
+
+//             datasets: [{
+
+//                 data: values,
+//                 backgroundColor:
+//                     sortedYears.map(
+//                         (_, i) =>
+//                             colors[i % colors.length]
+//                     ),
+
+//                 borderWidth: 0,
+
+//                 borderRadius: 8,
+
+//                 borderSkipped: false,
+
+//                 barPercentage: 0.65,
+
+//                 categoryPercentage: 0.75
+
+//             }]
+
+//         },
+
+
+//         plugins: [
+//             yearInfoPlugin
+//         ],
+
+
+//         options: {
+
+//             responsive: true,
+
+//             maintainAspectRatio: false,
+
+
+//             animation: {
+
+//                 duration: 700
+
+//             },
+
+
+//             layout: {
+
+//                 padding: {
+            
+//                     top: 5,
+            
+//                     right: 10,
+            
+//                     bottom: 30,
+            
+//                     left: 5
+            
+//                 }
+//             },
+
+
+//             scales: {
+
+//                 x: {
+            
+//                     grid: {
+            
+//                         display: false,
+            
+//                         drawBorder: false,
+            
+//                         drawOnChartArea: false,
+            
+//                         drawTicks: false
+            
+//                     },
+            
+//                     border: {
+            
+//                         display: false,
+            
+//                         width: 0
+            
+//                     },
+            
+//                     ticks: {
+            
+//                         color: '#8f96a3',
+            
+//                         font: {
+            
+//                             size: 10,
+            
+//                             weight: '800'
+            
+//                         }
+            
+//                     }
+            
+//                 },
+            
+            
+//                 y: {
+            
+//                     beginAtZero: true,
+            
+//                     suggestedMax: Math.max(...values) + 1,
+            
+//                     ticks: {
+            
+//                         display: false
+            
+//                     },
+            
+//                     grid: {
+            
+//                         display: false,
+            
+//                         drawBorder: false,
+            
+//                         drawOnChartArea: false,
+            
+//                         drawTicks: false
+            
+//                     },
+            
+//                     border: {
+            
+//                         display: false,
+            
+//                         width: 0
+            
+//                     }
+            
+//                 }
+            
+//             },
+
+
+//             plugins: {
+
+//                 legend: {
+
+//                     display: false
+
+//                 },
+
+//                 tooltip: {
+
+//                     enabled: false
+
+//                 }
+
+//             }
+
+//         }
+
+//     });
+
+
+
+// }
+
+
+
+
 function createYearChart(flightData) {
 
+    const container =
+        document.getElementById('yearChart');
 
-    const canvas = document.getElementById('flightsPerYear');
+    if (!container) return;
 
-    if (!canvas) {
-        return;
-    }
-
-    if (typeof Chart === 'undefined') {
-        return;
-    }
 
     // -----------------------------------------
-    // Détruire l'ancien graphique
+    // Reset
     // -----------------------------------------
 
-    if (yearChart) {
-        yearChart.destroy();
-        yearChart = null;
-    }
+    container.innerHTML = '';
 
 
     // -----------------------------------------
@@ -7411,27 +7776,30 @@ function createYearChart(flightData) {
 
     const yearStats = {};
 
+
     flightData.forEach(flight => {
 
         if (!flight.date) return;
 
-        const parts = flight.date.split('/');
+        const parts =
+            flight.date.split('/');
 
         if (parts.length !== 3) return;
 
-        const yearValue = parseInt(parts[2], 10);
+        const yearValue =
+            parseInt(parts[2], 10);
 
         if (isNaN(yearValue)) return;
 
-        const fullYear =
+        const year =
             yearValue < 100
                 ? 2000 + yearValue
                 : yearValue;
 
 
-        if (!yearStats[fullYear]) {
+        if (!yearStats[year]) {
 
-            yearStats[fullYear] = {
+            yearStats[year] = {
                 flights: 0,
                 minutes: 0
             };
@@ -7439,51 +7807,128 @@ function createYearChart(flightData) {
         }
 
 
-        yearStats[fullYear].flights++;
+        yearStats[year].flights++;
 
-        yearStats[fullYear].minutes +=
+        yearStats[year].minutes +=
             Number(flight.time) || 0;
 
     });
 
 
-    const sortedYears = Object.keys(yearStats)
+    // -----------------------------------------
+    // Années
+    // -----------------------------------------
+
+    // -----------------------------------------
+// Années
+// -----------------------------------------
+
+const existingYears =
+Object.keys(yearStats)
     .map(Number)
-    .sort((a, b) => a - b)
-    .slice(-6);
-        
+    .sort((a, b) => a - b);
+
+
+if (!existingYears.length) {
+return;
+}
+
+
+// Première et dernière année
+// contenant réellement des vols
+
+const firstYear =
+existingYears[0];
+
+const lastYear =
+existingYears[existingYears.length - 1];
+
+
+// -----------------------------------------
+// Minimum 8 années
+// -----------------------------------------
+
+const MIN_YEARS = 8;
+
+
+// Nombre d'années réellement couvertes
+// entre le premier et le dernier vol
+
+const realYearCount =
+lastYear - firstYear + 1;
+
+
+// Si moins de 8 années,
+// on ajoute les années AVANT
+// la première année avec des vols.
+
+const yearsToAdd =
+Math.max(
+    0,
+    MIN_YEARS - realYearCount
+);
+
+
+const displayFirstYear =
+firstYear - yearsToAdd;
+
+
+// -----------------------------------------
+// Construire toutes les années
+// -----------------------------------------
+
+const sortedYears = [];
+
+
+for (
+let year = displayFirstYear;
+year <= lastYear;
+year++
+) {
+
+// Créer les statistiques
+// pour les années sans vol
+
+if (!yearStats[year]) {
+
+    yearStats[year] = {
+        flights: 0,
+        minutes: 0
+    };
+
+}
+
+
+sortedYears.push(year);
+
+}
 
 
 
-    if (!sortedYears.length) {
-        console.warn('⚠️ Aucune année');
-        return;
-    }
+    // -----------------------------------------
+    // Durée
+    // -----------------------------------------
 
     function formatDuration(minutes) {
 
-        minutes = Number(minutes) || 0;
+        minutes =
+            Number(minutes) || 0;
 
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
+        const h =
+            Math.floor(minutes / 60);
 
-        if (h === 0) return `${m} min`;
-        if (m === 0) return `${h} h`;
+        const m =
+            minutes % 60;
+
+
+        if (h === 0)
+            return `${m} min`;
+
+        if (m === 0)
+            return `${h} h`;
 
         return `${h}h${m}min`;
     }
-
-    const values = sortedYears.map(year => {
-
-        const flights = yearStats[year].flights;
-    
-        if (flights === 0) return 0;
-        if (flights === 1) return 1.5;
-        if (flights === 2) return 2.2;
-    
-        return flights;
-    
-    });
 
 
     // -----------------------------------------
@@ -7491,293 +7936,793 @@ function createYearChart(flightData) {
     // -----------------------------------------
 
     const colors = [
+
         'rgba(255, 123, 152, 0.9)',
+
         'rgba(121, 191, 238, 0.9)',
+
         'rgba(238, 204, 117, 0.9)',
+
         'rgba(119, 216, 216, 0.9)',
+
         'rgba(162, 131, 223, 0.9)',
+
         'rgba(236, 170, 103, 0.9)'
+
     ];
 
 
     // -----------------------------------------
-    // Plugin texte
+    // Hauteur
     // -----------------------------------------
 
-    const yearInfoPlugin = {
+    const chartHeight = 165;
 
-        id: 'yearInfoPlugin',
-    
-        afterDatasetsDraw(chart) {
-    
-            const ctx = chart.ctx;
-            const meta = chart.getDatasetMeta(0);
-            const xScale = chart.scales.x;
-    
-            ctx.save();
-    
-            sortedYears.forEach((year, index) => {
-    
-                const bar = meta.data[index];
-    
-                if (!bar) return;
-    
-                const flights =
-                    yearStats[year].flights;
-    
-                const duration =
-                    formatDuration(
-                        yearStats[year].minutes
-                    );
-    
-    
-                // =================================
-                // NOMBRE DE VOLS DANS LA BARRE
-                // =================================
-    
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-    
-                ctx.fillStyle = '#ffffff';
-    
-                ctx.font =
-                    'bold 12px Arial';
-    
-    
-                    ctx.fillText(
-                        `${flights}`,
-                        bar.x,
-                        bar.y + Math.min(10, bar.height / 2)
-                    );
-    
-    
-                // =================================
-                // DURÉE SOUS L'ANNÉE
-                // =================================
-    
-                const x =
-                    xScale.getPixelForTick(index);
-    
-                ctx.fillStyle =
-                    'rgba(143, 150, 163, 0.95)';
-    
-                ctx.font =
-                    '9px Arial';
-    
-                ctx.textBaseline = 'top';
-    
-                ctx.fillText(
-                    duration,
-                    x,
-                    xScale.bottom + 2
-                );
-    
-            });
-    
-            ctx.restore();
+    const maxFlights =
+        Math.max(
+            ...sortedYears.map(
+                year =>
+                    yearStats[year].flights
+            )
+        );
+
+
+    // -----------------------------------------
+    // Création des années
+    // -----------------------------------------
+
+    sortedYears.forEach((year, index) => {
+
+        const stats =
+            yearStats[year];
+
+        const flights =
+            stats.flights;
+
+
+        const item =
+            document.createElement('div');
+
+        item.className =
+            'year-item';
+
+
+        // -------------------------------------
+        // Zone barre
+        // -------------------------------------
+
+        const barArea =
+            document.createElement('div');
+
+        barArea.className =
+            'year-bar-area';
+
+
+        // -------------------------------------
+        // Barre
+        // -------------------------------------
+
+        const bar =
+            document.createElement('div');
+
+        bar.className =
+            'year-bar';
+
+
+        // -------------------------------------
+        // Hauteur proportionnelle
+        // -------------------------------------
+
+        let height = 0;
+
+        if (flights === 0) {
+        
+            // Année sans vol
+            height = 5;
+        
+        } else {
+        
+            // Hauteur proportionnelle
+            height =
+                (flights / maxFlights)
+                * chartHeight;
+        
+            // Hauteur minimale pour rester visible
+            height =
+                Math.max(height, 18);
+        
         }
-    };
+        
 
 
-    // -----------------------------------------
-    // Chart
-    // -----------------------------------------
-
-    yearChart = new Chart(canvas, {
-
-        type: 'bar',
-
-        data: {
-
-            labels: sortedYears,
-
-            datasets: [{
-
-                data: values,
-                backgroundColor:
-                    sortedYears.map(
-                        (_, i) =>
-                            colors[i % colors.length]
-                    ),
-
-                borderWidth: 0,
-
-                borderRadius: 8,
-
-                borderSkipped: false,
-
-                barPercentage: 0.65,
-
-                categoryPercentage: 0.75
-
-            }]
-
-        },
+        bar.style.height =
+            `${height}px`;
 
 
-        plugins: [
-            yearInfoPlugin
-        ],
+        // -------------------------------------
+        // Couleur
+        // -------------------------------------
 
+        if (flights === 0) {
 
-        options: {
+            bar.style.background =
+                'rgba(255, 80, 80, 0.75)';
 
-            responsive: true,
+        } else {
 
-            maintainAspectRatio: false,
-
-
-            animation: {
-
-                duration: 700
-
-            },
-
-
-            layout: {
-
-                padding: {
-            
-                    top: 5,
-            
-                    right: 10,
-            
-                    bottom: 30,
-            
-                    left: 5
-            
-                }
-            },
-
-
-            scales: {
-
-                x: {
-            
-                    grid: {
-            
-                        display: false,
-            
-                        drawBorder: false,
-            
-                        drawOnChartArea: false,
-            
-                        drawTicks: false
-            
-                    },
-            
-                    border: {
-            
-                        display: false,
-            
-                        width: 0
-            
-                    },
-            
-                    ticks: {
-            
-                        color: '#8f96a3',
-            
-                        font: {
-            
-                            size: 10,
-            
-                            weight: '800'
-            
-                        }
-            
-                    }
-            
-                },
-            
-            
-                y: {
-            
-                    beginAtZero: true,
-            
-                    suggestedMax: Math.max(...values) + 1,
-            
-                    ticks: {
-            
-                        display: false
-            
-                    },
-            
-                    grid: {
-            
-                        display: false,
-            
-                        drawBorder: false,
-            
-                        drawOnChartArea: false,
-            
-                        drawTicks: false
-            
-                    },
-            
-                    border: {
-            
-                        display: false,
-            
-                        width: 0
-            
-                    }
-            
-                }
-            
-            },
-
-
-            plugins: {
-
-                legend: {
-
-                    display: false
-
-                },
-
-                tooltip: {
-
-                    enabled: false
-
-                }
-
-            }
+            bar.style.background =
+                colors[
+                    index % colors.length
+                ];
 
         }
+
+
+        // -------------------------------------
+        // Nombre de vols
+        // -------------------------------------
+
+        if (flights > 0) {
+
+            const flightLabel =
+                document.createElement('div');
+
+            flightLabel.className =
+                'year-flights';
+
+            flightLabel.textContent =
+                flights;
+
+            bar.appendChild(
+                flightLabel
+            );
+
+        }
+
+
+        barArea.appendChild(bar);
+
+        item.appendChild(barArea);
+
+
+        // -------------------------------------
+        // Année
+        // -------------------------------------
+
+        const yearLabel =
+            document.createElement('div');
+
+        yearLabel.className =
+            'year-label';
+
+        yearLabel.textContent =
+            year;
+
+        item.appendChild(
+            yearLabel
+        );
+
+
+        // -------------------------------------
+        // Durée
+        // -------------------------------------
+
+        const duration =
+            document.createElement('div');
+
+        duration.className =
+            'year-duration';
+
+        duration.textContent =
+            formatDuration(
+                stats.minutes
+            );
+
+        item.appendChild(
+            duration
+        );
+
+
+        container.appendChild(
+            item
+        );
 
     });
 
 
+    // -----------------------------------------
+    // Retour au début
+    // -----------------------------------------
+
+    const scrollContainer =
+        document.querySelector(
+            '.year-chart-scroll'
+        );
+
+        if (scrollContainer) {
+
+            setTimeout(() => {
+    
+                scrollContainer.scrollLeft =
+                    scrollContainer.scrollWidth;
+    
+            }, 50);
+
+    }
 
 }
 
 
 
+
+// function createMonthChart(flightData) {
+
+
+//     const canvas = document.getElementById('flightsPerMonth');
+
+//     if (!canvas) {
+//         console.error('❌ Canvas #flightsPerMonth introuvable');
+//         return;
+//     }
+
+//     if (typeof Chart === 'undefined') {
+//         console.error('❌ Chart.js introuvable');
+//         return;
+//     }
+
+
+//     // -----------------------------------------
+//     // Détruire l'ancien graphique
+//     // -----------------------------------------
+
+//     if (monthChart) {
+//         monthChart.destroy();
+//         monthChart = null;
+//     }
+
+
+//     // -----------------------------------------
+//     // Noms des mois
+//     // -----------------------------------------
+
+//     const monthNames = [
+//         'Jan', 'Feb', 'Mar', 'Apr',
+//         'May', 'Jun', 'Jul', 'Aug',
+//         'Sep', 'Oct', 'Nov', 'Dec'
+//     ];
+
+
+//     // -----------------------------------------
+//     // 6 derniers mois
+//     // -----------------------------------------
+
+//     const now = new Date();
+
+//     // const last6Months = [];
+
+//     // for (let i = 5; i >= 0; i--) {
+
+
+//     const last12Months = [];
+
+//     for (let i = 11; i >= 0; i--) {
+
+//         const monthDate = new Date(
+//             now.getFullYear(),
+//             now.getMonth() - i,
+//             1
+//         );
+
+//         const year =
+//             monthDate.getFullYear();
+
+//         const month =
+//             monthDate.getMonth() + 1;
+
+//             last12Months.push({
+
+//             year: year,
+
+//             month: month,
+
+//             key:
+//                 `${year}-${String(month).padStart(2, '0')}`
+
+//         });
+
+//     }
+
+
+//     // -----------------------------------------
+//     // Statistiques
+//     // -----------------------------------------
+
+//     // const monthStats = {};
+
+//     // last6Months.forEach(month => {
+
+//     //     monthStats[month.key] = {
+
+//     //         flights: 0,
+
+//     //         minutes: 0
+
+//     //     };
+
+//     // });
+
+
+//     const monthStats = {};
+
+//         last12Months.forEach(month => {
+//             monthStats[month.key] = {
+//                 flights: 0,
+//                 minutes: 0
+//             };
+//         });
+
+
+
+//     flightData.forEach(flight => {
+
+//         if (!flight.date) return;
+
+//         const parts =
+//             flight.date.split('/');
+
+//         if (parts.length !== 3) return;
+
+//         const month =
+//             parseInt(parts[1], 10);
+
+//         const yearValue =
+//             parseInt(parts[2], 10);
+
+//         if (
+//             isNaN(month) ||
+//             isNaN(yearValue)
+//         ) {
+//             return;
+//         }
+
+
+//         const year =
+//             yearValue < 100
+//                 ? 2000 + yearValue
+//                 : yearValue;
+
+
+//         const key =
+//             `${year}-${String(month).padStart(2, '0')}`;
+
+
+//         if (!monthStats[key]) return;
+
+
+//         monthStats[key].flights++;
+
+//         monthStats[key].minutes +=
+//             Number(flight.time) || 0;
+
+//     });
+
+
+//     // -----------------------------------------
+//     // Format durée
+//     // -----------------------------------------
+
+//     function formatDuration(minutes) {
+
+//         minutes =
+//             Number(minutes) || 0;
+
+//         const h =
+//             Math.floor(minutes / 60);
+
+//         const m =
+//             minutes % 60;
+
+//         if (h === 0)
+//             return `${m} min`;
+
+//         if (m === 0)
+//             return `${h} h`;
+
+//         return `${h}h${m}min`;
+//     }
+
+
+//     // -----------------------------------------
+//     // Valeurs
+//     // -----------------------------------------
+
+//     // -----------------------------------------
+// // Valeurs
+// // -----------------------------------------
+
+// // const realValues = last6Months.map(
+// //     month => monthStats[month.key].flights
+// // );
+
+// const realValues = last12Months.map(
+//     month => monthStats[month.key].flights
+// );
+
+
+// // Hauteur visuelle des barres
+// // 0 vol = mini barre rouge
+// const values = realValues.map(flights => {
+
+//     if (flights === 0) {
+//         return 0.25; // mini barre visible
+//     }
+
+//     return flights;
+// });
+
+
+//     // -----------------------------------------
+//     // Labels
+//     // -----------------------------------------
+
+//     // const labels =
+//     //     last6Months.map(
+//     //         month =>
+//     //             monthNames[
+//     //                 month.month - 1
+//     //             ]
+//     //     );
+
+//     const labels = last12Months.map(
+//         month => monthNames[month.month - 1]
+//     );
+    
+
+
+//     // -----------------------------------------
+//     // Couleur
+//     // -----------------------------------------
+
+//     const barColors = realValues.map(flights => {
+
+//         if (flights === 0) {
+//             return 'rgba(255, 80, 80, 0.75)';
+//         }
+    
+//         return 'rgba(145, 240, 158, 0.85)';
+//     });
+
+
+//     // -----------------------------------------
+//     // Plugin texte
+//     // -----------------------------------------
+
+//     const monthInfoPlugin = {
+
+//         id: 'monthInfoPlugin',
+
+//         afterDatasetsDraw(chart) {
+
+//             const ctx = chart.ctx;
+
+//             const meta =
+//                 chart.getDatasetMeta(0);
+
+//             const xScale =
+//                 chart.scales.x;
+
+
+//             ctx.save();
+
+
+//             // last6Months.forEach(
+//             //     (month, index) => {
+//                 last12Months.forEach((month, index) => {
+
+
+//                     const bar =
+//                         meta.data[index];
+
+//                     if (!bar) return;
+
+
+//                     const flights =
+//                         monthStats[
+//                             month.key
+//                         ].flights;
+
+
+//                     const duration =
+//                         formatDuration(
+//                             monthStats[
+//                                 month.key
+//                             ].minutes
+//                         );
+
+
+//                     // =================================
+//                     // NOMBRE DE VOLS
+//                     // =================================
+
+//                     if (flights > 0) {
+
+//                         ctx.textAlign =
+//                             'center';
+
+//                         ctx.textBaseline =
+//                             'middle';
+
+//                         ctx.fillStyle =
+//                             '#ffffff';
+
+//                         ctx.font =
+//                             'bold 12px Arial';
+
+
+//                         ctx.fillText(
+//                             `${flights}`,
+//                             bar.x,
+//                             bar.y + 9
+//                         );
+
+//                     }
+
+
+//                     // =================================
+//                     // MOIS
+//                     // =================================
+
+//                     const x =
+//                         xScale.getPixelForTick(
+//                             index
+//                         );
+
+
+//                     ctx.textAlign =
+//                         'center';
+
+//                     ctx.textBaseline =
+//                         'top';
+
+//                     ctx.fillStyle =
+//                         '#8f96a3';
+
+//                     ctx.font =
+//                         'bold 10px Arial';
+
+
+//                     ctx.fillText(
+//                         labels[index],
+//                         x,
+//                         xScale.bottom + 2
+//                     );
+
+
+//                     // =================================
+//                     // DURÉE SOUS LE MOIS
+//                     // =================================
+
+//                    // =================================
+//                     // DURÉE SOUS LE MOIS
+//                     // =================================
+
+//                     const xx = xScale.getPixelForTick(index);
+
+//                     ctx.textAlign = 'center';
+//                     ctx.textBaseline = 'top';
+
+//                     ctx.fillStyle = 'rgba(143, 150, 163, 0.95)';
+//                     ctx.font = '9px Arial';
+
+//                     ctx.fillText(
+//                         duration,
+//                         xx,
+//                         xScale.bottom + 16
+//                     );
+
+//                 }
+//             );
+
+
+//             ctx.restore();
+
+//         }
+
+//     };
+
+
+//     // -----------------------------------------
+//     // Chart
+//     // -----------------------------------------
+//     canvas.width = 900;
+//     canvas.height = 220;
+//     monthChart = new Chart(canvas, {
+
+//         type: 'bar',
+
+//         data: {
+
+//             labels: labels,
+
+//             datasets: [{
+
+//                 data: values,
+
+//                 backgroundColor:
+//                     barColors,
+
+//                 borderWidth: 0,
+
+//                 borderRadius: 8,
+
+//                 borderSkipped: false,
+
+//                 barPercentage: 0.65,
+
+//                 categoryPercentage: 0.75
+
+//             }]
+
+//         },
+
+
+//         plugins: [
+//             monthInfoPlugin
+//         ],
+
+
+//         options: {
+
+//             responsive: false,
+
+//             maintainAspectRatio: false,
+
+
+//             animation: {
+
+//                 duration: 700
+
+//             },
+
+
+//             layout: {
+
+//                 padding: {
+
+//                     top: 5,
+
+//                     right: 10,
+
+//                     bottom: 40,
+
+//                     left: 5
+
+//                 }
+
+//             },
+
+
+//             scales: {
+
+//                 x: {
+
+//                     grid: {
+
+//                         display: false,
+
+//                         drawBorder: false,
+
+//                         drawOnChartArea: false,
+
+//                         drawTicks: false
+
+//                     },
+
+//                     border: {
+
+//                         display: false,
+
+//                         width: 0
+
+//                     },
+
+//                     ticks: {
+
+//                         display: false
+
+//                     }
+
+//                 },
+
+
+//                 y: {
+
+//                     beginAtZero: true,
+
+//                     suggestedMax:
+//                         Math.max(...values) + 1,
+
+//                     ticks: {
+
+//                         display: false
+
+//                     },
+
+//                     grid: {
+
+//                         display: false,
+
+//                         drawBorder: false,
+
+//                         drawOnChartArea: false,
+
+//                         drawTicks: false
+
+//                     },
+
+//                     border: {
+
+//                         display: false,
+
+//                         width: 0
+
+//                     }
+
+//                 }
+
+//             },
+
+
+//             plugins: {
+
+//                 legend: {
+
+//                     display: false
+
+//                 },
+
+//                 tooltip: {
+
+//                     enabled: false
+
+//                 }
+
+//             }
+
+//         }
+
+//     });
+
+//     const scrollContainer =
+//     document.querySelector('.month-chart-scroll');
+
+// if (scrollContainer) {
+//     setTimeout(() => {
+//         scrollContainer.scrollLeft =
+//             scrollContainer.scrollWidth;
+//     }, 100);
+// }
+
+// }
+
+
+
 function createMonthChart(flightData) {
 
+    const container =
+        document.getElementById('monthChart');
 
-    const canvas = document.getElementById('flightsPerMonth');
-
-    if (!canvas) {
-        console.error('❌ Canvas #flightsPerMonth introuvable');
-        return;
-    }
-
-    if (typeof Chart === 'undefined') {
-        console.error('❌ Chart.js introuvable');
+    if (!container) {
+        console.error('❌ #monthChart introuvable');
         return;
     }
 
 
     // -----------------------------------------
-    // Détruire l'ancien graphique
+    // Reset
     // -----------------------------------------
 
-    if (monthChart) {
-        monthChart.destroy();
-        monthChart = null;
-    }
+    container.innerHTML = '';
 
 
     // -----------------------------------------
@@ -7792,25 +8737,22 @@ function createMonthChart(flightData) {
 
 
     // -----------------------------------------
-    // 6 derniers mois
+    // 12 derniers mois
     // -----------------------------------------
 
     const now = new Date();
-
-    // const last6Months = [];
-
-    // for (let i = 5; i >= 0; i--) {
-
 
     const last12Months = [];
 
     for (let i = 11; i >= 0; i--) {
 
-        const monthDate = new Date(
-            now.getFullYear(),
-            now.getMonth() - i,
-            1
-        );
+        const monthDate =
+            new Date(
+                now.getFullYear(),
+                now.getMonth() - i,
+                1
+            );
+
 
         const year =
             monthDate.getFullYear();
@@ -7818,7 +8760,8 @@ function createMonthChart(flightData) {
         const month =
             monthDate.getMonth() + 1;
 
-            last12Months.push({
+
+        last12Months.push({
 
             year: year,
 
@@ -7836,46 +8779,41 @@ function createMonthChart(flightData) {
     // Statistiques
     // -----------------------------------------
 
-    // const monthStats = {};
-
-    // last6Months.forEach(month => {
-
-    //     monthStats[month.key] = {
-
-    //         flights: 0,
-
-    //         minutes: 0
-
-    //     };
-
-    // });
-
-
     const monthStats = {};
 
-        last12Months.forEach(month => {
-            monthStats[month.key] = {
-                flights: 0,
-                minutes: 0
-            };
-        });
 
+    last12Months.forEach(month => {
+
+        monthStats[month.key] = {
+
+            flights: 0,
+
+            minutes: 0
+
+        };
+
+    });
 
 
     flightData.forEach(flight => {
 
         if (!flight.date) return;
 
+
         const parts =
             flight.date.split('/');
 
+
         if (parts.length !== 3) return;
+
 
         const month =
             parseInt(parts[1], 10);
 
+
         const yearValue =
             parseInt(parts[2], 10);
+
 
         if (
             isNaN(month) ||
@@ -7900,6 +8838,7 @@ function createMonthChart(flightData) {
 
         monthStats[key].flights++;
 
+
         monthStats[key].minutes +=
             Number(flight.time) || 0;
 
@@ -7915,394 +8854,239 @@ function createMonthChart(flightData) {
         minutes =
             Number(minutes) || 0;
 
+
         const h =
             Math.floor(minutes / 60);
+
 
         const m =
             minutes % 60;
 
+
         if (h === 0)
             return `${m} min`;
+
 
         if (m === 0)
             return `${h} h`;
 
+
         return `${h}h${m}min`;
+
     }
 
 
     // -----------------------------------------
-    // Valeurs
+    // Hauteur maximale
     // -----------------------------------------
 
-    // -----------------------------------------
-// Valeurs
-// -----------------------------------------
-
-// const realValues = last6Months.map(
-//     month => monthStats[month.key].flights
-// );
-
-const realValues = last12Months.map(
-    month => monthStats[month.key].flights
-);
+    const chartHeight = 165;
 
 
-// Hauteur visuelle des barres
-// 0 vol = mini barre rouge
-const values = realValues.map(flights => {
-
-    if (flights === 0) {
-        return 0.25; // mini barre visible
-    }
-
-    return flights;
-});
+    const maxFlights =
+        Math.max(
+            ...last12Months.map(
+                month =>
+                    monthStats[month.key].flights
+            )
+        );
 
 
     // -----------------------------------------
-    // Labels
+    // Création des mois
     // -----------------------------------------
 
-    // const labels =
-    //     last6Months.map(
-    //         month =>
-    //             monthNames[
-    //                 month.month - 1
-    //             ]
-    //     );
+    last12Months.forEach((month, index) => {
 
-    const labels = last12Months.map(
-        month => monthNames[month.month - 1]
-    );
-    
+        const stats =
+            monthStats[month.key];
 
 
-    // -----------------------------------------
-    // Couleur
-    // -----------------------------------------
+        const flights =
+            stats.flights;
 
-    const barColors = realValues.map(flights => {
+
+        // -------------------------------------
+        // Item
+        // -------------------------------------
+
+        const item =
+            document.createElement('div');
+
+        item.className =
+            'month-item';
+
+
+        // -------------------------------------
+        // Zone barre
+        // -------------------------------------
+
+        const barArea =
+            document.createElement('div');
+
+        barArea.className =
+            'month-bar-area';
+
+
+        // -------------------------------------
+        // Barre
+        // -------------------------------------
+
+        const bar =
+            document.createElement('div');
+
+        bar.className =
+            'month-bar';
+
+
+        // -------------------------------------
+        // Hauteur
+        // -------------------------------------
+
+        let height;
+
 
         if (flights === 0) {
-            return 'rgba(255, 80, 80, 0.75)';
+
+            // Mini barre rouge
+            height = 5;
+
+        } else {
+
+            height =
+                (flights / maxFlights)
+                * chartHeight;
+
         }
-    
-        return 'rgba(145, 240, 158, 0.85)';
-    });
 
 
-    // -----------------------------------------
-    // Plugin texte
-    // -----------------------------------------
-
-    const monthInfoPlugin = {
-
-        id: 'monthInfoPlugin',
-
-        afterDatasetsDraw(chart) {
-
-            const ctx = chart.ctx;
-
-            const meta =
-                chart.getDatasetMeta(0);
-
-            const xScale =
-                chart.scales.x;
+        bar.style.height =
+            `${height}px`;
 
 
-            ctx.save();
+        // -------------------------------------
+        // Couleur
+        // -------------------------------------
+
+        if (flights === 0) {
+
+            bar.style.background =
+                'rgba(255, 80, 80, 0.75)';
+
+        } else {
+
+            bar.style.background =
+                'rgba(145, 240, 158, 0.85)';
+
+        }
 
 
-            // last6Months.forEach(
-            //     (month, index) => {
-                last12Months.forEach((month, index) => {
+        // -------------------------------------
+        // Nombre de vols
+        // -------------------------------------
+
+        if (flights > 0) {
+
+            const flightsLabel =
+                document.createElement('div');
+
+            flightsLabel.className =
+                'month-flights';
+
+            flightsLabel.textContent =
+                flights;
 
 
-                    const bar =
-                        meta.data[index];
+            bar.appendChild(
+                flightsLabel
+            );
 
-                    if (!bar) return;
-
-
-                    const flights =
-                        monthStats[
-                            month.key
-                        ].flights;
+        }
 
 
-                    const duration =
-                        formatDuration(
-                            monthStats[
-                                month.key
-                            ].minutes
-                        );
+        barArea.appendChild(bar);
+
+        item.appendChild(barArea);
 
 
-                    // =================================
-                    // NOMBRE DE VOLS
-                    // =================================
+        // -------------------------------------
+        // Nom du mois
+        // -------------------------------------
 
-                    if (flights > 0) {
+        const monthLabel =
+            document.createElement('div');
 
-                        ctx.textAlign =
-                            'center';
-
-                        ctx.textBaseline =
-                            'middle';
-
-                        ctx.fillStyle =
-                            '#ffffff';
-
-                        ctx.font =
-                            'bold 12px Arial';
+        monthLabel.className =
+            'month-label';
 
 
-                        ctx.fillText(
-                            `${flights}`,
-                            bar.x,
-                            bar.y + 9
-                        );
-
-                    }
+        monthLabel.textContent =
+            monthNames[
+                month.month - 1
+            ];
 
 
-                    // =================================
-                    // MOIS
-                    // =================================
-
-                    const x =
-                        xScale.getPixelForTick(
-                            index
-                        );
+        item.appendChild(
+            monthLabel
+        );
 
 
-                    ctx.textAlign =
-                        'center';
+        // -------------------------------------
+        // Durée
+        // -------------------------------------
 
-                    ctx.textBaseline =
-                        'top';
+        const duration =
+            document.createElement('div');
 
-                    ctx.fillStyle =
-                        '#8f96a3';
-
-                    ctx.font =
-                        'bold 10px Arial';
+        duration.className =
+            'month-duration';
 
 
-                    ctx.fillText(
-                        labels[index],
-                        x,
-                        xScale.bottom + 2
-                    );
-
-
-                    // =================================
-                    // DURÉE SOUS LE MOIS
-                    // =================================
-
-                   // =================================
-                    // DURÉE SOUS LE MOIS
-                    // =================================
-
-                    const xx = xScale.getPixelForTick(index);
-
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-
-                    ctx.fillStyle = 'rgba(143, 150, 163, 0.95)';
-                    ctx.font = '9px Arial';
-
-                    ctx.fillText(
-                        duration,
-                        xx,
-                        xScale.bottom + 16
-                    );
-
-                }
+        duration.textContent =
+            formatDuration(
+                stats.minutes
             );
 
 
-            ctx.restore();
+        item.appendChild(
+            duration
+        );
 
-        }
 
-    };
+        // -------------------------------------
+        // Ajouter
+        // -------------------------------------
 
-
-    // -----------------------------------------
-    // Chart
-    // -----------------------------------------
-    canvas.width = 900;
-    canvas.height = 220;
-    monthChart = new Chart(canvas, {
-
-        type: 'bar',
-
-        data: {
-
-            labels: labels,
-
-            datasets: [{
-
-                data: values,
-
-                backgroundColor:
-                    barColors,
-
-                borderWidth: 0,
-
-                borderRadius: 8,
-
-                borderSkipped: false,
-
-                barPercentage: 0.65,
-
-                categoryPercentage: 0.75
-
-            }]
-
-        },
-
-
-        plugins: [
-            monthInfoPlugin
-        ],
-
-
-        options: {
-
-            responsive: false,
-
-            maintainAspectRatio: false,
-
-
-            animation: {
-
-                duration: 700
-
-            },
-
-
-            layout: {
-
-                padding: {
-
-                    top: 5,
-
-                    right: 10,
-
-                    bottom: 40,
-
-                    left: 5
-
-                }
-
-            },
-
-
-            scales: {
-
-                x: {
-
-                    grid: {
-
-                        display: false,
-
-                        drawBorder: false,
-
-                        drawOnChartArea: false,
-
-                        drawTicks: false
-
-                    },
-
-                    border: {
-
-                        display: false,
-
-                        width: 0
-
-                    },
-
-                    ticks: {
-
-                        display: false
-
-                    }
-
-                },
-
-
-                y: {
-
-                    beginAtZero: true,
-
-                    suggestedMax:
-                        Math.max(...values) + 1,
-
-                    ticks: {
-
-                        display: false
-
-                    },
-
-                    grid: {
-
-                        display: false,
-
-                        drawBorder: false,
-
-                        drawOnChartArea: false,
-
-                        drawTicks: false
-
-                    },
-
-                    border: {
-
-                        display: false,
-
-                        width: 0
-
-                    }
-
-                }
-
-            },
-
-
-            plugins: {
-
-                legend: {
-
-                    display: false
-
-                },
-
-                tooltip: {
-
-                    enabled: false
-
-                }
-
-            }
-
-        }
+        container.appendChild(
+            item
+        );
 
     });
 
+
+    // -----------------------------------------
+    // Scroll vers la droite
+    // -----------------------------------------
+
     const scrollContainer =
-    document.querySelector('.month-chart-scroll');
+        document.querySelector(
+            '.month-chart-scroll'
+        );
 
-if (scrollContainer) {
-    setTimeout(() => {
-        scrollContainer.scrollLeft =
-            scrollContainer.scrollWidth;
-    }, 100);
+
+    if (scrollContainer) {
+
+        setTimeout(() => {
+
+            scrollContainer.scrollLeft =
+                scrollContainer.scrollWidth;
+
+        }, 50);
+
+    }
+
 }
 
-}
 
 
 function createCharts(flightData) {

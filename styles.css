@@ -540,6 +540,7 @@ h1 {
     border: 1px dashed #cfcfcf;
     border-radius: 8px;
     margin-bottom: 25px;
+    width: 100%;
 }
 .chart-box.sites {
     background-color: var(--surface-color);
@@ -571,7 +572,7 @@ h1 {
     justify-content: center;
     padding: 10px 0px;
 }
-.year-chart-scroll {
+/* .year-chart-scroll {
     width: 100%;
     height: 260px;
 
@@ -591,7 +592,7 @@ h1 {
 .year-chart-scroll canvas {
     display: block;
     max-width: none !important;
-}
+} */
 
 .chart-box.full-width {
     grid-column: 1 / -1;
@@ -696,6 +697,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing);
+    
 }
 @media (max-width: 1200px) {
 
@@ -9403,33 +9405,429 @@ input:checked ~ .view-label:last-of-type {
 
 
 
-.month-chart-inner {
-    width: 900px;
-    min-width: 900px;
-    height: 220px;
+
+.year-chart-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.year-chart-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.year-chart {
+    height: 240px;
+
+    display: flex;
+    align-items: end;
+
+    gap: 0;
+
+    padding: 5px 10px 0 5px;
+
+    width: max-content;
+    min-width: max-content;
 }
 
 
-.month-chart-inner canvas {
-    display: block;
+/* -----------------------------------------
+   Une année
+----------------------------------------- */
+
+.year-item {
+    width: 65px;
+    min-width: 65px;
+    height: 215px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    position: relative;
 }
+
+
+/* -----------------------------------------
+   Zone de la barre
+----------------------------------------- */
+
+.year-bar-area {
+    width: 65px;
+    height: 165px;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+
+/* -----------------------------------------
+   Barre
+----------------------------------------- */
+
+.year-bar {
+    width: 42px;
+
+    min-height: 4px;
+
+    border-radius: 8px 8px 8px 8px;
+
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    transition:
+        height 0.4s ease,
+        opacity 0.2s ease;
+}
+
+
+/* -----------------------------------------
+   Nombre de vols
+----------------------------------------- */
+
+.year-flights {
+    color: #ffffff;
+
+    font:
+        bold 12px Arial;
+
+    line-height: 1;
+
+    margin-top: 4px;
+
+    pointer-events: none;
+}
+
+
+/* -----------------------------------------
+   Année
+----------------------------------------- */
+
+.year-label {
+    margin-top: 7px;
+
+    color: #8f96a3;
+
+    font:
+        bold 10px Arial;
+
+    line-height: 1;
+}
+
+
+/* -----------------------------------------
+   Durée
+----------------------------------------- */
+
+.year-duration {
+    margin-top: 5px;
+
+    color:
+        rgba(143, 150, 163, 0.95);
+
+    font:
+        9px Arial;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+
+
+
+.month-chart-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.month-chart-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.month-chart {
+    height: 240px;
+
+    display: flex;
+    align-items: end;
+
+    width: max-content;
+    min-width: max-content;
+
+    padding: 5px 10px 0 5px;
+}
+
+
+/* =========================================
+   UN MOIS
+========================================= */
+
+.month-item {
+    width: 65px;
+    min-width: 65px;
+
+    height: 215px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    position: relative;
+}
+
+
+/* =========================================
+   ZONE BARRE
+========================================= */
+
+.month-bar-area {
+    width: 75px;
+    height: 165px;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+
+/* =========================================
+   BARRE
+========================================= */
+
+.month-bar {
+    width: 42px;
+
+    min-height: 4px;
+
+    border-radius: 8px;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    transition: height 0.4s ease;
+}
+
+
+/* =========================================
+   NOMBRE DE VOLS
+========================================= */
+
+.month-flights {
+    color: #ffffff;
+
+    font:
+        bold 12px Arial;
+
+    line-height: 1;
+
+    margin-top: 4px;
+}
+
+
+/* =========================================
+   MOIS
+========================================= */
+
+.month-label {
+    margin-top: 7px;
+
+    color: #8f96a3;
+
+    font:
+        bold 10px Arial;
+
+    line-height: 1;
+}
+
+
+/* =========================================
+   DURÉE
+========================================= */
+
+.month-duration {
+    margin-top: 5px;
+
+    color:
+        rgba(143, 150, 163, 0.95);
+
+    font:
+        9px Arial;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+
+
+
+.chart-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing);
+    width: 100%;
+    min-width: 0;
+}
+
+.chart-box {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.year-chart-scroll,
+.month-chart-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.year-chart-scroll::-webkit-scrollbar,
+.month-chart-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+
+@media (max-width: 1200px) {
+
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-box {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: max-content;
+    }
+
+    .chart-box.full-width {
+        height: 300px;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .chart-box {
+        height: max-content;
+    }
+
+    .chart-box.full-width {
+        height: 250px;
+    }
+
+    .summary-stats {
+        padding: 0;
+        width: 100%;
+    }
+
+    .stat-box {
+        padding: 6px 12px;
+        min-width: max-content;
+    }
+}
+/* =========================================
+   SCROLL DES GRAPHIQUES
+========================================= */
+
+.year-chart-scroll,
 .month-chart-scroll {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    min-width: 0;
 
-    /* Cache la scrollbar Firefox */
     scrollbar-width: none;
-
-    /* Cache la scrollbar IE/Edge ancien */
     -ms-overflow-style: none;
 }
 
-/* Cache la scrollbar Chrome / Safari / Edge */
+.year-chart-scroll::-webkit-scrollbar,
 .month-chart-scroll::-webkit-scrollbar {
     display: none;
-    width: 0;
-    height: 0;
+}
+
+
+/* =========================================
+   PC
+========================================= */
+
+@media (min-width: 769px) {
+
+    .year-chart-scroll,
+    .month-chart-scroll {
+        scrollbar-width: thin;
+
+        /* Firefox */
+        scrollbar-color:
+            rgba(143, 150, 163, 0.45)
+            transparent;
+    }
+
+
+    /* Chrome / Edge / Safari */
+
+    .year-chart-scroll::-webkit-scrollbar,
+    .month-chart-scroll::-webkit-scrollbar {
+
+        display: block;
+
+        height: 5px;
+
+        background: transparent;
+    }
+
+
+    /* Fond */
+
+    .year-chart-scroll::-webkit-scrollbar-track,
+    .month-chart-scroll::-webkit-scrollbar-track {
+
+        background: transparent;
+
+        margin: 0 8px;
+    }
+
+
+    /* Curseur */
+
+    .year-chart-scroll::-webkit-scrollbar-thumb,
+    .month-chart-scroll::-webkit-scrollbar-thumb {
+
+        background:
+            rgba(143, 150, 163, 0.45);
+
+        border-radius: 10px;
+
+        transition:
+            background 0.2s ease;
+    }
+
+
+    /* Au survol */
+
+    .year-chart-scroll:hover::-webkit-scrollbar-thumb,
+    .month-chart-scroll:hover::-webkit-scrollbar-thumb {
+
+        background:
+            rgba(143, 150, 163, 0.70);
+    }
 }
