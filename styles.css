@@ -820,6 +820,22 @@ h1 {
     -webkit-tap-highlight-color: transparent;
 }
 
+.secondary-button.gearedit {
+    color: #5f6368;
+    border: none;
+
+    cursor: pointer;
+    width: max-content;
+    user-select: none;
+    background-color: white;
+    -webkit-tap-highlight-color: transparent;
+    
+}
+.checksitem {
+    width: 12px;
+    height: 12px;
+}
+
 .select-with-add {
     display: flex;
     gap: 8px;
@@ -1126,18 +1142,28 @@ h1 {
     gap: 10px;
     margin-top: 10px;
     justify-content: center;
+    border-bottom: 1px dashed #ababab;
+    padding-bottom: 35px;
+    margin-bottom: 35px;
 }
 
 .background-upload-btn, .remove-background-btn {
-    padding: 5px 9px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    box-shadow: 0 0px 5px rgba(0, 0, 0, 0.08);
+    border-radius: 25px;
+    background-color: #ffffff;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    align-items: center !important;
+    
+    gap: 5px !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
 .background-upload-btn {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
+    background-color: #ffffff;
+    display: flex !important; 
 }
 
 .remove-background-btn {
@@ -1166,10 +1192,10 @@ h1 {
 }
 
 .gear-item {
-    background: transparent;
+    background: white;
     border-radius: 8px;
     padding: 0px;
-    margin-bottom: 8px;
+    margin-bottom: 35px;
 }
 
 .gear-item .form-group {
@@ -1225,7 +1251,7 @@ h1 {
         padding-bottom: 5px;
         margin-top: 10px;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px dashed #c7c7c7;
         
 }
 
@@ -1279,6 +1305,15 @@ font-size: 12px;
 border-radius: 4px;
 cursor: pointer;
 }
+.delete-button.geardelete {
+
+    color: #5f6368;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    width: max-content;
+    background-color: white;
+    }
 
 /* .gear-item button.active-gear {
     color: #000000;
@@ -3175,6 +3210,12 @@ cursor: pointer;
 
 .action-icon {
     width: 18px;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+.action-icon3 {
+    width: 16px;
     height: auto;
     vertical-align: middle;
     margin-right: 3px;
@@ -5094,11 +5135,23 @@ input[type="date"] {
         );
     background-size: 20px 20px;
 }
-
+#accessoriesPreviewList {
+    margin-top: 15px;
+}
+.brand-model.acc {
+    font-size: 14px;
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.accessory-item {
+    padding: 5px;
+}
 .made-with-love {
     margin-bottom: 8px;
 }
-.purchase-date::before, .check-date::before {
+.purchase-date::before, .check-date::before, .brand-model::before {
     content: '';
     width: 5px;
     height: 5px;
@@ -5653,6 +5706,120 @@ input[type="date"] {
 }
 
 
+.check-item {
+    position: relative;
+    overflow: hidden;
+}
+.check-item2 {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    top: 22px;
+    right: -36px;
+    width: 135px;
+    justify-content: center;
+    padding: 3px 0;
+    background: #ffffff;
+    color: #2d2929;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    transform: rotate(45deg);
+    z-index: 10;
+    align-items: center;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.12);
+}
+.check-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+
+    border-bottom: 1px solid #e9e9e9;
+    box-sizing: border-box;
+    padding: 4px 10px;
+    padding-left: 20px;
+
+    font-size: 12px;
+}
+
+
+/* Point + texte */
+.check-condition-label {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+}
+
+
+/* Petit point */
+.check-condition-label::before {
+    content: "";
+
+    width: 7px;
+    height: 7px;
+
+    flex: 0 0 7px;
+
+    border-radius: 50%;
+}
+
+
+/* Actions */
+.check-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+
+/* Le petit cercle */
+.check-item2::before {
+    content: "";
+
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    margin-right: 5px;
+
+    border-radius: 50%;
+
+    vertical-align: middle;
+}
+.check-condition-excellent .check-condition-label::before {
+    background: #7be189;
+}
+
+.check-condition-good .check-condition-label::before {
+    background: #cfefb9;
+}
+
+.check-condition-fair .check-condition-label::before {
+    background: #ffe187;
+}
+
+.check-condition-poor .check-condition-label::before {
+    background: #ffbf95;
+}
+
+.check-condition-needs-repair .check-condition-label::before {
+    background: #f3a6a6;
+}
+
+.check-condition-default .check-condition-label::before {
+    background: #777;
+}
+
+
+
+.check-item-text {
+    display: block;
+}
+
 .glider-item-details {
     display: flex;
     flex-direction: row;
@@ -5667,7 +5834,7 @@ input[type="date"] {
     width: 25px;
     height: auto;
 }
-.purchase-date, .check-date {
+.purchase-date, .check-date, .purchase-date-acc {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -9097,7 +9264,7 @@ input:checked ~ .view-label:last-of-type {
 
 
 
-.gliderStatus, .harnessStatus, .reserveStatus, #flightTimeOfDay, #flightHarness, #flightType, #flightType2, #flightGlider, #flightreserve, #flightCountry {
+.gliderStatus, .harnessStatus, .reserveStatus, .accessoryStatus, #flightTimeOfDay, #flightHarness, #flightType, #flightType2, #flightGlider, #flightreserve, #flightCountry {
     width: 100%;
     padding: 10px 40px 10px 14px;
     border: 1px solid #d1d5db;
@@ -9189,9 +9356,12 @@ input:checked ~ .view-label:last-of-type {
 
 .check-history {
     margin-top: 20px;
-    padding: 8px;
-    border-radius: 12px;
-    border: 1px dashed rgb(201 201 201);
+    /* padding: 8px; */
+    /* border-radius: 12px; */
+    /* border: 1px dashed rgb(201 201 201); */
+    border-top: 1px solid #d7d7d7;
+    padding-top: 20px;
+    margin-top: 35px;
 }
 
 .check-history-header {
@@ -9248,23 +9418,31 @@ input:checked ~ .view-label:last-of-type {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    gap: 15px;
-    padding: 14px;
+    gap: 2px;
     background: white;
     border-radius: 8px;
     border: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 5px;
 }
 
 .check-info {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.check-body {
+    width: 100%;
+    padding: 5px 10px;
+    box-sizing: border-box;
 }
 .check-field {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 5px;
+    gap: 2px;
+    margin-right: 15px;
 }
 .check-field span {
     display: block;
@@ -9281,7 +9459,6 @@ input:checked ~ .view-label:last-of-type {
 .check-actions {
     display: flex;
     gap: 8px;
-    width: 100%;
 }
 
 .no-checks {
@@ -9975,4 +10152,114 @@ input:checked ~ .view-label:last-of-type {
         font-size: 9px;
     }
 
+}
+
+.profile-gear-tab-buttons {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 10px;
+
+    width: 100%;
+
+    margin: 0 auto 48px auto;
+
+
+}
+
+
+/* ------------------------------------------
+   TAB BUTTON
+   ------------------------------------------ */
+
+   .profile-gear-tab {
+    font-size: 14px;
+    color: #7b7b7b;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    background-color: white;
+    box-shadow: 0 0px 5px rgba(0, 0, 0, 0.08);
+    border-radius: 25px;
+    background-color: #ffffff;
+    padding: 6px 17px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+
+
+
+
+/* ------------------------------------------
+   ACTIVE
+   ------------------------------------------ */
+
+.profile-gear-tab.active {
+    background: #fbdb61;
+    color: #232323;
+    border-color: #222;
+}
+
+
+
+/* ------------------------------------------
+   CONTENT
+   ------------------------------------------ */
+
+.profile-gear-tab-content {
+
+    display: none;
+
+}
+.profile-gear-tabs {
+    width: 100%;
+    margin-top: 25px;
+}
+
+
+/* ------------------------------------------
+   ACTIVE CONTENT
+   ------------------------------------------ */
+
+.profile-gear-tab-content.active {
+
+    display: block;
+
+}
+
+
+
+.full-group {
+    position: relative;
+    overflow: hidden;
+}
+
+
+.current-wing-ribbon {
+    position: absolute;
+    top: 21px;
+    right: -32px;
+    width: 135px;
+    padding: 7px 0;
+    background: #b1e99b;
+    color: #2d2929;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    transform: rotate(45deg);
+    z-index: 10;
+    box-shadow: 0 0px 6px rgba(0, 0, 0, 0.15);
+}
+
+.current-wing-ribbon span {
+    display: block;
 }

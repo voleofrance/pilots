@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flight-log-cache-v1.2.9';
+const CACHE_NAME = 'flight-log-cache-v1.3';
 const CRITICAL_ASSETS = [
   'styles.css',
   'script.js',

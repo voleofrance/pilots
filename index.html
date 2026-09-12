@@ -137,99 +137,339 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
                     <div class="background-image-controls">
                         <label for="profileBackgroundInput" class="background-upload-btn">
-                            Change Background Image
+                            <img src="assets/edits.png" class="item-icons edit" alt="Profile">
+                            Change Background
                         </label>
                         <button type="button" class="remove-background-btn" id="removeBackgroundBtn">
+                            <!-- <img src="assets/bin.png" class="item-icons edit" alt="Profile"> -->
                             Remove Background
                         </button>
                         <input type="file" id="profileBackgroundInput" accept="image/*" style="display: none;">
                     </div>
 
-                    <div class="spacer-new"></div>
-                    <div class="fields-box-pilot pilot">
-                        <div class="title-main-gear">
-                            <h2>Pilot DATA</h>
-                        </div>
-                    <div class="fields-box-pilot-inner">
-                    <div class="form-group">
-                        <label for="profileNameInputModal">Name :</label>
-                        <input type="text" id="profileNameInputModal" placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label for="profileBirthDateInput">Birth Date :</label>
-                        <input type="date" 
-                               id="profileBirthDateInput" 
-                               min="1940-01-01" 
-                               max="2010-12-31"
-                               pattern="\d{4}-\d{2}-\d{2}"
-                               placeholder="Select Date">
-                    </div>
-                    <div class="form-group">
-                        <label for="profileWeightInputModal">Weight :</label>
-                        <input type="text" id="profileWeightInputModal" placeholder="Enter your weight">
-                    </div>
-                    <div class="form-group">
-                        <label for="bloodInputModal">Blood Type :</label>
-                        <input type="text" id="bloodInputModal" placeholder="Enter your blood type">
-                    </div>
-                    <div class="form-group">
-                        <label for="licenseInputModal">License number :</label>
-                        <input type="text" id="licenseInputModal" placeholder="Enter your license number">
-                    </div>
-                    </div>
-                    </div>
-                    <div class="spacer-new"></div>
-                    <div class="fields-box-gear gear">
-                        <div class="title-main-gear">
-                            <h2>GEAR</h>
-                        </div>
-                    <h3>Glider</h3>
-                    <div id="gliderList">
-                    </div>
-                    <button type="button" class="add-gear-button-gear" onclick="addGlider()">
-                        + Add New Glider
-                    </button>
-                    <h3>Harness</h3>
-                    <div id="harnessList">
-                    </div>
-                    <button type="button" class="add-gear-button-gear" onclick="addHarness()">
-                        + Add New Harness
-                    </button>
-                    <h3>Reserve</h3>
-                    <div id="reserveList">
-                    </div>
-                    <button type="button" class="add-gear-button-gear" onclick="addreserve()">
-                        + Add New Reserve
-                    </button>
-                    </div>
-                    <div class="spacer-new"></div>
-                    <div class="fields-box-qualif">
-                    <h3>Qualifications</h3>
-                    <div id="qualificationsList">
-                    </div>
-                    <button type="button" class="add-gear-button" onclick="addQualification()">
-                        + Add New Qualification
-                    </button>
-                    </div>
-                    <div class="spacer-new"></div>
-                    <div class="fields-box-courses">
-                        <h3>Training Courses</h3>
-                        <div id="CoursesList">
-                        </div>
-                        <button type="button" class="add-gear-button" onclick="addCourses()">
-                            + Add New Training Course
-                        </button>
-                        </div>
+                    <!-- <div class="spacer-new"></div> -->
+
+<!-- ========================================= -->
+<!-- PROFILE & GEAR TABS -->
+<!-- ========================================= -->
+
+<div class="profile-gear-tabs">
+
+    <div class="profile-gear-tab-buttons">
+
+        <button
+            type="button"
+            class="profile-gear-tab active"
+            data-tab="pilot"
+            onclick="switchProfileGearTab('pilot')">
+            Pilot
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="glider"
+            onclick="switchProfileGearTab('glider')">
+            Wing
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="harness"
+            onclick="switchProfileGearTab('harness')">
+            Harness
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="reserve"
+            onclick="switchProfileGearTab('reserve')">
+            Reserve
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="accessories"
+            onclick="switchProfileGearTab('accessories')">
+            Accessories
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="qualifications"
+            onclick="switchProfileGearTab('qualifications')">
+            Qualifications
+        </button>
+
+        <button
+            type="button"
+            class="profile-gear-tab"
+            data-tab="courses"
+            onclick="switchProfileGearTab('courses')">
+            Training Courses
+        </button>
+
+    </div>
 
 
-                    <div class="fields-box-qualif" style="display: none;">
-                    <h3>Documents</h3>
-                    <div id="documentsList">
-                    </div>
-                    <button type="button" class="add-gear-button" onclick="addDocument()">
-                        + Add New Document
-                    </button>
+    <!-- ========================================= -->
+    <!-- PILOT -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-pilot"
+        class="profile-gear-tab-content active">
+
+        <div class="fields-box-pilot pilot">
+
+            <div class="title-main-gear">
+                <h2>PILOT DATA</h2>
+            </div>
+
+            <div class="fields-box-pilot-inner">
+
+                <div class="form-group">
+                    <label for="profileNameInputModal">
+                        Name :
+                    </label>
+
+                    <input
+                        type="text"
+                        id="profileNameInputModal"
+                        placeholder="Enter your name">
                 </div>
+
+
+                <div class="form-group">
+                    <label for="profileBirthDateInput">
+                        Birth Date :
+                    </label>
+
+                    <input
+                        type="date"
+                        id="profileBirthDateInput"
+                        min="1940-01-01"
+                        max="2010-12-31"
+                        pattern="\d{4}-\d{2}-\d{2}"
+                        placeholder="Select Date">
+                </div>
+
+
+                <div class="form-group">
+                    <label for="profileWeightInputModal">
+                        Weight :
+                    </label>
+
+                    <input
+                        type="text"
+                        id="profileWeightInputModal"
+                        placeholder="Enter your weight">
+                </div>
+
+
+                <div class="form-group">
+                    <label for="bloodInputModal">
+                        Blood Type :
+                    </label>
+
+                    <input
+                        type="text"
+                        id="bloodInputModal"
+                        placeholder="Enter your blood type">
+                </div>
+
+
+                <div class="form-group">
+                    <label for="licenseInputModal">
+                        License number :
+                    </label>
+
+                    <input
+                        type="text"
+                        id="licenseInputModal"
+                        placeholder="Enter your license number">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- GLIDER -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-glider"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-gear gear">
+
+            <div class="title-main-gear">
+                <h2>WING</h2>
+            </div>
+
+            <div id="gliderList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button-gear"
+                onclick="addGlider()">
+                + Add New Wing
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- HARNESS -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-harness"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-gear gear">
+
+            <div class="title-main-gear">
+                <h2>HARNESS</h2>
+            </div>
+
+            <div id="harnessList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button-gear"
+                onclick="addHarness()">
+                + Add New Harness
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- RESERVE -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-reserve"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-gear gear">
+
+            <div class="title-main-gear">
+                <h2>RESERVE</h2>
+            </div>
+
+            <div id="reserveList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button-gear"
+                onclick="addreserve()">
+                + Add New Reserve
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- ACCESSORIES -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-accessories"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-gear gear">
+
+            <div class="title-main-gear">
+                <h2>ACCESSORIES</h2>
+            </div>
+
+            <div id="accessoryList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button-gear"
+                onclick="addAccessory()">
+                + Add New Accessory
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- QUALIFICATIONS -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-qualifications"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-qualif">
+
+            <div class="title-main-gear">
+                <h2>QUALIFICATIONS</h2>
+            </div>
+
+            <div id="qualificationsList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button"
+                onclick="addQualification()">
+                + Add New Qualification
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- TRAINING COURSES -->
+    <!-- ========================================= -->
+
+    <div
+        id="profileGearTab-courses"
+        class="profile-gear-tab-content">
+
+        <div class="fields-box-courses">
+
+            <div class="title-main-gear">
+                <h2>TRAINING COURSES</h2>
+            </div>
+
+            <div id="CoursesList"></div>
+
+            <button
+                type="button"
+                class="add-gear-button"
+                onclick="addCourses()">
+                + Add New Training Course
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
                 </form>
             </div>
         </div>
@@ -262,7 +502,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                             </div>
                                 <div class="profile-name-minibox2">
                                 <div class="gear-details">
-                                    <span class="gear-label">Glider:</span>
+                                    <span class="gear-label">Wing:</span>
                                     <span class="gear-name" id="gliderNameDisplay"></span>
                                 </div>
                                 <div class="gear-details">
@@ -987,6 +1227,11 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                     <h4>Reserves</h4>
                     <div class="preview-list" id="reservePreviewList"></div>
                 </div>
+
+                <div class="preview-section">
+                    <h4>Accessories</h4>
+                    <div class="preview-list" id="accessoriesPreviewList"></div>
+                </div>
     
             </div>
     
@@ -1257,7 +1502,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
                     <div class="background-gear">
                         <div class="detail-item gear">
-                                <label>Glider</label>
+                                <label>Wing</label>
                                 <div class="gear-with-brand">
                                     <span class="brand-icon glider-brand"></span>
                                     <span class="glider-name"></span>
@@ -1500,7 +1745,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                 </div>
                
                 <div class="form-group">
-                    <label for="flightGlider">Glider :</label>
+                    <label for="flightGlider">Wing :</label>
                     <select id="flightGlider">
                     </select>
                 </div>

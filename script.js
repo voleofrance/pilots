@@ -21,6 +21,7 @@ let heatMap = null;
 let gearData = {
     gliders: [], 
     harnesses: [], 
+    accessories: [], 
     reserve: [],
     activeGliderIndex: -1,
     activeHarnessIndex: -1 
@@ -1189,6 +1190,7 @@ const initDB = () => {
                     gearStore.put({
                         gliders: [],
                         harnesses: [],
+                        accessories: [],
                         reserve: [],
                         activeGliderIndex: -1,
                         activeHarnessIndex: -1
@@ -1511,6 +1513,24 @@ const dbOperations = {
 };
 
 
+function getCheckConditionClass(condition) {
+
+    const conditionClasses = {
+        'Excellent': 'excellent',
+        'Good': 'good',
+        'Fair': 'fair',
+        'Poor': 'poor',
+        'Needs repair': 'needs-repair'
+    };
+
+    return conditionClasses[condition] || 'default';
+}
+
+function hasCheckValue(value) {
+    return value !== undefined &&
+           value !== null &&
+           String(value).trim() !== '';
+}
 
 
 //COORDINATES
@@ -2334,7 +2354,6 @@ function updateGearCheck(gear, checkIndex, checkData) {
 
 
 
-
 function renderCheckHistory(gear, type, index) {
 
     ensureChecksArray(gear);
@@ -2399,66 +2418,86 @@ function renderCheckHistory(gear, type, index) {
             html += `
                 <div class="check-item">
 
-                    <div class="check-info">
-
-                        <div class="check-field">
-                            <span>Date:</span>
-                            <strong>
-                                ${check.date ? formatDate(check.date) : '—'}
-                            </strong>
+ 
+                ${hasCheckValue(check.condition) ? `
+                    <div class="check-item-header check-condition-${getCheckConditionClass(check.condition)}">
+                
+                        <div class="check-condition-label">
+                            <span class="check-item-text">
+                                ${check.condition}
+                            </span>
                         </div>
-
-
-                        <div class="check-field">
-                            <span>Workshop:</span>
-                            <strong>
-                                ${check.workshop || '—'}
-                            </strong>
+                
+                        <div class="check-actions">
+                
+                            <button
+                                type="button"
+                                class="secondary-button gearedit"
+                                onclick="editGearCheck(
+                                    '${type}',
+                                    ${index},
+                                    ${originalIndex}
+                                )"
+                            >
+                               <img src="assets/edits.png" alt="Edit" class="action-icon3">
+                            </button>
+                
+                            <button
+                                type="button"
+                                class="delete-button geardelete"
+                                onclick="removeGearCheck(
+                                    '${type}',
+                                    ${index},
+                                    ${originalIndex}
+                                )"
+                            >
+                                <img src="assets/bin.png" alt="Edit" class="action-icon3">
+                            </button>
+                
                         </div>
-
-                        <div class="check-field">
-                            <span>Price:</span>
-                            <strong>
-                                ${check.price || '—'}
-                            </strong>
-                        </div>
-
-                        <div class="check-field">
-                            <span>Condition:</span>
-                            <strong>
-                                ${check.condition || '—'}
-                            </strong>
-                        </div>
-
+                
                     </div>
+                ` : ''}
+                
+<div class="check-body">
+        <div class="check-info">
 
-                    <div class="check-actions">
+            ${hasCheckValue(check.date) ? `
+                <div class="check-field">
+                    <strong>
+                        ${formatDate(check.date)}
+                    </strong>
+                </div>
+            ` : ''}
 
-                        <button
-                            type="button"
-                            class="secondary-button"
-                            onclick="editGearCheck(
-                                '${type}',
-                                ${index},
-                                ${originalIndex}
-                            )"
-                        >
-                            Edit
-                        </button>
 
-                        <button
-                            type="button"
-                            class="delete-button"
-                            onclick="removeGearCheck(
-                                '${type}',
-                                ${index},
-                                ${originalIndex}
-                            )"
-                        >
-                            Delete
-                        </button>
+            ${hasCheckValue(check.workshop) ? `
+                <div class="check-field">
+                   
 
-                    </div>
+                    <strong>
+                        ${check.workshop}
+                    </strong>
+                </div>
+            ` : ''}
+
+
+            ${hasCheckValue(check.price) ? `
+                <div class="check-field">
+                    <span>Price:</span>
+
+                    <strong>
+                        ${check.price}
+                    </strong>
+                </div>
+            ` : ''}
+
+        </div>
+
+ 
+
+                    
+</div>
 
                 </div>
             `;
@@ -2478,6 +2517,9 @@ function renderCheckHistory(gear, type, index) {
 
 
 
+
+
+
 function getGearCollection(type) {
 
     switch (type) {
@@ -2487,6 +2529,9 @@ function getGearCollection(type) {
 
         case 'harness':
             return gearData.harnesses;
+            
+        case 'accessories':
+            return gearData.accessories;
 
         case 'reserve':
             return gearData.reserve;
@@ -9732,6 +9777,7 @@ async function initGearData() {
             await dbOperations.setData(STORES.gear, {
                 gliders: [],
                 harnesses: [],
+                accessories: [],
                 reserve: []
             }, 'defaultGear'); 
         }
@@ -9742,6 +9788,7 @@ async function initGearData() {
             await dbOperations.setData(STORES.gear, {
                 gliders: [],
                 harnesses: [],
+                accessories: [],
                 reserve: []
             }, 'defaultGear');
         } catch (e) {
@@ -10121,6 +10168,248 @@ function refreshreserveInModal() {
 }
 
 
+
+async function deleteAccessory(index) {
+
+    gearData.accessories =
+        gearData.accessories.filter(
+            (_, idx) => idx !== index
+        );
+
+
+    gearChanged = true;
+
+
+    refreshAccessoriesInModal();
+
+    updateGearUI();
+
+    showSaveChangesButton();
+
+}
+
+
+
+
+function refreshAccessoriesInModal() {
+
+    const accessoryList = document.getElementById('accessoryList');
+
+    if (!accessoryList) {
+        console.error('accessoryList not found');
+        return;
+    }
+
+    accessoryList.innerHTML = '';
+
+    gearData.accessories.forEach((accessory, index) => {
+
+        const accessoryItem = document.createElement('div');
+        accessoryItem.className = 'gear-item';
+
+        accessoryItem.innerHTML = `
+            <div class="full-group">
+
+                <div class="field-group h">
+
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+
+                        <div class="autocomplete-wrapper" style="position: relative;">
+                            <input
+                                type="text"
+                                id="accessoryBrand_${index}"
+                                class="accessoryBrand"
+                                value="${accessory.brand || ''}"
+                                placeholder="Brand"
+                                autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Model :</span>
+
+                        <input
+                            type="text"
+                            class="accessoryModel"
+                            value="${accessory.model || ''}"
+                            placeholder="Model...">
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Cost :</span>
+
+                        <input
+                            type="text"
+                            class="accessoryCost"
+                            value="${accessory.cost || ''}"
+                            placeholder="Cost...">
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+
+                        <input
+                            type="date"
+                            class="accessoryDateBought"
+                            value="${accessory.dateBought || ''}">
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Status :</span>
+
+                        <select class="accessoryStatus">
+                            <option value="" ${!accessory.status ? 'selected' : ''}>
+                                Active
+                            </option>
+
+                            <option value="sold" ${accessory.status === 'sold' ? 'selected' : ''}>
+                                Sold
+                            </option>
+
+                            <option value="broken" ${accessory.status === 'broken' ? 'selected' : ''}>
+                                Broken
+                            </option>
+
+                            <option value="lost" ${accessory.status === 'lost' ? 'selected' : ''}>
+                                Lost
+                            </option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deleteAccessory(${index})">
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        if (accessory.status) {
+            accessoryItem.classList.add(accessory.status);
+        }
+
+        accessoryList.appendChild(accessoryItem);
+
+        // -----------------------------
+        // INPUTS
+        // -----------------------------
+
+        accessoryItem.querySelectorAll('input').forEach(input => {
+
+            input.addEventListener('input', function () {
+
+                if (this.classList.contains('accessoryBrand')) {
+                    accessory.brand = this.value;
+                }
+
+                if (this.classList.contains('accessoryModel')) {
+                    accessory.model = this.value;
+                }
+
+                if (this.classList.contains('accessoryCost')) {
+                    accessory.cost = this.value;
+                }
+
+                if (this.classList.contains('accessoryDateBought')) {
+                    accessory.dateBought = this.value;
+                }
+
+                gearChanged = true;
+                showSaveChangesButton();
+
+            });
+
+        });
+
+        // -----------------------------
+        // STATUS
+        // -----------------------------
+
+        const statusSelect =
+            accessoryItem.querySelector('.accessoryStatus');
+
+        if (statusSelect) {
+
+            statusSelect.addEventListener('change', function () {
+
+                accessory.status = this.value;
+
+                gearChanged = true;
+                showSaveChangesButton();
+
+            });
+
+        }
+
+        // -----------------------------
+        // AUTOCOMPLETE
+        // -----------------------------
+
+        setupAutocomplete(
+            `accessoryBrand_${index}`,
+            () => ACCESS_BRANDS,
+            'harness-autocomplete-dropdown'
+        );
+
+
+
+    });
+
+    // -----------------------------
+    // FLATPICKR
+    // -----------------------------
+
+    const dateInputs =
+        document.querySelectorAll(
+            '#accessoryList .accessoryDateBought'
+        );
+
+    dateInputs.forEach(input => {
+
+        flatpickr(input, {
+            dateFormat: 'Y-m-d',
+            maxDate: 'today',
+            minDate: '2000-01-01',
+
+            onChange: function (selectedDates, dateStr) {
+
+                const item = input.closest('.gear-item');
+
+                const items = Array.from(
+                    document.querySelectorAll(
+                        '#accessoryList .gear-item'
+                    )
+                );
+
+                const index = items.indexOf(item);
+
+                if (index !== -1) {
+
+                    gearData.accessories[index].dateBought =
+                        dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
+                }
+            }
+        });
+
+    })
+
+}
+
+
+
+
 function refreshHarnessesInModal() {
     const harnessList = document.getElementById('harnessList');
     harnessList.innerHTML = '';
@@ -10255,7 +10544,13 @@ function refreshGlidersInModal() {
             ? latestCheck.date
             : '';
         gliderItem.innerHTML = `
+        
         <div class="full-group">
+        ${isActive ? `
+            <div class="current-wing-ribbon">
+                <span>Current Wing</span>
+            </div>
+        ` : ''}
             <div class="field-group h">
             <div class="field-group hori">
             <span>Brand :</span>
@@ -10325,7 +10620,7 @@ function refreshGlidersInModal() {
                 <button type="button" class="secondary-button ${isActive ? 'active-gear' : ''}" onclick="setActiveGlider(${index})">
                     ${isActive ? `<img src="assets/active.png" alt="Current Wing" class="checkmark-icon"> Current Wing` : 'Set as Profile Wing'}
                 </button>
-                <button type="button" class="delete-button" onclick="deleteGlider(${index})">Delete</button>
+                <button type="button" class="delete-button" onclick="deleteGlider(${index})">Delete Wing</button>
             </div>
             </div>
         `;        
@@ -10460,6 +10755,216 @@ async function setActiveHarness(index) {
 }
 
 
+async function addAccessory() {
+
+    try {
+
+        const accessoryList =
+            document.getElementById('accessoryList');
+
+        if (!accessoryList) {
+            console.error('accessoryList not found');
+            return;
+        }
+
+        const newIndex =
+            gearData.accessories.length;
+
+        const uniqueId =
+            `accessoryBrand_${Date.now()}_${newIndex}`;
+
+        const accessoryItem =
+            document.createElement('div');
+
+        accessoryItem.className = 'gear-item';
+
+        accessoryItem.innerHTML = `
+            <div class="full-group">
+
+                <div class="field-group h">
+
+                    <div class="field-group hori">
+                        <span>Brand :</span>
+
+                        <div
+                            class="autocomplete-wrapper"
+                            style="position: relative;"
+                        >
+                            <input
+                                type="text"
+                                id="${uniqueId}"
+                                class="accessoryBrand"
+                                placeholder="Brand"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Model :</span>
+
+                        <input
+                            type="text"
+                            class="accessoryModel"
+                            placeholder="Model..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Cost :</span>
+
+                        <input
+                            type="text"
+                            class="accessoryCost"
+                            placeholder="Cost..."
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Date Bought :</span>
+
+                        <input
+                            type="date"
+                            class="accessoryDateBought"
+                        >
+                    </div>
+
+                    <div class="field-group hori">
+                        <span>Status :</span>
+
+                        <select class="accessoryStatus">
+                            <option value="">Active</option>
+                            <option value="sold">Sold</option>
+                            <option value="broken">Broken</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="button-row">
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        onclick="deleteAccessory(${newIndex})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        // Ajouter l'accessoire aux données
+        gearData.accessories.push({
+            brand: '',
+            model: '',
+            cost: '',
+            dateBought: '',
+            status: ''
+        });
+
+        // Ajouter au DOM
+        accessoryList.appendChild(accessoryItem);
+
+        // Autocomplete
+        setupAutocomplete(
+            uniqueId,
+            () => ACCESS_BRANDS
+        );
+
+        // Mise à jour des données
+        const updateAccessoryData = () => {
+
+            const brand =
+                accessoryItem.querySelector('.accessoryBrand');
+
+            const model =
+                accessoryItem.querySelector('.accessoryModel');
+
+            const cost =
+                accessoryItem.querySelector('.accessoryCost');
+
+            const dateBought =
+                accessoryItem.querySelector('.accessoryDateBought');
+
+            const status =
+                accessoryItem.querySelector('.accessoryStatus');
+
+            gearData.accessories[newIndex] = {
+                brand: brand ? brand.value : '',
+                model: model ? model.value : '',
+                cost: cost ? cost.value : '',
+                dateBought: dateBought ? dateBought.value : '',
+                status: status ? status.value : ''
+            };
+
+            gearChanged = true;
+            showSaveChangesButton();
+        };
+
+        // Events
+        accessoryItem
+            .querySelectorAll('input, select')
+            .forEach(element => {
+
+                element.addEventListener(
+                    'input',
+                    updateAccessoryData
+                );
+
+                element.addEventListener(
+                    'change',
+                    updateAccessoryData
+                );
+
+            });
+
+        // Flatpickr
+        const dateInput =
+            accessoryItem.querySelector(
+                '.accessoryDateBought'
+            );
+
+        if (dateInput) {
+
+            flatpickr(dateInput, {
+                dateFormat: 'Y-m-d',
+                maxDate: 'today',
+                minDate: '2000-01-01',
+
+                onChange: function (
+                    selectedDates,
+                    dateStr
+                ) {
+
+                    gearData.accessories[newIndex]
+                        .dateBought = dateStr;
+
+                    gearChanged = true;
+                    showSaveChangesButton();
+                }
+            });
+
+        }
+
+        gearChanged = true;
+        showSaveChangesButton();
+
+    } catch (error) {
+
+        console.error(
+            'Error adding accessory:',
+            error
+        );
+
+        showCustomAlert(
+            'Error adding accessory. Please try again.'
+        );
+    }
+}
 
 
 async function addGlider() {
@@ -11481,11 +11986,13 @@ async function loadGear() {
             // Ensure all arrays exist
             gearData.gliders = gearData.gliders || [];
             gearData.harnesses = gearData.harnesses || [];
+            gearData.accessories = gearData.accessories || [];
             gearData.reserve = gearData.reserve || [];  // Make sure reserve exists
         } else {
             gearData = {
                 gliders: [],
                 harnesses: [],
+                accessories: [],
                 reserve: [],
                 activeGliderIndex: -1,
                 activeHarnessIndex: -1,
@@ -11495,6 +12002,7 @@ async function loadGear() {
         }
         refreshGlidersInModal();
         refreshHarnessesInModal();
+        refreshAccessoriesInModal();
         refreshreserveInModal();
         updateGearUI();
     } catch (error) {
@@ -13733,74 +14241,74 @@ function refreshQualificationsInModal() {
 }
 
 
-function refreshDocumentsInModal() {
-    const documentsList = document.getElementById('documentsList');
-    documentsList.innerHTML = '';
+// function refreshDocumentsInModal() {
+//     const documentsList = document.getElementById('documentsList');
+//     documentsList.innerHTML = '';
     
-    profileData.documents.forEach((doc, index) => {
-        const documentItem = document.createElement('div');
-        documentItem.className = 'document-item-edit';
-        documentItem.innerHTML = `
-            <div class="form-group">
-                <div>
-                    <label>Document Name</label>
-                    <input type="text" class="documentName" value="${doc.name || ''}" placeholder="Enter document name">
-                </div>
-                <div>
+//     profileData.documents.forEach((doc, index) => {
+//         const documentItem = document.createElement('div');
+//         documentItem.className = 'document-item-edit';
+//         documentItem.innerHTML = `
+//             <div class="form-group">
+//                 <div>
+//                     <label>Document Name</label>
+//                     <input type="text" class="documentName" value="${doc.name || ''}" placeholder="Enter document name">
+//                 </div>
+//                 <div>
                     
-                    <input type="file" class="documentFile" accept="image/*,.pdf" style="display: none;">
-                    <div class="document-upload-button">
-                        <div class="document-preview modal-preview">
-                            ${doc.file && doc.file.startsWith('data:image') ? 
-                                `<img src="${doc.file}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                                '📄'}
-                        </div>
-                        <span>${doc.file ? 'Change Document' : 'Upload'}</span>
-                    </div>
-                </div>
-            </div>
-            <button type="button" class="secondary-button delete-button" onclick="deleteDocument(${index})">Delete</button>
-        `;
+//                     <input type="file" class="documentFile" accept="image/*,.pdf" style="display: none;">
+//                     <div class="document-upload-button">
+//                         <div class="document-preview modal-preview">
+//                             ${doc.file && doc.file.startsWith('data:image') ? 
+//                                 `<img src="${doc.file}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+//                                 '📄'}
+//                         </div>
+//                         <span>${doc.file ? 'Change Document' : 'Upload'}</span>
+//                     </div>
+//                 </div>
+//             </div>
+//             <button type="button" class="secondary-button delete-button" onclick="deleteDocument(${index})">Delete</button>
+//         `;
 
-        // Add click handler for preview
-        if (doc.file && doc.file.startsWith('data:image')) {
-            const preview = documentItem.querySelector('.modal-preview');
-            preview.style.cursor = 'pointer';
-            preview.onclick = (e) => {
-                e.stopPropagation(); // Prevent triggering file upload
-                const options = {
-                    dataSource: [{
-                        src: doc.file,
-                        w: 1000,
-                        h: 1000
-                    }],
-                    showHideAnimationType: 'fade'
-                };
+//         // Add click handler for preview
+//         if (doc.file && doc.file.startsWith('data:image')) {
+//             const preview = documentItem.querySelector('.modal-preview');
+//             preview.style.cursor = 'pointer';
+//             preview.onclick = (e) => {
+//                 e.stopPropagation(); // Prevent triggering file upload
+//                 const options = {
+//                     dataSource: [{
+//                         src: doc.file,
+//                         w: 1000,
+//                         h: 1000
+//                     }],
+//                     showHideAnimationType: 'fade'
+//                 };
                 
-                const pswp = new PhotoSwipe(options);
-                pswp.init();
-            };
-        }
+//                 const pswp = new PhotoSwipe(options);
+//                 pswp.init();
+//             };
+//         }
 
-        documentsList.appendChild(documentItem);
+//         documentsList.appendChild(documentItem);
         
-        // Add input listeners
-        const uploadButton = documentItem.querySelector('.document-upload-button');
-        const fileInput = documentItem.querySelector('.documentFile');
+//         // Add input listeners
+//         const uploadButton = documentItem.querySelector('.document-upload-button');
+//         const fileInput = documentItem.querySelector('.documentFile');
         
-        uploadButton.onclick = () => fileInput.click();
+//         uploadButton.onclick = () => fileInput.click();
         
-        documentItem.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
-                gearChanged = true;
-                showSaveChangesButton();
-            });
-            if (input.type === 'file') {
-                input.addEventListener('change', handleDocumentUpload);
-            }
-        });
-    });
-}
+//         documentItem.querySelectorAll('input').forEach(input => {
+//             input.addEventListener('input', () => {
+//                 gearChanged = true;
+//                 showSaveChangesButton();
+//             });
+//             if (input.type === 'file') {
+//                 input.addEventListener('change', handleDocumentUpload);
+//             }
+//         });
+//     });
+// }
 function updateFavoriteSiteButton(button, isFavorite) {
     const textSpan = button.querySelector('.favorite-text');
     if (textSpan) {
@@ -16466,118 +16974,118 @@ function addCourses() {
 }
 
   
-function addDocument() {
-    const documentsList = document.getElementById('documentsList');
-    const documentItem = document.createElement('div');
-    documentItem.className = 'document-item-edit';
+// function addDocument() {
+//     const documentsList = document.getElementById('documentsList');
+//     const documentItem = document.createElement('div');
+//     documentItem.className = 'document-item-edit';
     
-    const newIndex = profileData.documents.length;
+//     const newIndex = profileData.documents.length;
     
-    documentItem.innerHTML = `
-        <div class="form-group">
-            <div>
-                <label>Document Name</label>
-                <input type="text" class="documentName" placeholder="Enter document name">
-            </div>
-            <div>
+//     documentItem.innerHTML = `
+//         <div class="form-group">
+//             <div>
+//                 <label>Document Name</label>
+//                 <input type="text" class="documentName" placeholder="Enter document name">
+//             </div>
+//             <div>
                 
-                <input type="file" class="documentFile" accept="image/*,.pdf" style="display: none;">
-                <div class="document-upload-button" onclick="this.previousElementSibling.click()">
-                    <div class="document-preview">📄</div>
-                    <span>Upload</span>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="secondary-button delete-button" onclick="deleteDocument(${newIndex})">Delete</button>
-    `;
+//                 <input type="file" class="documentFile" accept="image/*,.pdf" style="display: none;">
+//                 <div class="document-upload-button" onclick="this.previousElementSibling.click()">
+//                     <div class="document-preview">📄</div>
+//                     <span>Upload</span>
+//                 </div>
+//             </div>
+//         </div>
+//         <button type="button" class="secondary-button delete-button" onclick="deleteDocument(${newIndex})">Delete</button>
+//     `;
     
-    documentsList.appendChild(documentItem);
+//     documentsList.appendChild(documentItem);
     
-    // Add input listeners
-    documentItem.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-            gearChanged = true;
-            showSaveChangesButton();
-        });
-        if (input.type === 'file') {
-            input.addEventListener('change', handleDocumentUpload);
-        }
-    });
+//     // Add input listeners
+//     documentItem.querySelectorAll('input').forEach(input => {
+//         input.addEventListener('input', () => {
+//             gearChanged = true;
+//             showSaveChangesButton();
+//         });
+//         if (input.type === 'file') {
+//             input.addEventListener('change', handleDocumentUpload);
+//         }
+//     });
     
-    profileData.documents.push({
-        name: '',
-        file: null
-    });
+//     profileData.documents.push({
+//         name: '',
+//         file: null
+//     });
     
-    gearChanged = true;
-    showSaveChangesButton();
-}
+//     gearChanged = true;
+//     showSaveChangesButton();
+// }
 
-function handleDocumentUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// function handleDocumentUpload(event) {
+//     const file = event.target.files[0];
+//     if (!file) return;
     
-    const preview = event.target.nextElementSibling.querySelector('.document-preview');
-    const uploadText = event.target.nextElementSibling.querySelector('span');
+//     const preview = event.target.nextElementSibling.querySelector('.document-preview');
+//     const uploadText = event.target.nextElementSibling.querySelector('span');
     
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.className = 'document-preview modal-preview';
-            preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-            uploadText.textContent = 'Change Image';
+//     if (file.type.startsWith('image/')) {
+//         const reader = new FileReader();
+//         reader.onload = function(e) {
+//             preview.className = 'document-preview modal-preview';
+//             preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+//             uploadText.textContent = 'Change Image';
             
-            // Store the file data in the documents array
-            const documentItem = event.target.closest('.document-item-edit');
-            const index = Array.from(documentItem.parentNode.children).indexOf(documentItem);
-            profileData.documents[index].file = e.target.result;
+//             // Store the file data in the documents array
+//             const documentItem = event.target.closest('.document-item-edit');
+//             const index = Array.from(documentItem.parentNode.children).indexOf(documentItem);
+//             profileData.documents[index].file = e.target.result;
 
-            // Add click handler for preview
-            preview.style.cursor = 'pointer';
-            preview.onclick = (e) => {
-                e.stopPropagation(); // Prevent triggering file upload
-                const options = {
-                    dataSource: [{
-                        src: e.target.result,
-                        w: 1000,
-                        h: 1000
-                    }],
-                    showHideAnimationType: 'fade'
-                };
+//             // Add click handler for preview
+//             preview.style.cursor = 'pointer';
+//             preview.onclick = (e) => {
+//                 e.stopPropagation(); // Prevent triggering file upload
+//                 const options = {
+//                     dataSource: [{
+//                         src: e.target.result,
+//                         w: 1000,
+//                         h: 1000
+//                     }],
+//                     showHideAnimationType: 'fade'
+//                 };
                 
-                const pswp = new PhotoSwipe(options);
-                pswp.on('uiRegister', function() {
-                    pswp.ui.registerElement({
-                        name: 'custom-caption',
-                        order: 9,
-                        isButton: false,
-                        appendTo: 'root',
-                        html: 'Caption text',
-                        onInit: (el, pswp) => {
-                            pswp.on('change', () => {
-                                const currSlideElement = pswp.currSlide.data;
-                                el.innerHTML = currSlideElement.caption || '';
-                            });
-                        }
-                    });
-                });
-                pswp.init();
-            };
-        };
-        reader.readAsDataURL(file);
-    } else {
-        preview.innerHTML = '📄';
-        uploadText.textContent = 'Change Document';
+//                 const pswp = new PhotoSwipe(options);
+//                 pswp.on('uiRegister', function() {
+//                     pswp.ui.registerElement({
+//                         name: 'custom-caption',
+//                         order: 9,
+//                         isButton: false,
+//                         appendTo: 'root',
+//                         html: 'Caption text',
+//                         onInit: (el, pswp) => {
+//                             pswp.on('change', () => {
+//                                 const currSlideElement = pswp.currSlide.data;
+//                                 el.innerHTML = currSlideElement.caption || '';
+//                             });
+//                         }
+//                     });
+//                 });
+//                 pswp.init();
+//             };
+//         };
+//         reader.readAsDataURL(file);
+//     } else {
+//         preview.innerHTML = '📄';
+//         uploadText.textContent = 'Change Document';
         
-        // Store the file name for PDFs
-        const documentItem = event.target.closest('.document-item-edit');
-        const index = Array.from(documentItem.parentNode.children).indexOf(documentItem);
-        profileData.documents[index].file = file.name;
-    }
+//         // Store the file name for PDFs
+//         const documentItem = event.target.closest('.document-item-edit');
+//         const index = Array.from(documentItem.parentNode.children).indexOf(documentItem);
+//         profileData.documents[index].file = file.name;
+//     }
     
-    gearChanged = true;
-    showSaveChangesButton();
-}
+//     gearChanged = true;
+//     showSaveChangesButton();
+// }
 
 function deleteQualification(index) {
     profileData.qualifications = profileData.qualifications.filter((_, idx) => idx !== index);
@@ -16656,12 +17164,12 @@ function loadCoursesToForm() {
     });
 }
 
-function deleteDocument(index) {
-    profileData.documents = profileData.documents.filter((_, idx) => idx !== index);
-    refreshDocumentsInModal();
-    gearChanged = true;
-    showSaveChangesButton();
-}
+// function deleteDocument(index) {
+//     profileData.documents = profileData.documents.filter((_, idx) => idx !== index);
+//     refreshDocumentsInModal();
+//     gearChanged = true;
+//     showSaveChangesButton();
+// }
 function hideSaveChangesButton() {
     const buttonGroup = document.querySelector('.button-group');
     const saveButton = document.getElementById('saveChangesButton');
@@ -16673,6 +17181,7 @@ function hideSaveChangesButton() {
 }
 async function openProfileGearModal() {
     const modal = document.getElementById('profileGearModal');
+    resetProfileGearTabs();
     const closeBtn = modal.querySelector('.close-button'); // Make sure you have this class on your close button
     
     // Handle modal close via button
@@ -16768,7 +17277,8 @@ async function openProfileGearModal() {
         image: document.getElementById('profileImage').src,
         gliders: JSON.stringify(gearData.gliders),
         reserve: JSON.stringify(gearData.reserve),
-        harnesses: JSON.stringify(gearData.harnesses)
+        harnesses: JSON.stringify(gearData.harnesses),
+        accessories: JSON.stringify(gearData.accessories)
     };
 
     const form = document.getElementById('profileGearForm');
@@ -16797,9 +17307,10 @@ async function openProfileGearModal() {
     refreshGlidersInModal();
     refreshreserveInModal();
     refreshHarnessesInModal();
+    refreshAccessoriesInModal();
     refreshQualificationsInModal();
     loadCoursesToForm();
-    refreshDocumentsInModal();
+    // refreshDocumentsInModal();
     updateGearPreview();
 }
 function closeProfileGearModal() {
@@ -16998,6 +17509,48 @@ gearData.gliders = Array.from(gliderItems).map((item, index) => {
         checks: checks
     };
 });
+
+
+
+const accessoryItems =
+    document.querySelectorAll(
+        '#accessoryList .gear-item'
+    );
+
+
+gearData.accessories =
+    Array.from(accessoryItems).map(item => {
+
+        return {
+
+            brand:
+                item.querySelector(
+                    '.accessoryBrand'
+                )?.value || '',
+
+            model:
+                item.querySelector(
+                    '.accessoryModel'
+                )?.value || '',
+
+            cost:
+                item.querySelector(
+                    '.accessoryCost'
+                )?.value || '',
+
+            dateBought:
+                item.querySelector(
+                    '.accessoryDateBought'
+                )?.value || '',
+
+            status:
+                item.querySelector(
+                    '.accessoryStatus'
+                )?.value || ''
+
+        };
+
+    });
 
 
 // ============================================================
@@ -17852,6 +18405,98 @@ function getNextHarnessCheckInfo(harness, statsFromCheck) {
 }
 
 
+function switchProfileGearTab(tabName) {
+
+    // -----------------------------------------
+    // REMOVE ACTIVE FROM ALL BUTTONS
+    // -----------------------------------------
+
+    document
+        .querySelectorAll('.profile-gear-tab')
+        .forEach(button => {
+
+            button.classList.remove('active');
+
+        });
+
+
+    // -----------------------------------------
+    // HIDE ALL CONTENT
+    // -----------------------------------------
+
+    document
+        .querySelectorAll('.profile-gear-tab-content')
+        .forEach(content => {
+
+            content.classList.remove('active');
+
+        });
+
+
+    // -----------------------------------------
+    // ACTIVATE BUTTON
+    // -----------------------------------------
+
+    const activeButton =
+        document.querySelector(
+            `.profile-gear-tab[data-tab="${tabName}"]`
+        );
+
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+
+
+    // -----------------------------------------
+    // ACTIVATE CONTENT
+    // -----------------------------------------
+
+    const activeContent =
+        document.getElementById(
+            `profileGearTab-${tabName}`
+        );
+
+    if (activeContent) {
+        activeContent.classList.add('active');
+    }
+
+}
+function resetProfileGearTabs() {
+
+    // Retirer active de tous les boutons
+    document
+        .querySelectorAll('.profile-gear-tab')
+        .forEach(button => {
+            button.classList.remove('active');
+        });
+
+    // Retirer active de tous les contenus
+    document
+        .querySelectorAll('.profile-gear-tab-content')
+        .forEach(content => {
+            content.classList.remove('active');
+        });
+
+    // Activer Pilot
+    const pilotButton =
+        document.querySelector(
+            '.profile-gear-tab[data-tab="pilot"]'
+        );
+
+    const pilotContent =
+        document.getElementById(
+            'profileGearTab-pilot'
+        );
+
+    if (pilotButton) {
+        pilotButton.classList.add('active');
+    }
+
+    if (pilotContent) {
+        pilotContent.classList.add('active');
+    }
+}
+
 
 
 
@@ -17860,6 +18505,7 @@ async function updateGearPreview() {
     const gliderList = document.getElementById('gliderPreviewList');
     const harnessList = document.getElementById('harnessPreviewList');
     const reserveList = document.getElementById('reservePreviewList');
+    const accessoryList = document.getElementById('accessoriesPreviewList');
     const qualificationsList = document.getElementById('qualificationsPreviewList');
     const CoursesList = document.getElementById('CoursesPreviewList');
     const documentsList = document.getElementById('documentsPreviewList');
@@ -18070,6 +18716,63 @@ ${lastCheckDate ? ` ${renderGliderCheckList(glider)} ` : ''}
             gliderList.innerHTML = gliderElements.join('');
         } else {
             gliderList.innerHTML = '<div class="preview-empty">No wings added</div>';
+        }
+        if (gearData.accessories.length > 0) {
+
+            const accessoryElements =
+                gearData.accessories.map(accessory => {
+        
+                    return `
+                        <div class="accessory-item">
+        
+                            <div class="accessory-main">
+        
+                                <div class="accessory-brand-model">
+        
+
+
+
+                                    <div class="brand-model acc">
+                                            ${accessory.brand} ${accessory.model}
+                                        </div>
+
+
+                                </div>
+        
+                            </div>
+        
+        
+                            <div class="accessory-details">
+        <span class="purchase-date-acc">Bought: ${formatDate(accessory.dateBought)}  ${accessory.cost ? `<span class="purchase-price">- ${accessory.cost}</span>` : ''}</span>
+                               
+                                
+        
+        
+                                ${accessory.status ? `
+                                    <span class="accessory-status ${accessory.status}">
+                                        ${accessory.status}
+                                    </span>
+                                ` : ''}
+
+                               
+        
+                            </div>
+        
+                        </div>
+                    `;
+        
+                });
+        
+        
+            accessoryList.innerHTML =
+                accessoryElements.join('');
+        
+        
+        } else {
+        
+            accessoryList.innerHTML =
+                '<div class="preview-empty">No accessories added</div>';
+        
         }
         
         if (gearData.reserve.length > 0) {
