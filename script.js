@@ -453,7 +453,7 @@ async function loadFlightDataForCalendar() {
         // Get all flights from IndexedDB
         const flights = await dbOperations.getAllData(STORES.flights);
         flightDataForCalendar = flights || [];
-        console.log('Loaded flight data for calendar:', flightDataForCalendar.length, 'flights');
+        // console.log('Loaded flight data for calendar:', flightDataForCalendar.length, 'flights');
         renderFlightCalendar();
     } catch (error) {
         console.error('Error loading flight data for calendar:', error);
@@ -10547,49 +10547,89 @@ function createSpendingChart(
     // TABS
     // =========================================
 
-    const tabs =
-        document.querySelectorAll(
-            '.spending-tab'
-        );
+    // const tabs =
+    //     document.querySelectorAll(
+    //         '.spending-tab'
+    //     );
 
 
-    tabs.forEach(
-        tab => {
+    // tabs.forEach(
+    //     tab => {
 
-            tab.addEventListener(
-                'click',
-                function () {
+    //         tab.addEventListener(
+    //             'click',
+    //             function () {
 
-                    const view =
-                        this.dataset.spendingView;
-
-
-                    if (!view) return;
+    //                 const view =
+    //                     this.dataset.spendingView;
 
 
-                    currentView =
-                        view;
+    //                 if (!view) return;
 
 
-                    tabs.forEach(
-                        otherTab => {
-
-                            otherTab.classList.toggle(
-                                'active',
-                                otherTab === this
-                            );
-
-                        }
-                    );
+    //                 currentView =
+    //                     view;
 
 
-                    render();
+    //                 tabs.forEach(
+    //                     otherTab => {
 
-                }
-            );
+    //                         otherTab.classList.toggle(
+    //                             'active',
+    //                             otherTab === this
+    //                         );
 
-        }
-    );
+    //                     }
+    //                 );
+
+
+    //                 render();
+
+    //             }
+    //         );
+
+    //     }
+    // );
+
+
+
+    // =========================================
+// TABS
+// =========================================
+
+const tabs = document.querySelectorAll('.spending-tab');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', function () {
+        const view = this.dataset.spendingView;
+        if (!view) return;
+
+        currentView = view;
+
+        // Update active class
+        tabs.forEach(otherTab => {
+            otherTab.classList.toggle('active', otherTab === this);
+        });
+
+        render();
+    });
+});
+
+// =========================================
+// RESET TABS + INITIAL RENDER
+// =========================================
+
+function resetTabsToOverview() {
+    tabs.forEach(tab => {
+        const isOverview = tab.dataset.spendingView === 'overview';
+        tab.classList.toggle('active', isOverview);
+    });
+}
+
+// Force le reset des boutons + affichage
+resetTabsToOverview();
+currentView = 'overview';
+render();
 
 
     // =========================================
@@ -11129,22 +11169,22 @@ function getSpendingStats(
     // DEBUG
     // =========================================
 
-    console.log(
-        '📊 Spending stats:',
-        stats
-    );
+    // console.log(
+    //     '📊 Spending stats:',
+    //     stats
+    // );
 
 
-    console.log(
-        '🎓 Training courses:',
-        courses
-    );
+    // console.log(
+    //     '🎓 Training courses:',
+    //     courses
+    // );
 
 
-    console.log(
-        '🪂 Flights:',
-        flightsData
-    );
+    // console.log(
+    //     '🪂 Flights:',
+    //     flightsData
+    // );
 
 
     return stats;
