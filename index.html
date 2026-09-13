@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-
-
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="/manifest.json">
@@ -14,14 +10,10 @@
     <meta name="apple-mobile-web-app-title" content="FlyBook">
     <link rel="icon" type="image/png" sizes="512x512" href="assets/logos/any.png">
     <link rel="apple-touch-icon" href="assets/logos/192_blk_background.png">
+    <title>Menairó Pilots - A simple flight log</title>
 
-
-   <title>Menairó Pilots - A simple flight log</title>
-
-<!-- English description -->
 <meta name="description" content="Menairó Pilots: Flight logging app for paragliding, hang gliding and paramotoring. Track flights with GPX/TCX support and data export.">
 
-<!-- Keywords - Extended multilingual keywords -->
 <meta name="keywords" content="flight logbook, paragliding log, hang gliding, paramotoring, GPX tracks, flight tracking, pilot logbook, flight data, flight recorder, pilot profile, flybook, pilot diary, flight statistics, 
 paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, libro de vuelo, carnet de vol, registro de vuelos, registre de vol,track GPS, tracks GPX, TCX,pilot log, diario de vuelo, journal de vol,flight backup, copia de seguridad vuelos, sauvegarde des vols,flying hours, horas de vuelo, heures de vol, pilot statistics, estadísticas de piloto, statistiques de pilote, flight analysis, análisis de vuelo, analyse de vol, free flight, vuelo libre, vol libre, pilot profile, perfil de piloto, profil de pilote, flight export, exportación de vuelos, exportation des vols, flight data, datos de vuelo, données de vol,cross country, XC flying, vuelo de distancia, vol de distance,thermal flying, vuelo térmico, vol thermique,soaring, vuelo a vela, vol à voile,cloud base, base de nubes, base des nuages,takeoff, despegue, décollage,landing, aterrizaje, atterrissage,wind direction, dirección del viento, direction du vent,altitude gain, ganancia de altura, gain d'altitude,flight duration, duración del vuelo, durée du vol,glide ratio, planeo, finesse,flight route, ruta de vuelo, route de vol,waypoints, puntos de ruta, points de route,flight planning, planificación de vuelo, planification de vol,pilot license, licencia de piloto, licence de pilote,flight conditions, condiciones de vuelo, conditions de vol,weather conditions, condiciones meteorológicas, conditions météorologiques,flight instruments, instrumentos de vuelo, instruments de vol,vario, variómetro, variomètre,altimeter, altímetro, altimètre,GPS logger, registrador GPS, enregistreur GPS,flight safety, seguridad en vuelo, sécurité en vol">
 
@@ -29,10 +21,8 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://pilots.menairo.com/">
 
-<!-- Language metadata -->
 <meta property="og:locale" content="en_US">
 
-<!-- Open Graph for Facebook -->
 <meta property="og:title" content="Menairó Pilots - A simple flight log" />
 <meta property="og:description" content="Complete flight logging web app for paragliding, hang gliding and paramotoring. Track your flights with GPX/TCX support, personal profiles and data export." />
 <meta property="og:image" content="https://pilots.menairo.com/assets/logos/pilots_512.png" />
@@ -44,7 +34,6 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Menairó Pilots" />
 
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@Menairomaps" />
 <meta name="twitter:creator" content="@Menairomaps" />
@@ -54,15 +43,6 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 <meta name="twitter:image:alt" content="Menairó Pilots" />
 <meta name="twitter:image:width" content="512" />
 <meta name="twitter:image:height" content="512" />
-
-<!-- <link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet" />
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script> -->
-<!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
-
-
-
-
-
 
     <link rel="stylesheet" href="styles.css">
     <script src="./libs/chart.js" defer></script>
@@ -147,7 +127,6 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                         <input type="file" id="profileBackgroundInput" accept="image/*" style="display: none;">
                     </div>
 
-                    <!-- <div class="spacer-new"></div> -->
 
 <!-- ========================================= -->
 <!-- PROFILE & GEAR TABS -->
@@ -554,12 +533,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
                                 
                             </div>
                         </div>
-                        <!-- <button class="expand-details-button" onclick="toggleGearPreview()">
-                            <img src="assets/profile.png" class="show-details-img">
-                            Show Profile Details
-                            <span class="expand-icon"><img src="assets/arrow_down.png"></span>
-                        </button> -->
-
+                        
                         <div class="buttons-badge">
                             
                         
@@ -970,7 +944,7 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
 
 
 
-
+            <div id="flight-map"></div>
 
             
             <div class="chart-row">
@@ -1057,15 +1031,44 @@ paragliding, parapente, parapent, paramotor, paramoteur, ala delta, deltaplane, 
         </div>
         
 
-        <div id="flight-map"></div>
+        
 
-
-        <div class="spending-chart-container" style="display: none;">
+<!-- 
+        <div class="spending-chart-container">
 
             <div id="spendingChart"></div>
         
-        </div>
+        </div> -->
         
+        <div class="title-main stats"><h2>Spendings</h2></div>
+        <div class="spending-chart-container">
+
+            <div class="spending-tabs">
+                <button
+                    type="button"
+                    class="spending-tab active"
+                    data-spending-view="overview">
+                    Overview
+                </button>
+        
+                <button
+                    type="button"
+                    class="spending-tab"
+                    data-spending-view="gear">
+                    Gear
+                </button>
+        
+                <button
+                    type="button"
+                    class="spending-tab"
+                    data-spending-view="history">
+                    History
+                </button>
+            </div>
+        
+            <div id="spendingChart"></div>
+        
+        </div>
         
         
         <div class="appsSlideshow"></div>

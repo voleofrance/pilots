@@ -1881,6 +1881,7 @@ function safelyInitializeMap(containerId, filteredFlights = null) {
                 try {
                     // Now it's safe to create a new map
                     const map = L.map(containerId, {
+                        dragging: false,
                         fadeAnimation: false,  // Disable animations that might cause positioning issues
                         zoomAnimation: false,  // Disable zoom animations
                         markerZoomAnimation: false  // Disable marker animations
@@ -9895,7 +9896,14 @@ function getSpendingStats(gearData, profileData) {
 //     createFlightDistanceDistribution(flightData);
 //     createMonthChart(flightData);
 // }
-function createSpendingChart(gearData, profileData) {
+
+
+
+function createSpendingChart(
+    gearData,
+    profileData,
+    flightsData
+) {
 
     const container =
         document.getElementById('spendingChart');
@@ -9905,26 +9913,23 @@ function createSpendingChart(gearData, profileData) {
         return;
     }
 
-    container.innerHTML = '';
-
     const stats =
-        getSpendingStats(
-            gearData,
-            profileData
-        );
+    getSpendingStats(
+        gearData,
+        profileData,
+        flightsData
+    );
 
-    const gear = stats.gear;
-    const training = stats.training;
-    const total = stats.total;
+    let currentView = 'overview';
 
-    const maxValue =
-        Math.max(
-            gear,
-            training,
-            1
-        );
+    // =========================================
+    // FORMAT MONEY
+    // =========================================
 
     function formatMoney(value) {
+
+        value = Number(value) || 0;
+
         return new Intl.NumberFormat(
             'fr-FR',
             {
@@ -9933,107 +9938,1358 @@ function createSpendingChart(gearData, profileData) {
         ).format(value) + ' €';
     }
 
-    function createBar(label, value, className) {
 
-        const row =
-            document.createElement('div');
+    function formatMoneyDecimal(value) {
 
-        row.className =
-            'spending-row';
+        value = Number(value) || 0;
 
-        const header =
-            document.createElement('div');
+        return new Intl.NumberFormat(
+            'fr-FR',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        ).format(value) + ' €';
+    }
 
-        header.className =
-            'spending-row-header';
 
-        const labelElement =
-            document.createElement('span');
+    function formatNumber(value) {
 
-        labelElement.className =
-            'spending-label';
+        value = Number(value) || 0;
 
-        labelElement.textContent =
-            label;
+        return new Intl.NumberFormat(
+            'fr-FR'
+        ).format(value);
+    }
 
-        const valueElement =
-            document.createElement('span');
 
-        valueElement.className =
-            'spending-value';
+    // =========================================
+    // MAX VALUE
+    // =========================================
 
-        valueElement.innerHTML =
-            `<span class="number">${formatMoney(value)}</span>`;
+    function getMaxValue(values) {
 
-        header.appendChild(labelElement);
-        header.appendChild(valueElement);
+        const max =
+            Math.max(
+                ...values.map(
+                    value => Number(value) || 0
+                ),
+                1
+            );
 
-        const barBackground =
-            document.createElement('div');
+        return max;
+    }
 
-        barBackground.className =
-            'spending-bar-background';
 
-        const bar =
-            document.createElement('div');
+    // =========================================
+    // CREATE BAR
+    // =========================================
+    function createBar(
+        label,
+        value,
+        className,
+        maxValue,
+        extraText = ''
+    ) {
+    
+        const row = document.createElement('div');
+        row.className = 'spending-row';
+    
+        // ----- TITLE -----
+        const title = document.createElement('div');
+        title.className = 'spending-row-title';
+    
+        const labelElement = document.createElement('span');
+        labelElement.className = 'spending-label';
+        labelElement.textContent = label;
+        title.appendChild(labelElement);
+    
+        if (extraText) {
+            const secondary = document.createElement('span');
+            secondary.className = 'spending-row-secondary';
+            secondary.textContent = extraText;
+            title.appendChild(secondary);
+        }
+    
+        row.appendChild(title);
+    
+        // ----- BAR CONTAINER -----
+        const barContainer = document.createElement('div');
+        barContainer.className = 'spending-bar-container';
+    
+        // Background (full width)
+        const barBackground = document.createElement('div');
+        barBackground.className = 'spending-bar-background';
+    
+        // The colored bar + value together
+        const barWithValue = document.createElement('div');
+        barWithValue.className = 'spending-bar-with-value';
+    
+        const bar = document.createElement('div');
+        bar.className = `spending-bar ${className}`;
+    
+        // const numericValue = Number(value) || 0;
+        // const width = numericValue > 0
+        //     ? (numericValue / maxValue) * 100
+        //     : 0;
 
-        bar.className =
-            `spending-bar ${className}`;
+        const numericValue = Number(value) || 0;
 
-        const width =
-            value > 0
-                ? (value / maxValue) * 100
-                : 0;
+        let width = numericValue > 0
+            ? (numericValue / maxValue) * 100
+            : 0;
 
-        bar.style.width =
-            `${width}%`;
+        // Petite barre même quand c'est 0
+        if (numericValue === 0) {
+            width = 5; // 4% de largeur (tu peux mettre 3 ou 5)
+        }
 
-        barBackground.appendChild(bar);
-
-        row.appendChild(header);
-        row.appendChild(barBackground);
-
+        bar.style.width = `${width}%`;
+    
+        // We set the width on the wrapper that contains both bar + value
+        barWithValue.style.width = `${width}%`;
+    
+        // Value
+        const valueElement = document.createElement('span');
+        valueElement.className = 'spending-value';
+        valueElement.innerHTML = `<span class="number">${formatMoney(value)}</span>`;
+    
+        barWithValue.appendChild(bar);
+        barWithValue.appendChild(valueElement);
+    
+        barBackground.appendChild(barWithValue);
+        barContainer.appendChild(barBackground);
+    
+        row.appendChild(barContainer);
+    
         return row;
     }
 
-    container.appendChild(
-        createBar(
-            'Gear & Accessories',
-            gear,
-            'spending-bar-gear'
-        )
-    );
 
-    container.appendChild(
-        createBar(
-            'Training',
-            training,
-            'spending-bar-training'
-        )
-    );
+    // =========================================
+    // TOTAL ELEMENT
+    // =========================================
 
-    const totalElement =
-        document.createElement('div');
+    function createTotal(
+        label,
+        value,
+        extraClass = ''
+    ) {
 
-    totalElement.className =
-        'spending-total';
+        const totalElement =
+            document.createElement('div');
 
-    totalElement.innerHTML = `
-        <span class="spending-total-label">
-            Total
-        </span>
+        totalElement.className =
+            `spending-total ${extraClass}`;
 
-        <span class="spending-total-value">
-            <span class="number">
-                ${formatMoney(total)}
+
+        totalElement.innerHTML = `
+
+            <span class="spending-total-label">
+                ${label}
             </span>
-        </span>
-    `;
 
-    container.appendChild(
-        totalElement
+            <span class="spending-total-value">
+
+                <span class="number">
+                    ${formatMoney(value)}
+                </span>
+
+            </span>
+
+        `;
+
+
+        return totalElement;
+    }
+
+
+    // =========================================
+    // OVERVIEW
+    // =========================================
+
+    function renderOverview() {
+
+        container.innerHTML = '';
+
+
+        const gear =
+            Number(stats.gear) || 0;
+
+        const training =
+            Number(stats.training) || 0;
+
+        const total =
+            Number(stats.total) ||
+            gear + training;
+
+
+        const maxValue =
+            getMaxValue([
+                gear,
+                training
+            ]);
+
+
+        container.appendChild(
+            createBar(
+                'Gear & Accessories',
+                gear,
+                'spending-bar-gear',
+                maxValue
+            )
+        );
+
+
+        container.appendChild(
+            createBar(
+                'Training',
+                training,
+                'spending-bar-training',
+                maxValue
+            )
+        );
+
+
+        container.appendChild(
+            createTotal(
+                'Total',
+                total
+            )
+        );
+    }
+
+
+    // =========================================
+    // GEAR DETAILS
+    // =========================================
+
+    function renderGear() {
+
+        container.innerHTML = '';
+
+
+        const details =
+            stats.gearDetails || {};
+
+
+        const categories = [
+
+            {
+                key: 'wings',
+                label: 'Wings',
+                className: 'spending-bar-wings'
+            },
+
+            {
+                key: 'harnesses',
+                label: 'Harnesses',
+                className: 'spending-bar-harnesses'
+            },
+
+            {
+                key: 'reserves',
+                label: 'Reserves',
+                className: 'spending-bar-reserves'
+            },
+
+            {
+                key: 'accessories',
+                label: 'Accessories',
+                className: 'spending-bar-accessories'
+            }
+
+        ];
+
+
+        const values =
+            categories.map(
+                category =>
+                    Number(
+                        details[category.key]
+                    ) || 0
+            );
+
+
+        const maxValue =
+            getMaxValue(values);
+
+
+        let gearTotal = 0;
+
+
+        categories.forEach(
+            category => {
+
+                const value =
+                    Number(
+                        details[category.key]
+                    ) || 0;
+
+
+                gearTotal += value;
+
+
+                const percentage =
+                    gearTotal > 0
+                        ? ''
+                        : '';
+
+
+                container.appendChild(
+                    createBar(
+                        category.label,
+                        value,
+                        category.className,
+                        maxValue
+                    )
+                );
+            }
+        );
+
+
+        // Si ton getSpendingStats possède déjà
+        // un total Gear, on le privilégie.
+
+        const total =
+            Number(stats.gear) || gearTotal;
+
+
+        container.appendChild(
+            createTotal(
+                'Total',
+                total
+            )
+        );
+    }
+
+
+    // =========================================
+    // HISTORY
+    // =========================================
+
+    function renderHistory() {
+
+        container.innerHTML = '';
+
+
+        const yearly =
+            stats.yearly || {};
+
+
+        const years =
+            Object.keys(yearly)
+                .map(Number)
+                .filter(
+                    year => !isNaN(year)
+                )
+                .sort(
+                    (a, b) => a - b
+                );
+
+
+        if (!years.length) {
+
+            const empty =
+                document.createElement('div');
+
+            empty.className =
+                'spending-empty';
+
+            empty.textContent =
+                'No yearly spending data available.';
+
+            container.appendChild(empty);
+
+            return;
+        }
+
+
+        const yearlyValues =
+            years.map(
+                year =>
+                    Number(
+                        yearly[year].spending
+                    ) || 0
+            );
+
+
+        const maxValue =
+            getMaxValue(yearlyValues);
+
+
+        let totalSpending = 0;
+        let totalFlights = 0;
+
+
+        // years.forEach(
+        //     year => {
+
+        //         const yearData =
+        //             yearly[year];
+
+
+        //         const spending =
+        //             Number(
+        //                 yearData.spending
+        //             ) || 0;
+
+
+        //         const flights =
+        //             Number(
+        //                 yearData.flights
+        //             ) || 0;
+
+
+        //         totalSpending +=
+        //             spending;
+
+
+        //         totalFlights +=
+        //             flights;
+
+
+        //         const perFlight =
+        //             flights > 0
+        //                 ? spending / flights
+        //                 : 0;
+
+
+        //         container.appendChild(
+        //             createBar(
+        //                 String(year),
+        //                 spending,
+        //                 'spending-bar-year',
+        //                 maxValue,
+        //                 flights > 0
+        //                     ? `${formatNumber(flights)} flights · ${formatMoneyDecimal(perFlight)}/flight`
+        //                     : 'No flights'
+        //             )
+        //         );
+
+        //     }
+        // );
+        // years.forEach(year => {
+        //     const yearData = yearly[year];
+        
+        //     const spending = Number(yearData.spending) || 0;
+        //     const gear = Number(yearData.gear) || 0;
+        //     const training = Number(yearData.training) || 0;
+        //     const flights = Number(yearData.flights) || 0;
+        
+        //     totalSpending += spending;
+        //     totalFlights += flights;
+        
+        //     // Texte secondaire
+        //     let extraText = '';
+        
+        //     if (gear > 0 || training > 0) {
+        //         const parts = [];
+        //         if (gear > 0) parts.push(`${formatMoney(gear)} gear`);
+        //         if (training > 0) parts.push(`${formatMoney(training)} training`);
+        //         extraText = parts.join(' / ');
+        //     } else {
+        //         extraText = 'No spending';
+        //     }
+        
+        //     // Optionnel : ajouter le nombre de vols
+        //     extraText += flights > 0 ? ` · ${formatNumber(flights)} flights` : '';
+        
+        //     container.appendChild(
+        //         createBar(
+        //             String(year),
+        //             spending,
+        //             'spending-bar-year',
+        //             maxValue,
+        //             extraText
+        //         )
+        //     );
+        // });
+
+
+        years.forEach(year => {
+            const yearData = yearly[year];
+        
+            const spending = Number(yearData.spending) || 0;
+            const gear = Number(yearData.gear) || 0;
+            const training = Number(yearData.training) || 0;
+            const flights = Number(yearData.flights) || 0;
+        
+            totalSpending += spending;
+            totalFlights += flights;
+        
+            // Texte secondaire
+            // Texte secondaire
+            let extraText = '';
+
+            if (gear > 0 || training > 0) {
+                const parts = [];
+                if (gear > 0) parts.push(`${formatMoney(gear)} Gear`);
+                if (training > 0) parts.push(`${formatMoney(training)} Training`);
+                extraText = parts.join(' / ');
+            } else {
+                extraText = 'No spending';
+            }
+
+            // Ajoute le nombre de vols
+            extraText += flights > 0 
+                ? ` · ${formatNumber(flights)} flights` 
+                : '';
+        
+            // Choix de la classe de couleur
+            const barClass = spending > 0 
+                ? 'spending-bar-year' 
+                : 'spending-bar-year-zero';   // ← nouvelle classe pour 0 €
+        
+            container.appendChild(
+                createBar(
+                    String(year),
+                    spending,
+                    barClass,
+                    maxValue,
+                    extraText
+                )
+            );
+        });
+
+
+        // =========================================
+        // OVERALL STATISTICS
+        // =========================================
+
+        const overall =
+            document.createElement('div');
+
+        overall.className =
+            'spending-overall';
+
+
+        const overallPerFlight =
+            totalFlights > 0
+                ? totalSpending / totalFlights
+                : 0;
+
+
+        overall.innerHTML = `
+
+            <div class="spending-overall-item">
+
+                <span class="spending-overall-label">
+                    Total 
+                </span>
+
+                <span class="spending-overall-value">
+                    ${formatMoney(totalSpending)}
+                </span>
+
+            </div>
+
+
+            <div class="spending-overall-item">
+
+                <span class="spending-overall-label">
+                    Flights
+                </span>
+
+                <span class="spending-overall-value">
+                    ${formatNumber(totalFlights)}
+                </span>
+
+            </div>
+
+
+            <div class="spending-overall-item spending-overall-highlight">
+
+                <span class="spending-overall-label">
+                    Avg / flight
+                </span>
+
+                <span class="spending-overall-value">
+                    ${formatMoneyDecimal(overallPerFlight)}
+                </span>
+
+            </div>
+
+        `;
+
+
+        container.appendChild(
+            overall
+        );
+    }
+
+
+    // =========================================
+    // RENDER
+    // =========================================
+
+    function render() {
+
+        switch (currentView) {
+
+            case 'gear':
+                renderGear();
+                break;
+
+            case 'history':
+                renderHistory();
+                break;
+
+            case 'overview':
+            default:
+                renderOverview();
+                break;
+        }
+    }
+
+
+    // =========================================
+    // TABS
+    // =========================================
+
+    const tabs =
+        document.querySelectorAll(
+            '.spending-tab'
+        );
+
+
+    tabs.forEach(
+        tab => {
+
+            tab.addEventListener(
+                'click',
+                function () {
+
+                    const view =
+                        this.dataset.spendingView;
+
+
+                    if (!view) return;
+
+
+                    currentView =
+                        view;
+
+
+                    tabs.forEach(
+                        otherTab => {
+
+                            otherTab.classList.toggle(
+                                'active',
+                                otherTab === this
+                            );
+
+                        }
+                    );
+
+
+                    render();
+
+                }
+            );
+
+        }
     );
+
+
+    // =========================================
+    // INITIAL RENDER
+    // =========================================
+
+    render();
 }
+
+function getSpendingStats(
+    gearData,
+    profileData,
+    flightsData
+) {
+
+    // =========================================
+    // INITIALISATION
+    // =========================================
+
+    const stats = {
+
+        gear: 0,
+
+        training: 0,
+
+        total: 0,
+
+        gearDetails: {
+
+            wings: 0,
+            harnesses: 0,
+            reserves: 0,
+            accessories: 0
+
+        },
+
+        yearly: {}
+
+    };
+
+
+    // =========================================
+    // PRICE PARSER
+    // =========================================
+
+    function parsePrice(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ''
+        ) {
+            return 0;
+        }
+
+
+        if (typeof value === 'number') {
+            return value;
+        }
+
+
+        /*
+         * Exemples :
+         *
+         * "800€"  -> 800
+         * "50 €"  -> 50
+         * "1 200€" -> 1200
+         * "12" -> 12
+         */
+
+        let stringValue =
+            String(value)
+                .trim()
+                .replace(/\s/g, '')
+                .replace('€', '')
+                .replace(',', '.');
+
+
+        return parseFloat(stringValue) || 0;
+    }
+
+
+    // =========================================
+    // DATE PARSER
+    // =========================================
+
+    function getYear(dateValue) {
+
+        if (!dateValue) {
+            return null;
+        }
+    
+        // Already a Date object
+        if (dateValue instanceof Date) {
+            return isNaN(dateValue.getTime()) ? null : dateValue.getFullYear();
+        }
+    
+        const str = String(dateValue).trim();
+    
+        // --- Format DD/MM/YY or DD/MM/YYYY ---
+        // Examples: "19/09/24", "19/09/2024", "5/3/23"
+        const ddmmyy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    
+        if (ddmmyy) {
+            let day   = parseInt(ddmmyy[1], 10);
+            let month = parseInt(ddmmyy[2], 10) - 1; // JS months are 0-based
+            let year  = parseInt(ddmmyy[3], 10);
+    
+            // Convert 2-digit year → 4-digit (assuming 2000-2099)
+            if (year < 100) {
+                year += 2000;
+            }
+    
+            const date = new Date(year, month, day);
+    
+            if (!isNaN(date.getTime())) {
+                return date.getFullYear();
+            }
+        }
+    
+        // --- Fallback for ISO or other formats ---
+        const date = new Date(str);
+    
+        if (!isNaN(date.getTime())) {
+            return date.getFullYear();
+        }
+    
+        return null;
+    }
+
+
+    // =========================================
+    // ENSURE YEAR
+    // =========================================
+
+    // function ensureYear(year) {
+
+    //     if (!year) {
+    //         return;
+    //     }
+
+
+    //     if (!stats.yearly[year]) {
+
+    //         stats.yearly[year] = {
+
+    //             spending: 0,
+    //             flights: 0
+
+    //         };
+
+    //     }
+
+    // }
+
+    function ensureYear(year) {
+        if (!year) return;
+    
+        if (!stats.yearly[year]) {
+            stats.yearly[year] = {
+                spending: 0,
+                gear: 0,
+                training: 0,
+                flights: 0
+            };
+        }
+    }
+
+
+    // =========================================
+    // ADD SPENDING TO YEAR
+    // =========================================
+
+    // function addSpendingToYear(
+    //     date,
+    //     amount
+    // ) {
+
+    //     const year =
+    //         getYear(date);
+
+
+    //     if (!year || !amount) {
+    //         return;
+    //     }
+
+
+    //     ensureYear(year);
+
+
+    //     stats.yearly[year].spending +=
+    //         amount;
+
+    // }
+
+    function addSpendingToYear(date, amount, type = 'gear') {
+        const year = getYear(date);
+    
+        if (!year || !amount) return;
+    
+        ensureYear(year);
+    
+        stats.yearly[year].spending += amount;
+    
+        if (type === 'training') {
+            stats.yearly[year].training += amount;
+        } else {
+            stats.yearly[year].gear += amount;
+        }
+    }
+
+
+    // =========================================
+    // PROCESS GEAR
+    // =========================================
+
+    function processGearItem(
+        item,
+        category
+    ) {
+
+        if (!item) {
+            return;
+        }
+
+
+        // -----------------------------------------
+        // PURCHASE
+        // -----------------------------------------
+
+        const purchasePrice =
+            parsePrice(
+                item.priceBought
+            );
+
+
+        if (purchasePrice > 0) {
+
+            stats.gear +=
+                purchasePrice;
+
+
+            stats.gearDetails[category] +=
+                purchasePrice;
+
+
+            // addSpendingToYear(
+            //     item.dateBought,
+            //     purchasePrice
+            // );
+            addSpendingToYear(item.dateBought, purchasePrice, 'gear');
+
+        }
+
+
+        // -----------------------------------------
+        // CHECKS / MAINTENANCE
+        // -----------------------------------------
+
+        if (
+            Array.isArray(item.checks)
+        ) {
+
+            item.checks.forEach(
+                check => {
+
+                    const checkPrice =
+                        parsePrice(
+                            check.price
+                        );
+
+
+                    if (checkPrice <= 0) {
+                        return;
+                    }
+
+
+                    stats.gear +=
+                        checkPrice;
+
+
+                    stats.gearDetails[category] +=
+                        checkPrice;
+
+
+                    // addSpendingToYear(
+                    //     check.date,
+                    //     checkPrice
+                    // );
+                    addSpendingToYear(check.date, checkPrice, 'gear');
+
+                }
+            );
+
+        }
+
+    }
+
+
+    // =========================================
+    // GLIDERS
+    // =========================================
+
+    if (
+        Array.isArray(
+            gearData?.gliders
+        )
+    ) {
+
+        gearData.gliders.forEach(
+            glider => {
+
+                processGearItem(
+                    glider,
+                    'wings'
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================
+    // HARNESSES
+    // =========================================
+
+    if (
+        Array.isArray(
+            gearData?.harnesses
+        )
+    ) {
+
+        gearData.harnesses.forEach(
+            harness => {
+
+                processGearItem(
+                    harness,
+                    'harnesses'
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================
+    // RESERVES
+    // =========================================
+
+    if (
+        Array.isArray(
+            gearData?.reserve
+        )
+    ) {
+
+        gearData.reserve.forEach(
+            reserve => {
+
+                processGearItem(
+                    reserve,
+                    'reserves'
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================
+    // ACCESSORIES
+    // =========================================
+
+    if (
+        Array.isArray(
+            gearData?.accessories
+        )
+    ) {
+
+        gearData.accessories.forEach(
+            accessory => {
+
+                const price =
+                    parsePrice(
+                        accessory.cost
+                    );
+
+
+                if (price <= 0) {
+                    return;
+                }
+
+
+                stats.gear +=
+                    price;
+
+
+                stats.gearDetails.accessories +=
+                    price;
+
+
+                // addSpendingToYear(
+                //     accessory.dateBought,
+                //     price
+                // );
+                addSpendingToYear(accessory.dateBought, price, 'gear');
+
+            }
+        );
+
+    }
+
+
+    // =========================================
+    // TRAINING COURSES
+    // =========================================
+
+    /*
+     * Les cours sont dans :
+     *
+     * profile
+     *    └── extendedProfile
+     *           └── Courses
+     */
+
+    const courses =
+        Array.isArray(
+            profileData?.Courses
+        )
+            ? profileData.Courses
+            : [];
+
+
+    courses.forEach(
+        course => {
+
+            /*
+             * On accepte plusieurs noms possibles
+             * pour le prix/date afin de rester
+             * compatible avec tes données.
+             */
+
+            const price =
+                parsePrice(
+                    course.price ??
+                    course.cost ??
+                    course.priceBought ??
+                    course.amount ??
+                    course.costCourse
+                );
+
+
+            const date =
+                course.date ??
+                course.dateBought ??
+                course.startDate ??
+                course.dateCourse ??
+                course.createdAt;
+
+
+            if (price > 0) {
+
+                stats.training +=
+                    price;
+
+
+                // addSpendingToYear(
+                //     date,
+                //     price
+                // );
+                addSpendingToYear(date, price, 'training');
+
+            }
+
+        }
+    );
+
+
+    // =========================================
+    // FLIGHTS
+    // =========================================
+
+    if (
+        Array.isArray(flightsData)
+    ) {
+
+        flightsData.forEach(
+            flight => {
+
+                /*
+                 * On cherche la date du vol.
+                 *
+                 * À adapter uniquement si ton champ
+                 * porte un autre nom.
+                 */
+
+                const date =
+                    flight.date ??
+                    flight.flightDate ??
+                    flight.datetime ??
+                    flight.dateTime ??
+                    flight.createdAt;
+
+
+                const year =
+                    getYear(date);
+
+
+                if (!year) {
+                    return;
+                }
+
+
+                ensureYear(year);
+
+
+                stats.yearly[year].flights++;
+
+            }
+        );
+
+    }
+
+
+    // =========================================
+    // TOTAL
+    // =========================================
+
+    stats.total =
+        stats.gear +
+        stats.training;
+
+
+    // =========================================
+    // DEBUG
+    // =========================================
+
+    console.log(
+        '📊 Spending stats:',
+        stats
+    );
+
+
+    console.log(
+        '🎓 Training courses:',
+        courses
+    );
+
+
+    console.log(
+        '🪂 Flights:',
+        flightsData
+    );
+
+
+    return stats;
+}
+
+
+// function createSpendingChart(gearData, profileData) {
+
+//     const container =
+//         document.getElementById('spendingChart');
+
+//     if (!container) {
+//         console.error('❌ #spendingChart introuvable');
+//         return;
+//     }
+
+//     container.innerHTML = '';
+
+//     const stats =
+//         getSpendingStats(
+//             gearData,
+//             profileData
+//         );
+
+//     const gear = stats.gear;
+//     const training = stats.training;
+//     const total = stats.total;
+
+//     const maxValue =
+//         Math.max(
+//             gear,
+//             training,
+//             1
+//         );
+
+//     function formatMoney(value) {
+//         return new Intl.NumberFormat(
+//             'fr-FR',
+//             {
+//                 maximumFractionDigits: 0
+//             }
+//         ).format(value) + ' €';
+//     }
+
+//     function createBar(label, value, className) {
+
+//         const row =
+//             document.createElement('div');
+
+//         row.className =
+//             'spending-row';
+
+//         const header =
+//             document.createElement('div');
+
+//         header.className =
+//             'spending-row-header';
+
+//         const labelElement =
+//             document.createElement('span');
+
+//         labelElement.className =
+//             'spending-label';
+
+//         labelElement.textContent =
+//             label;
+
+//         const valueElement =
+//             document.createElement('span');
+
+//         valueElement.className =
+//             'spending-value';
+
+//         valueElement.innerHTML =
+//             `<span class="number">${formatMoney(value)}</span>`;
+
+//         header.appendChild(labelElement);
+//         header.appendChild(valueElement);
+
+//         const barBackground =
+//             document.createElement('div');
+
+//         barBackground.className =
+//             'spending-bar-background';
+
+//         const bar =
+//             document.createElement('div');
+
+//         bar.className =
+//             `spending-bar ${className}`;
+
+//         const width =
+//             value > 0
+//                 ? (value / maxValue) * 100
+//                 : 0;
+
+//         bar.style.width =
+//             `${width}%`;
+
+//         barBackground.appendChild(bar);
+
+//         row.appendChild(header);
+//         row.appendChild(barBackground);
+
+//         return row;
+//     }
+
+//     container.appendChild(
+//         createBar(
+//             'Gear & Accessories',
+//             gear,
+//             'spending-bar-gear'
+//         )
+//     );
+
+//     container.appendChild(
+//         createBar(
+//             'Training',
+//             training,
+//             'spending-bar-training'
+//         )
+//     );
+
+//     const totalElement =
+//         document.createElement('div');
+
+//     totalElement.className =
+//         'spending-total';
+
+//     totalElement.innerHTML = `
+//         <span class="spending-total-label">
+//             Total
+//         </span>
+
+//         <span class="spending-total-value">
+//             <span class="number">
+//                 ${formatMoney(total)}
+//             </span>
+//         </span>
+//     `;
+
+//     container.appendChild(
+//         totalElement
+//     );
+// }
 
 function createCharts(flightData) {
 
@@ -10092,11 +11348,12 @@ function createCharts(flightData) {
 
     createMonthChart(flightData);
 
-    // 💰 Spending chart
-    createSpendingChart(
-        gearData,
-        profileData
-    );
+// 💰 Spending chart
+createSpendingChart(
+    gearData,
+    profileData,
+    flightData          // ← add this
+);
 }
 
 
@@ -18436,6 +19693,8 @@ const ACCESS_BRANDS = [
     "x-dream",
     "dudek",
     "chouka",
+    "crt",
+    "skybean",
     "yaesu"
  
 ];
@@ -18450,6 +19709,7 @@ const brandImages = {
     'axis paragliding': 'axis_paragliding.png',
     'bainbridgeint': 'bainbridgeint.jpg',
     'companion': 'companion.jpg',
+    'crt': 'crt.jpg',
     'davinci': 'davinci.jpg',
     'digifly': 'digifly.jpg',
     'edelrid': 'edelrid.jpg',
@@ -18472,6 +19732,7 @@ const brandImages = {
     'savior': 'savior.jpg',
     'sky paragliders': 'sky_paragliders.jpg',
     'skywalk': 'skywalk.jpg',
+    'skybean': 'skybean.jpg',
     'stodeus': 'stodeus.jpg',
     'sup air': 'supair.png',
     'swing': 'swing.png',
@@ -19063,10 +20324,13 @@ ${lastCheckDate ? ` ${renderGliderCheckList(glider)} ` : ''}
         }
         if (gearData.accessories.length > 0) {
             
-            const accessoryElements =
-                gearData.accessories.map(accessory => {
-                    const brandImage = brandImages[accessory.brand.toLowerCase()];
-                    return `
+            const accessoryElements = gearData.accessories
+    .slice()
+    .sort((a, b) => new Date(b.dateBought) - new Date(a.dateBought))
+    .map(accessory => {
+        const brandImage = brandImages[accessory.brand.toLowerCase()];
+
+        return `
                         <div class="accessory-item">
         
                             <div class="accessory-main">
