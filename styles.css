@@ -5482,6 +5482,18 @@ input[type="date"] {
 
 }
 
+.brand-image.no {
+    display: flex;
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border-radius: 8px;
+    object-fit: contain;
+    box-shadow: none;
+    padding: 2px;
+
+}
+
 
 .preview-item-main {
     display: flex;
@@ -5815,6 +5827,49 @@ input[type="date"] {
     background: #777;
 }
 
+
+
+.check-conditions-excellent::before {
+    background: #7be189;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
+
+.check-conditions-good {
+    background: #cfefb9;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
+
+.check-conditions-fair {
+    background: #ffe187;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
+
+.check-conditions-poor {
+    background: #ffbf95;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
+
+.check-conditions-needs-repair {
+    background: #f3a6a6;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
+
+.check-conditions-default {
+    background: #777;
+    border-radius: 25px;
+    padding: 3px 7px;
+
+}
 
 
 .check-item-text {
@@ -9478,7 +9533,6 @@ input:checked ~ .view-label:last-of-type {
     padding: 10px 4px;
     border-radius: 8px;
     margin-top: 10px;
-    margin-bottom: 10px;
     /* border: 1px dashed #cdcdcd; */
 }
 .glider-check-list h4 {
@@ -9496,14 +9550,27 @@ input:checked ~ .view-label:last-of-type {
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 5px;
+    background-color: #f9f9f9;
+    justify-content: space-between;
+    padding: 5px 5px;
+    border-radius: 6px;
 }
-
+.accessory-brand-model {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 0px 8px rgba(0, 0, 0, 0.07);
+    padding: 5px;
+    border-radius: 8px;
+}
 .glider-check-row-data {
     align-items: center !important;
     display: flex;
 }
 
- .glider-check-row-data span::before {
+
+ .glider-check-row-data.date span::before {
     content: '';
     width: 4px;
     height: 4px;

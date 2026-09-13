@@ -3126,6 +3126,8 @@ function daysSinceDate(dateString) {
     
     return `${parts[0]} ${parts[1]} and ${parts[2]}`;
 }
+
+
 async function getStatsFromLastCheck(gear, type) {
     if (!gear.last_check) {
         return { hours: 0, flights: 0 };
@@ -9885,7 +9887,7 @@ function refreshreserveInModal() {
                     </div>
 
                     <!-- LAST CHECK -->
-                    <div class="field-group hori">
+                    <div class="field-group hori" style="display: none;>
                         <span>Date of last Check :</span>
                         <input
                             type="date"
@@ -10458,7 +10460,7 @@ function refreshHarnessesInModal() {
                 <span>Price Bought :</span>
                     <input type="text" class="harnessPriceBought" value="${harness.priceBought || ''}" placeholder="Price Bought...">
                 </div>
-                <div class="field-group hori">
+                <div class="field-group hori" style="display: none;>
                 <span>Date of last Check :</span>
                 <input type="date" class="harnessDatelastcheck" value="${harness.last_check || ''}" placeholder="Last Check...">
             </div>
@@ -10596,7 +10598,7 @@ function refreshGlidersInModal() {
                 <span>Price Bought :</span>
                     <input type="text" class="gliderPriceBought" value="${glider.priceBought || ''}" placeholder="Price Bought...">
                 </div>
-                <div class="field-group hori">
+                <div class="field-group hori" style="display: none;>
                 <span>Date of last Check :</span>
                     <input type="date" class="gliderDatelastcheck" value="${lastCheckDate}" placeholder="Last Check...">
                 </div>
@@ -16830,17 +16832,18 @@ function renderGliderCheckList(glider) {
                 checks.length
                 ? checks.map(check => `
                     <div class="glider-check-row">
-                    <div class="glider-check-row-data">
+                    <div class="glider-check-row-data date">
                         <span>${formatDate(check.date)}</span>
                     </div>
                     <div class="glider-check-row-data">
                         <span>${check.workshop || '—'}</span>
                     </div>
+
                     <div class="glider-check-row-data">
-                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
+                        <span><strong>${check.price || '—'}</strong></span>
                     </div>
-                    <div class="glider-check-row-data">
-                        <span>Cost: <strong>${check.price || '—'}</strong></span>
+                    <div class="glider-check-row-data conditions">
+                        <span class=" check-conditions-${getCheckConditionClass(check.condition)}"><strong>${check.condition || '—'}</strong></span>
                     </div>
                     </div>
                     
@@ -16882,17 +16885,18 @@ function renderHarnessCheckList(harness) {
                 checks.length
                 ? checks.map(check => `
                     <div class="glider-check-row">
-                    <div class="glider-check-row-data">
+                    <div class="glider-check-row-data date">
                         <span>${formatDate(check.date)}</span>
                     </div>
                     <div class="glider-check-row-data">
                         <span>${check.workshop || '—'}</span>
                     </div>
-                    <div class="glider-check-row-data">
-                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
-                    </div>
+                  
                     <div class="glider-check-row-data">
                         <span>Cost: <strong>${check.price || '—'}</strong></span>
+                    </div>
+                    <div class="glider-check-row-data conditions">
+                        <span class=" check-conditions-${getCheckConditionClass(check.condition)}"><strong>${check.condition || '—'}</strong></span>
                     </div>
                     </div>
                     
@@ -16933,17 +16937,18 @@ function renderReserveCheckList(reserve) {
                 checks.length
                 ? checks.map(check => `
                    <div class="glider-check-row">
-                    <div class="glider-check-row-data">
+                    <div class="glider-check-row-data date">
                         <span>${formatDate(check.date)}</span>
                     </div>
                     <div class="glider-check-row-data">
                         <span>${check.workshop || '—'}</span>
                     </div>
-                    <div class="glider-check-row-data">
-                        <span>Condition: <strong>${check.condition || '—'}</strong></span>
-                    </div>
+ 
                     <div class="glider-check-row-data">
                         <span>Cost: <strong>${check.price || '—'}</strong></span>
+                    </div>
+                     <div class="glider-check-row-data conditions">
+                        <span class=" check-conditions-${getCheckConditionClass(check.condition)}"><strong>${check.condition || '—'}</strong></span>
                     </div>
                     </div>
                 `).join('')
@@ -18092,6 +18097,7 @@ const ACCESS_BRANDS = [
     "woody valley",
     "x-dream",
     "dudek",
+    "chouka",
     "yaesu"
  
 ];
@@ -18129,7 +18135,7 @@ const brandImages = {
     'sky paragliders': 'sky_paragliders.jpg',
     'skywalk': 'skywalk.jpg',
     'stodeus': 'stodeus.jpg',
-    'sup air': 'sup_air.jpg',
+    'sup air': 'supair.png',
     'swing': 'swing.png',
     'syride': 'syride.jpg',
     'u-turn': 'u_turn.jpg',
@@ -18139,7 +18145,8 @@ const brandImages = {
     'woody valley': 'woody_valley.jpg',
     'x-dream': 'x_dream.jpg',
     'dudek': 'DUDEK.png',
-    'yaesu': 'yaesu.jpg'
+    'chouka': 'chouka.png',
+
 };
 
 
@@ -18655,8 +18662,7 @@ ${index === gearData.activeGliderIndex ? '<div class="active-check"></div>' : ''
  ? `
 <div class="since-check-stats">
     <div class="stat-item mini">
-        <span class="stat-value mini">${daysSinceDate(lastCheckDate
-        )}</span>
+        <span class="stat-value mini">${daysSinceDate(lastCheckDate)}</span>
         <span class="stat-label mini">Since check</span>
     </div>
 <div class="stat-item mini">
@@ -18718,10 +18724,10 @@ ${lastCheckDate ? ` ${renderGliderCheckList(glider)} ` : ''}
             gliderList.innerHTML = '<div class="preview-empty">No wings added</div>';
         }
         if (gearData.accessories.length > 0) {
-
+            
             const accessoryElements =
                 gearData.accessories.map(accessory => {
-        
+                    const brandImage = brandImages[accessory.brand.toLowerCase()];
                     return `
                         <div class="accessory-item">
         
@@ -18729,32 +18735,33 @@ ${lastCheckDate ? ` ${renderGliderCheckList(glider)} ` : ''}
         
                                 <div class="accessory-brand-model">
         
+<div class="accessory-brand-images">
+
+ ${brandImage ? `<img src="assets/brands/${brandImage}" alt="${accessory.brand}" class="brand-image no">` : ''}
+
+ </div>
 
 
-
+ <div class="brand-model-full">
                                     <div class="brand-model acc">
                                             ${accessory.brand} ${accessory.model}
                                         </div>
 
-
-                                </div>
-        
-                            </div>
-        
-        
-                            <div class="accessory-details">
-        <span class="purchase-date-acc">Bought: ${formatDate(accessory.dateBought)}  ${accessory.cost ? `<span class="purchase-price">- ${accessory.cost}</span>` : ''}</span>
-                               
-                                
-        
-        
-                                ${accessory.status ? `
+            <div class="accessory-details">
+                                    <span class="purchase-date-acc">Bought: ${formatDate(accessory.dateBought)}  ${accessory.cost ? `<span class="purchase-price">- ${accessory.cost}</span>` : ''}</span>
+                                                               ${accessory.status ? `
                                     <span class="accessory-status ${accessory.status}">
                                         ${accessory.status}
                                     </span>
                                 ` : ''}
 
-                               
+                               </div>
+                                </div>
+        </div>
+                            
+        
+        
+                            
         
                             </div>
         
