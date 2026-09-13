@@ -7713,6 +7713,7 @@ function createFlightTimeDistribution(flights) {
 }
 
 
+
 function createFlightDistanceDistribution(flights) {
 
     const container =
@@ -9738,35 +9739,366 @@ function createMonthChart(flightData) {
 
 }
 
+function getSpendingStats(gearData, profileData) {
 
+    const parsePrice = value => {
+
+        if (value === null || value === undefined || value === '') {
+            return 0;
+        }
+
+        // Accepte :
+        // 800
+        // "800"
+        // "800€"
+        // "800 €"
+        // "1 200€"
+        // "1.200,50 €"
+
+        let stringValue = String(value)
+            .trim()
+            .replace(/\s/g, '')
+            .replace(/€/g, '');
+
+        // Format européen : 1.200,50
+        if (
+            stringValue.includes('.') &&
+            stringValue.includes(',')
+        ) {
+            stringValue = stringValue
+                .replace(/\./g, '')
+                .replace(',', '.');
+        }
+        // Format : 1200,50
+        else if (stringValue.includes(',')) {
+            stringValue = stringValue.replace(',', '.');
+        }
+
+        // Garder uniquement nombres et point
+        stringValue =
+            stringValue.replace(/[^0-9.-]/g, '');
+
+        const number =
+            parseFloat(stringValue);
+
+        return isNaN(number) ? 0 : number;
+    };
+
+
+    // -----------------------------------------
+    // GEAR
+    // -----------------------------------------
+
+    const gliders =
+        gearData.gliders.reduce(
+            (total, glider) =>
+                total + parsePrice(glider.priceBought),
+            0
+        );
+
+
+    const harnesses =
+        gearData.harnesses.reduce(
+            (total, harness) =>
+                total + parsePrice(harness.priceBought),
+            0
+        );
+
+
+    const reserves =
+        gearData.reserve.reduce(
+            (total, reserve) =>
+                total + parsePrice(reserve.priceBought),
+            0
+        );
+
+
+    const accessories =
+        gearData.accessories.reduce(
+            (total, accessory) =>
+                total + parsePrice(accessory.cost),
+            0
+        );
+
+
+    // -----------------------------------------
+    // TRAINING
+    // -----------------------------------------
+
+    const training =
+        profileData.Courses.reduce(
+            (total, course) =>
+                total + parsePrice(course.cost),
+            0
+        );
+
+
+    // -----------------------------------------
+    // Totaux
+    // -----------------------------------------
+
+    const gear =
+        gliders +
+        harnesses +
+        reserves +
+        accessories;
+
+
+    const total =
+        gear + training;
+
+
+    return {
+
+        gear: gear,
+
+        training: training,
+
+        total: total,
+
+        details: {
+            gliders: gliders,
+            harnesses: harnesses,
+            reserves: reserves,
+            accessories: accessories
+        }
+
+    };
+
+}
+
+
+// function createCharts(flightData) {
+//     // Get the canvas elements
+//     const yearCanvas = document.getElementById('flightsPerYear');
+//     const monthCanvas = document.getElementById('flightsPerMonth');
+//     const timeDistCanvas = document.getElementById('flightTimeDistribution');
+//     const distanceDistCanvas = document.getElementById('flightDistanceDistribution');
+    
+//     // Destroy existing charts
+//     const existingYearChart = Chart.getChart(yearCanvas);
+//     if (existingYearChart) existingYearChart.destroy();
+    
+//     const existingMonthChart = Chart.getChart(monthCanvas);
+//     if (existingMonthChart) existingMonthChart.destroy();
+    
+//     const existingTimeDistChart = Chart.getChart(timeDistCanvas);
+//     if (existingTimeDistChart) existingTimeDistChart.destroy();
+    
+//     const existingDistanceDistChart = Chart.getChart(distanceDistCanvas);
+//     if (existingDistanceDistChart) existingDistanceDistChart.destroy();
+
+//     // Create new charts
+//     createSitesList(flightData);
+//     createYearChart(flightData);
+//     createFlightTimeDistribution(flightData);
+//     createFlightDistanceDistribution(flightData);
+//     createMonthChart(flightData);
+// }
+function createSpendingChart(gearData, profileData) {
+
+    const container =
+        document.getElementById('spendingChart');
+
+    if (!container) {
+        console.error('❌ #spendingChart introuvable');
+        return;
+    }
+
+    container.innerHTML = '';
+
+    const stats =
+        getSpendingStats(
+            gearData,
+            profileData
+        );
+
+    const gear = stats.gear;
+    const training = stats.training;
+    const total = stats.total;
+
+    const maxValue =
+        Math.max(
+            gear,
+            training,
+            1
+        );
+
+    function formatMoney(value) {
+        return new Intl.NumberFormat(
+            'fr-FR',
+            {
+                maximumFractionDigits: 0
+            }
+        ).format(value) + ' €';
+    }
+
+    function createBar(label, value, className) {
+
+        const row =
+            document.createElement('div');
+
+        row.className =
+            'spending-row';
+
+        const header =
+            document.createElement('div');
+
+        header.className =
+            'spending-row-header';
+
+        const labelElement =
+            document.createElement('span');
+
+        labelElement.className =
+            'spending-label';
+
+        labelElement.textContent =
+            label;
+
+        const valueElement =
+            document.createElement('span');
+
+        valueElement.className =
+            'spending-value';
+
+        valueElement.innerHTML =
+            `<span class="number">${formatMoney(value)}</span>`;
+
+        header.appendChild(labelElement);
+        header.appendChild(valueElement);
+
+        const barBackground =
+            document.createElement('div');
+
+        barBackground.className =
+            'spending-bar-background';
+
+        const bar =
+            document.createElement('div');
+
+        bar.className =
+            `spending-bar ${className}`;
+
+        const width =
+            value > 0
+                ? (value / maxValue) * 100
+                : 0;
+
+        bar.style.width =
+            `${width}%`;
+
+        barBackground.appendChild(bar);
+
+        row.appendChild(header);
+        row.appendChild(barBackground);
+
+        return row;
+    }
+
+    container.appendChild(
+        createBar(
+            'Gear & Accessories',
+            gear,
+            'spending-bar-gear'
+        )
+    );
+
+    container.appendChild(
+        createBar(
+            'Training',
+            training,
+            'spending-bar-training'
+        )
+    );
+
+    const totalElement =
+        document.createElement('div');
+
+    totalElement.className =
+        'spending-total';
+
+    totalElement.innerHTML = `
+        <span class="spending-total-label">
+            Total
+        </span>
+
+        <span class="spending-total-value">
+            <span class="number">
+                ${formatMoney(total)}
+            </span>
+        </span>
+    `;
+
+    container.appendChild(
+        totalElement
+    );
+}
 
 function createCharts(flightData) {
-    // Get the canvas elements
-    const yearCanvas = document.getElementById('flightsPerYear');
-    const monthCanvas = document.getElementById('flightsPerMonth');
-    const timeDistCanvas = document.getElementById('flightTimeDistribution');
-    const distanceDistCanvas = document.getElementById('flightDistanceDistribution');
-    
-    // Destroy existing charts
-    const existingYearChart = Chart.getChart(yearCanvas);
-    if (existingYearChart) existingYearChart.destroy();
-    
-    const existingMonthChart = Chart.getChart(monthCanvas);
-    if (existingMonthChart) existingMonthChart.destroy();
-    
-    const existingTimeDistChart = Chart.getChart(timeDistCanvas);
-    if (existingTimeDistChart) existingTimeDistChart.destroy();
-    
-    const existingDistanceDistChart = Chart.getChart(distanceDistCanvas);
-    if (existingDistanceDistChart) existingDistanceDistChart.destroy();
 
-    // Create new charts
+    const yearCanvas =
+        document.getElementById('flightsPerYear');
+
+    const monthCanvas =
+        document.getElementById('flightsPerMonth');
+
+    const timeDistCanvas =
+        document.getElementById('flightTimeDistribution');
+
+    const distanceDistCanvas =
+        document.getElementById('flightDistanceDistribution');
+
+
+    // Destroy existing charts
+
+    const existingYearChart =
+        Chart.getChart(yearCanvas);
+
+    if (existingYearChart)
+        existingYearChart.destroy();
+
+
+    const existingMonthChart =
+        Chart.getChart(monthCanvas);
+
+    if (existingMonthChart)
+        existingMonthChart.destroy();
+
+
+    const existingTimeDistChart =
+        Chart.getChart(timeDistCanvas);
+
+    if (existingTimeDistChart)
+        existingTimeDistChart.destroy();
+
+
+    const existingDistanceDistChart =
+        Chart.getChart(distanceDistCanvas);
+
+    if (existingDistanceDistChart)
+        existingDistanceDistChart.destroy();
+
+
+    // Create charts
+
     createSitesList(flightData);
+
     createYearChart(flightData);
+
     createFlightTimeDistribution(flightData);
+
     createFlightDistanceDistribution(flightData);
+
     createMonthChart(flightData);
+
+    // 💰 Spending chart
+    createSpendingChart(
+        gearData,
+        profileData
+    );
 }
+
 
 //FLAGS
 
@@ -16970,7 +17302,8 @@ function addCourses() {
         startDate: '',
         endDate: '',
         comments: '',
-        flights: 0
+        flights: 0,
+        cost: '',
     });
 
     loadCoursesToForm(); // Re-render all with new entry
@@ -17138,6 +17471,10 @@ function loadCoursesToForm() {
                 <div class="field-group">
                 <span>Comments :</span>
                     <textarea class="CoursesComments" placeholder="Add any comments here">${course.comments || ''}</textarea>
+                </div>
+                <div class="field-group hori">
+                <span>Cost :</span>
+                    <input type="text" class="CoursesCost" value="${course.cost || ''}" placeholder="Enter cost">
                 </div>
             </div>
             </div>
@@ -17698,6 +18035,7 @@ gearData.reserve = Array.from(reserveItems).map((item, index) => {
                 endDate: item.querySelector('.CoursesEndDate')?.value || '',
                 flights: parseInt(item.querySelector('.CoursesFlights')?.value) || 0,
                 comments: item.querySelector('.CoursesComments')?.value || '',
+                cost: item.querySelector('.CoursesCost')?.value || '',
               })),
               
             documents: Array.from(documentItems).map((item, index) => {
@@ -19017,6 +19355,7 @@ const harnessElements = await Promise.all(
                     ${(qual.startDate || qual.endDate) ? `<div><strong>Dates:</strong> ${formatDate(qual.startDate)} to ${formatDate(qual.endDate)}</div>` : ''}
                     ${qual.flights ? `<div><strong>Flights:</strong> ${qual.flights}</div>` : ''}
                     ${qual.comments ? `<div><strong>Comments:</strong> ${qual.comments}</div>` : ''}
+                    ${qual.cost ? `<div><strong>Cost:</strong> ${qual.cost}</div>` : ''}
                   </div>
                 </div>
               `).join('')

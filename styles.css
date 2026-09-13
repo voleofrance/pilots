@@ -10331,3 +10331,231 @@ input:checked ~ .view-label:last-of-type {
 .current-wing-ribbon span {
     display: block;
 }
+
+/* =========================================
+   SPENDING CHART
+========================================= */
+
+.spending-chart-container {
+    width: 100%;
+    padding: 4px 0;
+    border: 1px dashed #a5a5a5;
+    border-radius: 8px;
+}
+
+#spendingChart {
+    padding: 15px;
+
+}
+
+/* =========================================
+   ROW
+========================================= */
+
+.spending-row {
+    margin-bottom: 22px;
+    border-bottom: 1px solid #c5c5c5;
+    padding-bottom: 15px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.spending-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    margin-bottom: 9px;
+}
+
+
+.spending-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgb(16 16 16 / 62%);
+    margin-left: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+
+
+.spending-value {
+    font-size: 14px;
+    font-weight: 700;
+
+    color: rgba(255, 255, 255, 0.95);
+
+    letter-spacing: 0.1px;
+}
+
+
+/* =========================================
+   BAR BACKGROUND
+========================================= */
+
+.spending-bar-background {
+    position: relative;
+
+    width: 100%;
+    height: 13px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.055),
+            rgba(255, 255, 255, 0.09)
+        );
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+}
+
+
+/* =========================================
+   BAR
+========================================= */
+
+.spending-bar {
+    position: relative;
+
+    height: 100%;
+
+    min-width: 0;
+
+    border-radius: 20px;
+
+    transition:
+        width 0.7s cubic-bezier(.22, 1, .36, 1);
+
+    box-shadow:
+        0 2px 7px rgba(0, 0, 0, 0.18);
+}
+
+
+/* Petit reflet sur la barre */
+
+.spending-bar::after {
+    content: '';
+
+    position: absolute;
+
+    top: 1px;
+    left: 8px;
+    right: 8px;
+
+    height: 35%;
+
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.16);
+
+    opacity: 0.7;
+}
+
+
+/* =========================================
+   GEAR
+========================================= */
+
+.spending-bar-gear {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(117, 220, 135, 0.95),
+            rgba(145, 240, 158, 0.85)
+        );
+
+    box-shadow:
+        0 2px 8px rgba(125, 230, 145, 0.22);
+}
+
+
+/* =========================================
+   TRAINING
+========================================= */
+
+.spending-bar-training {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 205, 105, 0.95),
+            rgba(255, 225, 135, 0.88)
+        );
+
+    box-shadow:
+        0 2px 8px rgba(255, 215, 120, 0.20);
+}
+
+
+/* =========================================
+   TOTAL
+========================================= */
+
+.spending-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 25px;
+    padding-top: 16px;
+
+    border-top:
+        1px solid rgba(255, 255, 255, 0.10);
+}
+
+
+.spending-total-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+
+/* Petit point devant TOTAL */
+
+.spending-total-label::before {
+    content: '';
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.65);
+
+    box-shadow:
+        0 0 7px rgba(255, 255, 255, 0.25);
+}
+
+
+.spending-total-value {
+    font-size: 20px;
+    font-weight: 750;
+
+    color: #ffffff;
+
+    letter-spacing: -0.2px;
+}
+
+
+/* =========================================
+   NUMBER
+========================================= */
+
+.spending-chart-container .number {
+    font-variant-numeric: tabular-nums;
+}
+
