@@ -18750,6 +18750,10 @@ function loadCoursesToForm() {
                     <input type="text" class="CoursesName" value="${course.name || ''}" placeholder="Enter course name">
                 </div>
                 <div class="field-group hori">
+                <span>Year :</span>
+                    <input type="text" class="CoursesYear" value="${course.year || ''}" placeholder="Enter year">
+                </div>
+                <div class="field-group hori">
                 <span>School :</span>
                     <input type="text" class="Courseschool" value="${course.school || ''}" placeholder="Enter school name">
                 </div>
@@ -18773,6 +18777,7 @@ function loadCoursesToForm() {
                 <span>Cost :</span>
                     <input type="text" class="CoursesCost" value="${course.cost || ''}" placeholder="Enter cost">
                 </div>
+                
             </div>
             </div>
             <button type="button" class="secondary-button delete-button" onclick="deleteCourses(${index})">Delete</button>
@@ -19333,7 +19338,9 @@ gearData.reserve = Array.from(reserveItems).map((item, index) => {
                 flights: parseInt(item.querySelector('.CoursesFlights')?.value) || 0,
                 comments: item.querySelector('.CoursesComments')?.value || '',
                 cost: item.querySelector('.CoursesCost')?.value || '',
-              })),
+                year: item.querySelector('.CoursesYear')?.value || '',
+
+            })),
               
             documents: Array.from(documentItems).map((item, index) => {
                 const documentName = item.querySelector('.documentName').value;
@@ -20651,15 +20658,19 @@ const harnessElements = await Promise.all(
            
             CoursesList.innerHTML = (profileData.Courses && profileData.Courses.length > 0)
             ? profileData.Courses.map(qual => `
-                <div class="preview-item">
+                <div class="preview-item tra">
                   
                   <div class="preview-item-details2">
-                  <span class="course-title">${qual.name || 'Untitled'}</span>
-                    ${qual.school ? `<div><strong>School:</strong> ${qual.school}</div>` : ''}
+                  
+                  <span class="course-title">${qual.year ? `<div class='year-course'>${qual.year}</div>` : ''}${qual.name || 'Untitled'}</span>
+                  <div class="preview-item-details3"> 
+                  ${qual.school ? `<div><strong>School:</strong> ${qual.school}</div>` : ''}
                     ${(qual.startDate || qual.endDate) ? `<div><strong>Dates:</strong> ${formatDate(qual.startDate)} to ${formatDate(qual.endDate)}</div>` : ''}
                     ${qual.flights ? `<div><strong>Flights:</strong> ${qual.flights}</div>` : ''}
                     ${qual.comments ? `<div><strong>Comments:</strong> ${qual.comments}</div>` : ''}
                     ${qual.cost ? `<div><strong>Cost:</strong> ${qual.cost}</div>` : ''}
+                    
+                  </div>
                   </div>
                 </div>
               `).join('')

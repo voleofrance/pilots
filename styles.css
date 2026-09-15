@@ -1450,14 +1450,22 @@ cursor: pointer;
     box-shadow: 0 0px 6px rgba(0, 0, 0, 0.1);
 }
 .Courses-item-edit {
-    margin-bottom: 25px;
+    margin-bottom: 45px;
+    padding: 10px;
+    border: 1px dashed #dbdbdb;
+    border-radius: 8px;
 }
 .course-title {
     font-size: 16px;
-    margin-bottom: 5px;
+    margin-left: 8px;
     font-family: sans-serif;
     text-transform: uppercase;
     color: #e36767;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-weight: 600;
 
 }
 /* Headers inside field boxes */
@@ -5274,10 +5282,11 @@ input[type="date"] {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap; /* ✅ Allow items to wrap to a new line */
-    gap: 30px;
+    gap: 60px;
     flex-grow: 1;
     min-height: 40px;
     margin-bottom: 5px;
+    margin-top: 15px;
 }
 
 
@@ -5285,7 +5294,7 @@ input[type="date"] {
 @media (max-width: 768px) {
     .preview-list2 {
         flex-direction: column;  /* Change to column layout on mobile */
-        gap: 10px;  /* Reduce the gap for mobile screens */
+        gap: 40px;  /* Reduce the gap for mobile screens */
     }
 }
 
@@ -5349,6 +5358,22 @@ input[type="date"] {
         width: 100%;
 }
 
+.preview-item.tra {
+    display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        
+        /* background: #f8f9fa; */
+        border-radius: 6px;
+        font-size: 13px;
+        gap: 15px;
+        margin-top: 5px;
+        width: max-content;
+        margin-bottom: 5px;
+        width: 100%;
+        
+}       
+
 
 
 .preview-item.active {
@@ -5370,8 +5395,21 @@ input[type="date"] {
     display: flex;
     flex-direction: column;
     gap: 4px; /* smaller gap between lines */
+    min-width: 300px;
+    background-color: white;
+    width: 100%;
+  }
+  .preview-item-details3 {
+    color: var(--text-secondary);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* smaller gap between lines */
     padding: 14px;
     min-width: 300px;
+    border: 1px dashed #c3c3c3;
+    background: #fbfbfb;
+        border-radius: 6px;
   }
   
 
@@ -8379,7 +8417,11 @@ input[type="date"] {
     background: #2196f3;
     border-radius: 50%;
 }
-
+.year-course {
+    color: #616161;
+    font-size: 16px;
+    font-weight: 600;
+}
 .mini-day.multiple-flights::after {
     content: attr(data-flight-count);
     position: absolute;
